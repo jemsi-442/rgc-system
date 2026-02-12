@@ -1,0 +1,38 @@
+.pastors-page {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animated-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.animated-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+.pastor-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.pastor-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.pastor-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 32px rgba(0,0,0,0.14);
+}
+
+.fade-in-row {
+  animation: slideIn 0.34s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

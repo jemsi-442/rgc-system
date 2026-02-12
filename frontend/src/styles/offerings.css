@@ -1,0 +1,41 @@
+.offerings-page {
+  animation: fadeIn 0.45s ease-in-out;
+}
+
+.summary-card {
+  border-left: 5px solid #C79C2E;
+  transition: 0.2s ease;
+}
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+}
+
+.animated-card {
+  transition: 0.2s ease;
+}
+.animated-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.10);
+}
+
+.member-card {
+  transition: 0.2s ease;
+}
+.member-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 34px rgba(0,0,0,0.12);
+}
+
+.fade-in-row {
+  animation: slideIn 0.35s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -1,0 +1,32 @@
+.sidebar {
+  width: 220px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+.sidebar .nav-link {
+  color: #333;
+  padding: 12px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s, color 0.2s;
+}
+.sidebar .nav-link:hover {
+  background-color: #f0f0f0;
+  color: #000;
+}
+.sidebar .nav-link.active {
+  background-color: #007bff;
+  color: #fff;
+}
+.sidebar .nav-link.active:hover {
+  background-color: #0056b3;
+}
+.sidebar .nav-link .icon {
+  margin-right: 10px;
+}
+.sidebar .nav-link .badge {
+  float: right;
+  font-size: 0.75rem;
+}

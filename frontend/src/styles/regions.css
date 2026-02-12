@@ -1,0 +1,40 @@
+.regions-page {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animated-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.animated-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.region-table tbody tr {
+  transition: background-color 0.2s;
+}
+
+.region-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.fade-in-row {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0px);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}

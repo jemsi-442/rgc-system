@@ -1,0 +1,30 @@
+.users-page {
+  animation: fadeIn 0.45s ease-in-out;
+}
+
+.animated-card {
+  transition: 0.2s ease;
+}
+
+.animated-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+}
+
+.user-card {
+  transition: 0.25s ease;
+}
+
+.user-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.12);
+}
+
+.fade-in-row {
+  animation: slideIn 0.35s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
