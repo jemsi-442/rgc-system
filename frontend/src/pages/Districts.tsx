@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import api from "../services/apiAuth";
+import React, { useCallback, useEffect, useState } from "react";
+import api from "../services/api";
 import { Button, Card, Modal, Form, Table, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import "../styles/districts.css";
@@ -43,7 +43,7 @@ export default function Districts() {
   const loadRegions = async () => {
     try {
       const res = await api.get("/regions");
-      const data = res.data?.data ?? [];
+      const data = Array.isArray(res.data) ? res.data : [];
       setRegions(data);
     } catch (err) {
       toast.error("Could not load regions");
@@ -51,29 +51,28 @@ export default function Districts() {
   };
 
   // LOAD DISTRICTS
-  const loadDistricts = async () => {
+  const loadDistricts = useCallback(async () => {
     try {
       const url = filterRegionId
         ? `/districts?region_id=${filterRegionId}`
         : "/districts";
 
       const res = await api.get(url);
-      const data = res.data?.data ?? [];
+      const data = Array.isArray(res.data) ? res.data : [];
 
       setDistricts(data);
     } catch (err) {
       toast.error("Could not load districts");
     }
-  };
+  }, [filterRegionId]);
 
   useEffect(() => {
     loadRegions();
-    loadDistricts();
   }, []);
 
   useEffect(() => {
     loadDistricts();
-  }, [filterRegionId]);
+  }, [loadDistricts]);
 
   // OPEN ADD
   const openAdd = () => {

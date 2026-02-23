@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { PastorsAPI } from "../services/apiResources";
+import { ChurchesAPI, PastorsAPI } from "../services/apiResources";
 import "../styles/pastors.css";
+
+interface Church {
+  id: number;
+  name: string;
+}
 
 interface Pastor {
   id: number;
-  name: string;
+  full_name: string;
+  title?: string;
   email?: string;
   phone?: string;
-  church_id?: number;
+  church_id?: number | null;
 }
 
 const emptyPastor: Partial<Pastor> = {
-  name: "",
+  full_name: "",
+  title: "",
   email: "",
   phone: "",
+  church_id: null,
 };
 
 const Pastors: React.FC = () => {
   const [pastors, setPastors] = useState<Pastor[]>([]);
+  const [churches, setChurches] = useState<Church[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -28,16 +37,26 @@ const Pastors: React.FC = () => {
     try {
       setLoading(true);
       const res = await PastorsAPI.list();
-      setPastors(res.data);
-    } catch (err) {
+      setPastors(Array.isArray(res.data) ? res.data : []);
+    } catch {
       setError("Failed to load pastors");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchChurches = async () => {
+    try {
+      const res = await ChurchesAPI.list();
+      setChurches(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setChurches([]);
+    }
+  };
+
   useEffect(() => {
     fetchPastors();
+    fetchChurches();
   }, []);
 
   const openCreate = () => {
@@ -61,21 +80,27 @@ const Pastors: React.FC = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "church_id" ? (value === "" ? null : Number(value)) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       setLoading(true);
       if (editingPastor) {
-        await PastorsAPI.update(editingPastor.id, form);
+        await PastorsAPI.update(editingPastor.id, form as Record<string, unknown>);
       } else {
-        await PastorsAPI.create(form);
+        await PastorsAPI.create(form as Record<string, unknown>);
       }
       closeModal();
       fetchPastors();
-    } catch (err) {
+    } catch {
       alert("Failed to save pastor");
     } finally {
       setLoading(false);
@@ -87,7 +112,7 @@ const Pastors: React.FC = () => {
     try {
       await PastorsAPI.delete(id);
       fetchPastors();
-    } catch (err) {
+    } catch {
       alert("Failed to delete pastor");
     }
   };
@@ -108,27 +133,26 @@ const Pastors: React.FC = () => {
         <thead>
           <tr>
             <th>#</th>
-            <th>Name</th>
+            <th>Full Name</th>
+            <th>Title</th>
             <th>Email</th>
             <th>Phone</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {pastors.map((p, i) => (
-            <tr key={p.id}>
-              <td>{i + 1}</td>
-              <td>{p.name}</td>
-              <td>{p.email || "-"}</td>
-              <td>{p.phone || "-"}</td>
+          {pastors.map((pastor, index) => (
+            <tr key={pastor.id}>
+              <td>{index + 1}</td>
+              <td>{pastor.full_name}</td>
+              <td>{pastor.title || "-"}</td>
+              <td>{pastor.email || "-"}</td>
+              <td>{pastor.phone || "-"}</td>
               <td>
-                <button className="btn-edit" onClick={() => openEdit(p)}>
+                <button className="btn-edit" onClick={() => openEdit(pastor)}>
                   Edit
                 </button>
-                <button
-                  className="btn-danger"
-                  onClick={() => handleDelete(p.id)}
-                >
+                <button className="btn-danger" onClick={() => handleDelete(pastor.id)}>
                   Delete
                 </button>
               </td>
@@ -145,11 +169,19 @@ const Pastors: React.FC = () => {
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
-                name="name"
+                name="full_name"
                 placeholder="Full Name"
-                value={form.name || ""}
+                value={form.full_name || ""}
                 onChange={handleChange}
                 required
+              />
+
+              <input
+                type="text"
+                name="title"
+                placeholder="Title"
+                value={form.title || ""}
+                onChange={handleChange}
               />
 
               <input
@@ -168,15 +200,24 @@ const Pastors: React.FC = () => {
                 onChange={handleChange}
               />
 
+              <select
+                name="church_id"
+                value={form.church_id ?? ""}
+                onChange={handleChange}
+              >
+                <option value="">Assign Church (optional)</option>
+                {churches.map((church) => (
+                  <option key={church.id} value={church.id}>
+                    {church.name}
+                  </option>
+                ))}
+              </select>
+
               <div className="modal-actions">
                 <button type="submit" className="btn-primary">
                   {editingPastor ? "Update" : "Create"}
                 </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={closeModal}
-                >
+                <button type="button" className="btn-secondary" onClick={closeModal}>
                   Cancel
                 </button>
               </div>

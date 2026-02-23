@@ -11,11 +11,20 @@ interface User {
   church_id?: number;
 }
 
-const emptyUser: Partial<User> = {
+type UserForm = {
+  name: string;
+  email: string;
+  phone?: string;
+  role: string;
+  password?: string;
+};
+
+const emptyUser: UserForm = {
   name: "",
   email: "",
   phone: "",
-  role: "user",
+  role: "member",
+  password: "",
 };
 
 const Users: React.FC = () => {
@@ -24,14 +33,14 @@ const Users: React.FC = () => {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [form, setForm] = useState<Partial<User>>(emptyUser);
+  const [form, setForm] = useState<UserForm>(emptyUser);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const res = await UsersAPI.list();
-      setUsers(res.data);
-    } catch (err: any) {
+      setUsers(Array.isArray(res.data) ? res.data : []);
+    } catch {
       setError("Failed to load users");
     } finally {
       setLoading(false);
@@ -50,7 +59,13 @@ const Users: React.FC = () => {
 
   const openEdit = (user: User) => {
     setEditingUser(user);
-    setForm(user);
+    setForm({
+      name: user.name,
+      email: user.email,
+      phone: user.phone || "",
+      role: user.role,
+      password: "",
+    });
     setShowModal(true);
   };
 
@@ -61,21 +76,40 @@ const Users: React.FC = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       setLoading(true);
       if (editingUser) {
-        await UsersAPI.update(editingUser.id, form);
+        const payload: Record<string, unknown> = {
+          name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          role: form.role,
+        };
+
+        if (form.password) {
+          payload.password = form.password;
+        }
+
+        await UsersAPI.update(editingUser.id, payload);
       } else {
-        await UsersAPI.create(form);
+        await UsersAPI.create({
+          name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          role: form.role,
+          password: form.password,
+        });
       }
+
       closeModal();
       fetchUsers();
-    } catch (err) {
+    } catch {
       alert("Failed to save user");
     } finally {
       setLoading(false);
@@ -87,7 +121,7 @@ const Users: React.FC = () => {
     try {
       await UsersAPI.delete(id);
       fetchUsers();
-    } catch (err) {
+    } catch {
       alert("Failed to delete user");
     }
   };
@@ -116,18 +150,18 @@ const Users: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {users.map((u, i) => (
-            <tr key={u.id}>
-              <td>{i + 1}</td>
-              <td>{u.name}</td>
-              <td>{u.email}</td>
-              <td>{u.phone || "-"}</td>
-              <td>{u.role}</td>
+          {users.map((user, index) => (
+            <tr key={user.id}>
+              <td>{index + 1}</td>
+              <td>{user.name}</td>
+              <td>{user.email}</td>
+              <td>{user.phone || "-"}</td>
+              <td>{user.role}</td>
               <td>
-                <button className="btn-edit" onClick={() => openEdit(u)}>
+                <button className="btn-edit" onClick={() => openEdit(user)}>
                   Edit
                 </button>
-                <button className="btn-danger" onClick={() => handleDelete(u.id)}>
+                <button className="btn-danger" onClick={() => handleDelete(user.id)}>
                   Delete
                 </button>
               </td>
@@ -146,7 +180,7 @@ const Users: React.FC = () => {
                 type="text"
                 name="name"
                 placeholder="Name"
-                value={form.name || ""}
+                value={form.name}
                 onChange={handleChange}
                 required
               />
@@ -155,7 +189,7 @@ const Users: React.FC = () => {
                 type="email"
                 name="email"
                 placeholder="Email"
-                value={form.email || ""}
+                value={form.email}
                 onChange={handleChange}
                 required
               />
@@ -168,15 +202,29 @@ const Users: React.FC = () => {
                 onChange={handleChange}
               />
 
-              <select name="role" value={form.role || "user"} onChange={handleChange}>
+              <select name="role" value={form.role} onChange={handleChange}>
                 <option value="super_admin">Super Admin</option>
-                <option value="admin">Admin</option>
                 <option value="regional_admin">Regional Admin</option>
                 <option value="district_admin">District Admin</option>
+                <option value="branch_admin">Branch Admin</option>
+                <option value="bishop">Bishop</option>
                 <option value="pastor">Pastor</option>
+                <option value="assistant_pastor">Assistant Pastor</option>
                 <option value="accountant">Accountant</option>
-                <option value="user">User</option>
+                <option value="evangelist">Evangelist</option>
+                <option value="choir_leader">Choir Leader</option>
+                <option value="youth_leader">Youth Leader</option>
+                <option value="member">Member</option>
               </select>
+
+              <input
+                type="password"
+                name="password"
+                placeholder={editingUser ? "New Password (optional)" : "Password"}
+                value={form.password || ""}
+                onChange={handleChange}
+                required={!editingUser}
+              />
 
               <div className="modal-actions">
                 <button type="submit" className="btn-primary">

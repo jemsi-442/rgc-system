@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MemberController extends Controller
 {
@@ -107,5 +108,52 @@ class MemberController extends Controller
         $member->delete();
 
         return response()->json(['message' => 'Member deleted']);
+    }
+
+    public function bulkStore(Request $request)
+    {
+        $validated = $request->validate([
+            'members' => 'required|array|min:1',
+            'members.*.church_id' => 'nullable|exists:churches,id',
+            'members.*.first_name' => 'required|string',
+            'members.*.last_name' => 'required|string',
+            'members.*.dob' => 'nullable|date',
+            'members.*.phone' => 'nullable|string',
+            'members.*.email' => 'nullable|email',
+            'members.*.gender' => 'nullable|string',
+            'members.*.marital_status' => 'nullable|string',
+            'members.*.address' => 'nullable|string',
+            'members.*.notes' => 'nullable|string',
+        ]);
+
+        $rows = [];
+        $now = now();
+
+        foreach ($validated['members'] as $member) {
+            $rows[] = [
+                'church_id' => $member['church_id'] ?? null,
+                'first_name' => $member['first_name'],
+                'last_name' => $member['last_name'],
+                'dob' => $member['dob'] ?? null,
+                'phone' => $member['phone'] ?? null,
+                'email' => $member['email'] ?? null,
+                'gender' => $member['gender'] ?? null,
+                'marital_status' => $member['marital_status'] ?? null,
+                'address' => $member['address'] ?? null,
+                'notes' => $member['notes'] ?? null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::transaction(function () use ($rows) {
+            Member::insert($rows);
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'count' => count($rows),
+            'message' => 'Members imported successfully',
+        ], 201);
     }
 }

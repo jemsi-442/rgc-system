@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import apiResources from "../services/apiResources";
+import api from "../services/api";
 import { Button, Card, Modal, Form, Table, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import "../styles/churches.css";

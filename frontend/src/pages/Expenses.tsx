@@ -1,34 +1,37 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ExpensesAPI } from "../services/apiResources";
+import { ExpensesAPI, ChurchesAPI } from "../services/apiResources";
 import "../styles/expenses.css";
+
+interface Church {
+  id: number;
+  name: string;
+}
 
 interface Expense {
   id: number;
-  title: string;
+  church_id: number;
   amount: number;
-  category: string;
+  description: string;
   date: string;
-  description?: string;
+  church?: Church;
 }
 
 const emptyExpense: Partial<Expense> = {
-  title: "",
+  church_id: undefined,
   amount: 0,
-  category: "",
-  date: "",
   description: "",
+  date: "",
 };
 
 const Expenses: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [churches, setChurches] = useState<Church[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [form, setForm] = useState<Partial<Expense>>(emptyExpense);
 
-  // Filters
-  const [categoryFilter, setCategoryFilter] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -36,16 +39,26 @@ const Expenses: React.FC = () => {
     try {
       setLoading(true);
       const res = await ExpensesAPI.list();
-      setExpenses(res.data);
-    } catch (err) {
+      setExpenses(Array.isArray(res.data) ? res.data : []);
+    } catch {
       setError("Failed to load expenses");
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchChurches = async () => {
+    try {
+      const res = await ChurchesAPI.list();
+      setChurches(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setChurches([]);
+    }
+  };
+
   useEffect(() => {
     fetchExpenses();
+    fetchChurches();
   }, []);
 
   const openCreate = () => {
@@ -56,7 +69,12 @@ const Expenses: React.FC = () => {
 
   const openEdit = (expense: Expense) => {
     setEditingExpense(expense);
-    setForm(expense);
+    setForm({
+      church_id: expense.church_id,
+      amount: expense.amount,
+      description: expense.description,
+      date: expense.date,
+    });
     setShowModal(true);
   };
 
@@ -67,27 +85,29 @@ const Expenses: React.FC = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm({
-      ...form,
-      [name]: name === "amount" ? Number(value) : value,
-    });
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === "amount" || name === "church_id" ? Number(value) : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       setLoading(true);
       if (editingExpense) {
-        await ExpensesAPI.update(editingExpense.id, form);
+        await ExpensesAPI.update(editingExpense.id, form as Record<string, unknown>);
       } else {
-        await ExpensesAPI.create(form);
+        await ExpensesAPI.create(form as Record<string, unknown>);
       }
       closeModal();
       fetchExpenses();
-    } catch (err) {
+    } catch {
       alert("Failed to save expense");
     } finally {
       setLoading(false);
@@ -96,32 +116,27 @@ const Expenses: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Delete this expense?")) return;
+
     try {
       await ExpensesAPI.delete(id);
       fetchExpenses();
-    } catch (err) {
+    } catch {
       alert("Failed to delete expense");
     }
   };
 
   const filteredExpenses = useMemo(() => {
-    return expenses.filter((e) => {
-      const matchesCategory = categoryFilter
-        ? e.category === categoryFilter
-        : true;
-      const matchesFrom = fromDate ? e.date >= fromDate : true;
-      const matchesTo = toDate ? e.date <= toDate : true;
-      return matchesCategory && matchesFrom && matchesTo;
+    return expenses.filter((expense) => {
+      const matchesFrom = fromDate ? expense.date >= fromDate : true;
+      const matchesTo = toDate ? expense.date <= toDate : true;
+      return matchesFrom && matchesTo;
     });
-  }, [expenses, categoryFilter, fromDate, toDate]);
+  }, [expenses, fromDate, toDate]);
 
-  const totalAmount = useMemo(() => {
-    return filteredExpenses.reduce((sum, e) => sum + Number(e.amount), 0);
-  }, [filteredExpenses]);
-
-  const categories = useMemo(() => {
-    return Array.from(new Set(expenses.map((e) => e.category)));
-  }, [expenses]);
+  const totalAmount = useMemo(
+    () => filteredExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0),
+    [filteredExpenses]
+  );
 
   return (
     <div className="expenses-page">
@@ -132,31 +147,9 @@ const Expenses: React.FC = () => {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="filters">
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-        >
-          <option value="">All Categories</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-
-        <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-        />
-
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-        />
+        <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+        <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
       </div>
 
       <div className="total-box">
@@ -170,29 +163,26 @@ const Expenses: React.FC = () => {
         <thead>
           <tr>
             <th>#</th>
-            <th>Title</th>
-            <th>Category</th>
+            <th>Description</th>
+            <th>Church</th>
             <th>Amount</th>
             <th>Date</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {filteredExpenses.map((e, i) => (
-            <tr key={e.id}>
-              <td>{i + 1}</td>
-              <td>{e.title}</td>
-              <td>{e.category}</td>
-              <td>{e.amount.toLocaleString()}</td>
-              <td>{e.date}</td>
+          {filteredExpenses.map((expense, index) => (
+            <tr key={expense.id}>
+              <td>{index + 1}</td>
+              <td>{expense.description}</td>
+              <td>{expense.church?.name || "-"}</td>
+              <td>{expense.amount.toLocaleString()}</td>
+              <td>{expense.date}</td>
               <td>
-                <button className="btn-edit" onClick={() => openEdit(e)}>
+                <button className="btn-edit" onClick={() => openEdit(expense)}>
                   Edit
                 </button>
-                <button
-                  className="btn-danger"
-                  onClick={() => handleDelete(e.id)}
-                >
+                <button className="btn-danger" onClick={() => handleDelete(expense.id)}>
                   Delete
                 </button>
               </td>
@@ -201,30 +191,25 @@ const Expenses: React.FC = () => {
         </tbody>
       </table>
 
-      {/* Modal */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <h3>{editingExpense ? "Edit Expense" : "Create Expense"}</h3>
 
             <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="title"
-                placeholder="Title"
-                value={form.title || ""}
+              <select
+                name="church_id"
+                value={form.church_id || ""}
                 onChange={handleChange}
                 required
-              />
-
-              <input
-                type="text"
-                name="category"
-                placeholder="Category"
-                value={form.category || ""}
-                onChange={handleChange}
-                required
-              />
+              >
+                <option value="">Select Church</option>
+                {churches.map((church) => (
+                  <option key={church.id} value={church.id}>
+                    {church.name}
+                  </option>
+                ))}
+              </select>
 
               <input
                 type="number"
@@ -245,20 +230,17 @@ const Expenses: React.FC = () => {
 
               <textarea
                 name="description"
-                placeholder="Description (optional)"
+                placeholder="Description"
                 value={form.description || ""}
                 onChange={handleChange}
+                required
               />
 
               <div className="modal-actions">
                 <button type="submit" className="btn-primary">
                   {editingExpense ? "Update" : "Create"}
                 </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={closeModal}
-                >
+                <button type="button" className="btn-secondary" onClick={closeModal}>
                   Cancel
                 </button>
               </div>

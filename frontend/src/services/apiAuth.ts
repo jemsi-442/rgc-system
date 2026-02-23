@@ -5,6 +5,9 @@ export const registerUser = (data: {
   email: string;
   password: string;
   password_confirmation: string;
+  region_id: number;
+  district_id: number;
+  church_id: number;
 }) => api.post("/auth/register", data);
 
 export const loginUser = (data: { email: string; password: string }) =>

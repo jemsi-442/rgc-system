@@ -10,7 +10,7 @@ import {
   Table,
   Pagination,
 } from "react-bootstrap";
-import api from "../services/apiAuth";
+import api from "../services/api";
 import { toast } from "react-toastify";
 import Papa from "papaparse";
 import "../styles/members.css";
@@ -273,6 +273,7 @@ export default function Members() {
 
       <Card className="shadow-sm animated-card">
         <Card.Body>
+          {loading && <div className="text-muted mb-3">Loading members...</div>}
           {viewMode === "table" ? (
             <>
               <Table striped hover responsive className="member-table">

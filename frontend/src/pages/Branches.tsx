@@ -1,21 +1,16 @@
-import React, { useEffect, useState } from "react";
-import apiResources from "../services/apiResources";
-import {
-  Button,
-  Card,
-  Modal,
-  Form,
-  Table,
-  Row,
-  Col,
-  InputGroup,
-} from "react-bootstrap";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import api from "../services/api";
+import { Button, Card, Col, Form, InputGroup, Modal, Row, Table } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { AuthContext } from "../context/AuthContext";
 import "../styles/branches.css";
+
+type BranchType = "headquarters" | "regional" | "district" | "local";
 
 interface Region {
   id: number;
   name: string;
+  districts?: District[];
 }
 
 interface District {
@@ -24,79 +19,78 @@ interface District {
   region_id?: number;
 }
 
-interface Pastor {
-  id: number;
-  full_name: string;
-}
-
 interface Branch {
   id: number;
   name: string;
+  type: BranchType;
+  region_id?: number | null;
+  district_id?: number | null;
   address?: string;
   phone?: string;
-  district_id?: number | null;
-  pastor_id?: number | null;
+  email?: string;
   status?: "active" | "inactive";
   district?: District | null;
-  pastor?: Pastor | null;
+}
+
+interface UserOption {
+  id: number;
+  name: string;
+  role?: string;
 }
 
 export default function Branches() {
+  const authContext = useContext(AuthContext);
+
+  const canCreate = authContext?.hasRole("super_admin") ?? false;
+  const canDelete = authContext?.hasRole("super_admin") ?? false;
+  const canEdit = authContext?.hasRole("super_admin", "regional_admin", "district_admin", "branch_admin", "admin") ?? false;
+
   const [branches, setBranches] = useState<Branch[]>([]);
   const [regions, setRegions] = useState<Region[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
-  const [pastors, setPastors] = useState<Pastor[]>([]);
+  const [branchAdmins, setBranchAdmins] = useState<UserOption[]>([]);
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // form fields
   const [name, setName] = useState("");
+  const [type, setType] = useState<BranchType>("local");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [regionId, setRegionId] = useState<number | "">("");
   const [districtId, setDistrictId] = useState<number | "">("");
-  const [pastorId, setPastorId] = useState<number | "">("");
+  const [assignedBranchAdminId, setAssignedBranchAdminId] = useState<number | "">("");
   const [status, setStatus] = useState<"active" | "inactive">("active");
 
-  // UI controls
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"table" | "cards">("cards");
 
-  // load initial data
   const loadRegions = async () => {
     try {
-      const res = await api.get("/regions");
-      setRegions(res.data || []);
+      const res = await api.get("/regions/hierarchy");
+      setRegions(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error("Failed to load regions");
     }
   };
 
-  const loadDistricts = async (rId?: number | "") => {
-    try {
-      const url = rId ? `/districts?region_id=${rId}` : "/districts";
-      const res = await api.get(url);
-      setDistricts(res.data || []);
-    } catch {
-      toast.error("Failed to load districts");
-    }
-  };
+  const loadBranchAdmins = async () => {
+    if (!canCreate) return;
 
-  const loadPastors = async () => {
     try {
-      const res = await api.get("/pastors");
-      setPastors(res.data || []);
+      const res = await api.get("/users");
+      const users = Array.isArray(res.data) ? res.data : [];
+      setBranchAdmins(users.filter((u: UserOption) => !u.role || ["branch_admin", "member", "user"].includes(u.role)));
     } catch {
-      // Not critical; show info in UI
-      // toast.error("Failed to load pastors");
+      toast.error("Failed to load users");
     }
   };
 
   const loadBranches = async () => {
     try {
       const res = await api.get("/churches");
-      setBranches(res.data || []);
+      setBranches(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error("Failed to load branches");
     }
@@ -104,60 +98,83 @@ export default function Branches() {
 
   useEffect(() => {
     loadRegions();
-    loadDistricts();
-    loadPastors();
     loadBranches();
-    // eslint-disable-next-line
-  }, []);
+    loadBranchAdmins();
+  }, [canCreate]);
 
-  // when region changes, reload districts for that region
   useEffect(() => {
-    if (regionId === "") {
-      loadDistricts();
-    } else {
-      loadDistricts(regionId as number);
+    if (!regionId) {
+      setDistricts([]);
+      setDistrictId("");
+      return;
     }
-  }, [regionId]);
 
-  // open add modal
+    const selectedRegion = regions.find((region) => region.id === regionId);
+    setDistricts(selectedRegion?.districts || []);
+
+    if (districtId && !(selectedRegion?.districts || []).some((district) => district.id === districtId)) {
+      setDistrictId("");
+    }
+  }, [districtId, regionId, regions]);
+
   const openAdd = () => {
     setEditingId(null);
     setName("");
+    setType("local");
     setAddress("");
     setPhone("");
+    setEmail("");
     setRegionId("");
     setDistrictId("");
-    setPastorId("");
+    setAssignedBranchAdminId("");
     setStatus("active");
     setShowModal(true);
   };
 
-  // open edit modal and populate fields
-  const openEdit = (b: Branch) => {
-    setEditingId(b.id);
-    setName(b.name || "");
-    setAddress(b.address || "");
-    setPhone(b.phone || "");
-    setRegionId(b.district?.region_id ?? ""); // may be undefined; district likely has region_id
-    setDistrictId(b.district_id ?? "");
-    setPastorId(b.pastor_id ?? "");
-    setStatus(b.status ?? "active");
+  const openEdit = (branch: Branch) => {
+    setEditingId(branch.id);
+    setName(branch.name || "");
+    setType(branch.type || "local");
+    setAddress(branch.address || "");
+    setPhone(branch.phone || "");
+    setEmail(branch.email || "");
+    setRegionId(branch.region_id ?? branch.district?.region_id ?? "");
+    setDistrictId(branch.district_id ?? "");
+    setAssignedBranchAdminId("");
+    setStatus(branch.status ?? "active");
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (name.trim().length === 0) return toast.error("Branch name is required");
+    if (!canEdit) {
+      toast.error("Unauthorized action");
+      return;
+    }
+
+    if (!name.trim()) return toast.error("Branch name is required");
+    if (!regionId) return toast.error("Select region");
     if (!districtId) return toast.error("Select district");
 
+    if (!canCreate && editingId === null) {
+      toast.error("Only Super Admin can create branches");
+      return;
+    }
+
     try {
-      const payload = {
-        name,
-        address,
-        phone,
+      const payload: Record<string, unknown> = {
+        name: name.trim(),
+        type,
+        address: address.trim() || null,
+        phone: phone.trim() || null,
+        email: email.trim() || null,
+        region_id: regionId,
         district_id: districtId,
-        pastor_id: pastorId || null,
         status,
       };
+
+      if (canCreate && assignedBranchAdminId) {
+        payload.assigned_branch_admin_id = assignedBranchAdminId;
+      }
 
       if (editingId === null) {
         await api.post("/churches", payload);
@@ -169,13 +186,19 @@ export default function Branches() {
 
       setShowModal(false);
       loadBranches();
-    } catch (err) {
+    } catch {
       toast.error("Error saving branch");
     }
   };
 
   const handleDelete = async (id: number) => {
+    if (!canDelete) {
+      toast.error("Only Super Admin can delete branches");
+      return;
+    }
+
     if (!window.confirm("Delete this branch?")) return;
+
     try {
       await api.delete(`/churches/${id}`);
       toast.success("Branch deleted");
@@ -185,36 +208,36 @@ export default function Branches() {
     }
   };
 
-  // search & filtered results
-  const filtered = branches.filter((b) => {
-    const q = search.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      b.name?.toLowerCase().includes(q) ||
-      (b.address || "").toLowerCase().includes(q) ||
-      (b.district?.name || "").toLowerCase().includes(q) ||
-      (b.pastor?.full_name || "").toLowerCase().includes(q)
-    );
-  });
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return branches;
+
+    return branches.filter((branch) => {
+      return (
+        branch.name?.toLowerCase().includes(query) ||
+        (branch.address || "").toLowerCase().includes(query) ||
+        (branch.district?.name || "").toLowerCase().includes(query) ||
+        (branch.type || "").toLowerCase().includes(query)
+      );
+    });
+  }, [branches, search]);
 
   return (
     <div className="container mt-4 branches-page">
       <Row className="align-items-center mb-3">
         <Col>
-          <h3 className="fw-bold">Branches (Churches)</h3>
-          <div className="text-muted">Manage all church branches across the country</div>
+          <h3 className="fw-bold">Branches</h3>
+          <div className="text-muted">Super Admin creates branches with Region and District selection.</div>
         </Col>
 
         <Col className="text-end">
           <InputGroup className="d-inline-flex me-2" style={{ width: 320 }}>
             <Form.Control
-              placeholder="Search branches, address, district, pastor..."
+              placeholder="Search branches, address, district, type..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <Button variant="outline-secondary" onClick={() => setSearch("")}>
-              Clear
-            </Button>
+            <Button variant="outline-secondary" onClick={() => setSearch("")}>Clear</Button>
           </InputGroup>
 
           <Button
@@ -226,15 +249,17 @@ export default function Branches() {
           </Button>
           <Button
             variant={viewMode === "table" ? "secondary" : "outline-secondary"}
-            onClick={() => setViewMode("table")}
             className="me-2"
+            onClick={() => setViewMode("table")}
           >
             Table
           </Button>
 
-          <Button variant="primary" onClick={openAdd}>
-            + Add Branch
-          </Button>
+          {canCreate && (
+            <Button variant="primary" onClick={openAdd}>
+              + Add Branch
+            </Button>
+          )}
         </Col>
       </Row>
 
@@ -246,42 +271,44 @@ export default function Branches() {
                 <tr>
                   <th>#</th>
                   <th>Name</th>
+                  <th>Type</th>
                   <th>District</th>
-                  <th>Pastor</th>
                   <th>Phone</th>
                   <th>Status</th>
-                  <th style={{ width: 160 }}>Actions</th>
+                  {canEdit && <th style={{ width: 160 }}>Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="text-center text-muted py-4">
-                      No branches found.
-                    </td>
+                    <td colSpan={canEdit ? 7 : 6} className="text-center text-muted py-4">No branches found.</td>
                   </tr>
                 )}
 
-                {filtered.map((b, idx) => (
-                  <tr className="fade-in-row" key={b.id}>
+                {filtered.map((branch, idx) => (
+                  <tr className="fade-in-row" key={branch.id}>
                     <td>{idx + 1}</td>
-                    <td>{b.name}</td>
-                    <td>{b.district?.name ?? "—"}</td>
-                    <td>{b.pastor?.full_name ?? "—"}</td>
-                    <td>{b.phone ?? "—"}</td>
+                    <td>{branch.name}</td>
+                    <td className="text-capitalize">{branch.type}</td>
+                    <td>{branch.district?.name ?? "-"}</td>
+                    <td>{branch.phone ?? "-"}</td>
                     <td>
-                      <span className={`badge ${b.status === "active" ? "bg-success" : "bg-secondary"}`}>
-                        {b.status}
+                      <span className={`badge ${branch.status === "active" ? "bg-success" : "bg-secondary"}`}>
+                        {branch.status}
                       </span>
                     </td>
-                    <td>
-                      <Button size="sm" variant="warning" className="me-2" onClick={() => openEdit(b)}>
-                        Edit
-                      </Button>
-                      <Button size="sm" variant="danger" onClick={() => handleDelete(b.id)}>
-                        Delete
-                      </Button>
-                    </td>
+                    {canEdit && (
+                      <td>
+                        <Button size="sm" variant="warning" className="me-2" onClick={() => openEdit(branch)}>
+                          Edit
+                        </Button>
+                        {canDelete && (
+                          <Button size="sm" variant="danger" onClick={() => handleDelete(branch.id)}>
+                            Delete
+                          </Button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -294,36 +321,40 @@ export default function Branches() {
                 </Col>
               )}
 
-              {filtered.map((b) => (
-                <Col key={b.id}>
+              {filtered.map((branch) => (
+                <Col key={branch.id}>
                   <Card className="branch-card">
                     <Card.Body>
                       <div className="d-flex justify-content-between">
                         <div>
-                          <h5 className="mb-1">{b.name}</h5>
-                          <div className="text-muted small">{b.district?.name ?? "—"}</div>
+                          <h5 className="mb-1">{branch.name}</h5>
+                          <div className="text-muted small">{branch.district?.name ?? "-"}</div>
                         </div>
                         <div>
-                          <span className={`badge ${b.status === "active" ? "bg-success" : "bg-secondary"}`}>
-                            {b.status}
+                          <span className={`badge ${branch.status === "active" ? "bg-success" : "bg-secondary"}`}>
+                            {branch.status}
                           </span>
                         </div>
                       </div>
 
                       <div className="mt-3">
-                        <div><strong>Pastor:</strong> {b.pastor?.full_name ?? "—"}</div>
-                        <div className="text-muted"><strong>Phone:</strong> {b.phone ?? "—"}</div>
-                        <div className="text-muted small mt-2">{b.address ?? ""}</div>
+                        <div className="text-capitalize"><strong>Type:</strong> {branch.type}</div>
+                        <div className="text-muted"><strong>Phone:</strong> {branch.phone ?? "-"}</div>
+                        <div className="text-muted small mt-2">{branch.address ?? ""}</div>
                       </div>
 
-                      <div className="mt-3 d-flex justify-content-end">
-                        <Button size="sm" variant="warning" className="me-2" onClick={() => openEdit(b)}>
-                          Edit
-                        </Button>
-                        <Button size="sm" variant="danger" onClick={() => handleDelete(b.id)}>
-                          Delete
-                        </Button>
-                      </div>
+                      {canEdit && (
+                        <div className="mt-3 d-flex justify-content-end">
+                          <Button size="sm" variant="warning" className="me-2" onClick={() => openEdit(branch)}>
+                            Edit
+                          </Button>
+                          {canDelete && (
+                            <Button size="sm" variant="danger" onClick={() => handleDelete(branch.id)}>
+                              Delete
+                            </Button>
+                          )}
+                        </div>
+                      )}
                     </Card.Body>
                   </Card>
                 </Col>
@@ -333,7 +364,6 @@ export default function Branches() {
         </Card.Body>
       </Card>
 
-      {/* Modal */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>{editingId ? "Edit Branch" : "Add Branch"}</Modal.Title>
@@ -357,6 +387,11 @@ export default function Branches() {
                   <Form.Label>Phone</Form.Label>
                   <Form.Control value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+2557..." />
                 </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="branch@example.org" />
+                </Form.Group>
               </Col>
 
               <Col md={4}>
@@ -364,30 +399,54 @@ export default function Branches() {
                   <Form.Label>Region</Form.Label>
                   <Form.Select value={regionId} onChange={(e) => setRegionId(e.target.value === "" ? "" : Number(e.target.value))}>
                     <option value="">Select region</option>
-                    {regions.map((r) => (<option key={r.id} value={r.id}>{r.name}</option>))}
+                    {regions.map((region) => (
+                      <option key={region.id} value={region.id}>{region.name}</option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label>District</Form.Label>
-                  <Form.Select value={districtId} onChange={(e) => setDistrictId(e.target.value === "" ? "" : Number(e.target.value))}>
+                  <Form.Select
+                    value={districtId}
+                    onChange={(e) => setDistrictId(e.target.value === "" ? "" : Number(e.target.value))}
+                    disabled={!regionId}
+                  >
                     <option value="">Select district</option>
-                    {districts.map((d) => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>{district.name}</option>
+                    ))}
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Pastor</Form.Label>
-                  <Form.Select value={pastorId} onChange={(e) => setPastorId(e.target.value === "" ? "" : Number(e.target.value))}>
-                    <option value="">Select pastor (optional)</option>
-                    {pastors.length === 0 && <option disabled>— No pastors available —</option>}
-                    {pastors.map((p) => (<option key={p.id} value={p.id}>{p.full_name}</option>))}
+                  <Form.Label>Branch Type</Form.Label>
+                  <Form.Select value={type} onChange={(e) => setType(e.target.value as BranchType)}>
+                    <option value="headquarters">Headquarters</option>
+                    <option value="regional">Regional</option>
+                    <option value="district">District</option>
+                    <option value="local">Local</option>
                   </Form.Select>
                 </Form.Group>
+
+                {canCreate && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Assigned Branch Admin (optional)</Form.Label>
+                    <Form.Select
+                      value={assignedBranchAdminId}
+                      onChange={(e) => setAssignedBranchAdminId(e.target.value === "" ? "" : Number(e.target.value))}
+                    >
+                      <option value="">Select user</option>
+                      {branchAdmins.map((user) => (
+                        <option key={user.id} value={user.id}>{user.name}</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                )}
 
                 <Form.Group className="mb-3">
                   <Form.Label>Status</Form.Label>
-                  <Form.Select value={status} onChange={(e) => setStatus(e.target.value as "active" | "inactive")}>
+                  <Form.Select value={status} onChange={(e) => setStatus(e.target.value as "active" | "inactive")}> 
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                   </Form.Select>

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../services/apiAuth";
+import { logoutUser as apiLogoutUser } from "../services/apiAuth";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Logout() {
@@ -14,7 +14,7 @@ export default function Logout() {
       setLoading(true);
       setError("");
       try {
-        await api.post("/logout"); // call backend logout
+        await apiLogoutUser();
       } catch (err: any) {
         console.error(err);
         setError("Error logging out. Please try again.");

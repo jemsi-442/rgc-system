@@ -10,14 +10,14 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        $user = auth()->user();
+        $user = $request->user();
 
         if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['message' => 'Unauthorized'], 401);
         }
 
-        if (!in_array($user->role, $roles)) {
-            return response()->json(['error' => 'Forbidden'], 403);
+        if (!$user->hasAnyRoleOrLegacy($roles)) {
+            return response()->json(['message' => 'Forbidden'], 403);
         }
 
         return $next($request);

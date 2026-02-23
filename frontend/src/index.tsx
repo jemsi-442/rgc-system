@@ -1,39 +1,45 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useContext } from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-toastify/dist/ReactToastify.css";
 import "./index.css";
 
-// Context (default export)
 import AuthProvider from "./context/AuthContext";
-
+import { AuthContext } from "./context/AuthContext";
 import { ToastContainer } from "react-toastify";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Loader from "./components/Loader";
 
-// Lazy Loaded Pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Offerings = lazy(() => import("./pages/Offerings"));
 const Members = lazy(() => import("./pages/Members"));
 const Branches = lazy(() => import("./pages/Branches"));
-const Churches = lazy(() => import("./pages/Churches"));
-const Districts = lazy(() => import("./pages/Districts"));
 const Expenses = lazy(() => import("./pages/Expenses"));
 const Pastors = lazy(() => import("./pages/Pastors"));
-const Regions = lazy(() => import("./pages/Regions"));
 const Users = lazy(() => import("./pages/Users"));
 const Login = lazy(() => import("./pages/LoginRegister"));
+const Home = lazy(() => import("./pages/Home"));
+const Attendance = lazy(() => import("./pages/Attendance"));
+const Logout = lazy(() => import("./pages/Logout"));
+const SlideManager = lazy(() => import("./pages/SlideManager"));
+const Profile = lazy(() => import("./pages/Profile"));
+const BranchChat = lazy(() => import("./pages/BranchChat"));
 
-/* ----------------------- Protected Route ----------------------- */
 const ProtectedRoute = () => {
   const token = localStorage.getItem("token");
   return token ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
-/* ----------------------- App Layout ----------------------- */
+const RoleRoute = ({ roles }: { roles: string[] }) => {
+  const authContext = useContext(AuthContext);
+  const allowed = authContext?.hasRole(...roles) ?? false;
+
+  return allowed ? <Outlet /> : <Navigate to="/dashboard" replace />;
+};
+
 const AppLayout = () => (
   <div className="d-flex">
     <Sidebar />
@@ -46,15 +52,19 @@ const AppLayout = () => (
   </div>
 );
 
-/* ----------------------- Error Boundary ----------------------- */
-class ErrorBoundary extends React.Component<any, { hasError: boolean }> {
-  constructor(props: any) {
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
+
   static getDerivedStateFromError() {
     return { hasError: true };
   }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -64,13 +74,13 @@ class ErrorBoundary extends React.Component<any, { hasError: boolean }> {
         </div>
       );
     }
+
     return this.props.children;
   }
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
-/* ----------------------- Render ----------------------- */
 root.render(
   <React.StrictMode>
     <AuthProvider>
@@ -78,27 +88,37 @@ root.render(
         <ErrorBoundary>
           <Suspense fallback={<Loader />}>
             <Routes>
-              {/* Public */}
+              <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Login />} />
 
-              {/* Protected */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/offerings" element={<Offerings />} />
-                  <Route path="/members" element={<Members />} />
-                  <Route path="/branches" element={<Branches />} />
-                  <Route path="/churches" element={<Churches />} />
-                  <Route path="/districts" element={<Districts />} />
-                  <Route path="/regions" element={<Regions />} />
-                  <Route path="/pastors" element={<Pastors />} />
-                  <Route path="/expenses" element={<Expenses />} />
-                  <Route path="/users" element={<Users />} />
+                  <Route element={<RoleRoute roles={["super_admin", "regional_admin", "district_admin", "branch_admin", "member", "admin", "user"]} />}>
+                    <Route path="/offerings" element={<Offerings />} />
+                    <Route path="/expenses" element={<Expenses />} />
+                    <Route path="/attendance" element={<Attendance />} />
+                    <Route path="/chat" element={<BranchChat />} />
+                  </Route>
+
+                  <Route element={<RoleRoute roles={["super_admin", "regional_admin", "district_admin", "branch_admin", "admin"]} />}>
+                    <Route path="/members" element={<Members />} />
+                    <Route path="/branches" element={<Branches />} />
+                    <Route path="/pastors" element={<Pastors />} />
+                  </Route>
+
+                  <Route element={<RoleRoute roles={["super_admin"]} />}>
+                    <Route path="/slides" element={<SlideManager />} />
+                    <Route path="/users" element={<Users />} />
+                  </Route>
+
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/logout" element={<Logout />} />
                 </Route>
               </Route>
 
-        context      {/* Catch All */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
 

@@ -9,8 +9,7 @@ return [
     */
 
     'defaults' => [
-        // IMPORTANT: JWT API DEFAULT
-        'guard' => 'api',
+        'guard' => 'web',
         'passwords' => 'users',
     ],
 
@@ -27,8 +26,8 @@ return [
             'provider' => 'users',
         ],
 
-        'api' => [
-            'driver' => 'jwt',
+        'sanctum' => [
+            'driver' => 'sanctum',
             'provider' => 'users',
         ],
     ],

@@ -2,98 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDistrictRequest;
+use App\Http\Requests\UpdateDistrictRequest;
 use App\Models\District;
+use App\Services\ActivityLogService;
+use App\Services\RegionService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DistrictController extends Controller
 {
-    // GET /api/districts
-    public function index()
+    public function __construct(
+        private readonly RegionService $regionService,
+        private readonly ActivityLogService $activityLogService,
+    ) {
+    }
+
+    public function index(Request $request): JsonResponse
     {
+        $districts = District::with('region:id,name')
+            ->when($request->region_id, fn ($query, $regionId) => $query->where('region_id', $regionId))
+            ->orderBy('name')
+            ->get();
+
         return response()->json([
             'status' => 'success',
-            'data' => District::with('region')->orderBy('name')->get()
+            'data' => $districts,
         ]);
     }
 
-    // POST /api/districts
-    public function store(Request $request)
+    public function store(StoreDistrictRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'region_id' => 'required|exists:regions,id',
-            'name' => 'required|string',
-            'code' => 'nullable|string'
-        ]);
-
-        $district = District::create($validated);
+        $district = District::create($request->validated());
+        $this->regionService->clearCache();
+        $this->activityLogService->log($request, 'district.created', District::class, $district->id, $district->toArray());
 
         return response()->json([
             'status' => 'success',
-            'data' => $district
+            'data' => $district,
         ], 201);
     }
 
-    // GET /api/districts/{id}
-    public function show($id)
+    public function show(District $district): JsonResponse
     {
-        $district = District::with('region')->find($id);
-
-        if (!$district) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'District not found'
-            ], 404);
-        }
-
         return response()->json([
             'status' => 'success',
-            'data' => $district
+            'data' => $district->load('region:id,name'),
         ]);
     }
 
-    // PUT /api/districts/{id}
-    public function update(Request $request, $id)
+    public function update(UpdateDistrictRequest $request, District $district): JsonResponse
     {
-        $district = District::find($id);
-
-        if (!$district) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'District not found'
-            ], 404);
-        }
-
-        $validated = $request->validate([
-            'region_id' => 'required|exists:regions,id',
-            'name' => 'required|string',
-            'code' => 'nullable|string'
-        ]);
-
-        $district->update($validated);
+        $district->update($request->validated());
+        $this->regionService->clearCache();
+        $this->activityLogService->log($request, 'district.updated', District::class, $district->id, $district->toArray());
 
         return response()->json([
             'status' => 'success',
-            'data' => $district
+            'data' => $district,
         ]);
     }
 
-    // DELETE /api/districts/{id}
-    public function destroy($id)
+    public function destroy(Request $request, District $district): JsonResponse
     {
-        $district = District::find($id);
-
-        if (!$district) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'District not found'
-            ], 404);
-        }
-
         $district->delete();
+        $this->regionService->clearCache();
+        $this->activityLogService->log($request, 'district.deleted', District::class, $district->id);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'District deleted'
+            'message' => 'District deleted',
         ]);
     }
 }

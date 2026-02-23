@@ -6,33 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
- public function up(): void
-{
-    Schema::create('users', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
-        $table->string('email')->unique();
-        $table->string('password');
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->string('phone')->nullable();
+            $table->string('role')->default('user');
+            $table->unsignedBigInteger('church_id')->nullable()->index();
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
 
-        // Extra fields
-        $table->string('phone')->nullable();
-        $table->string('role')->default('user'); 
-        // roles: super_admin, admin, regional_admin, district_admin, pastor, accountant, user
-
-        $table->unsignedBigInteger('church_id')->nullable();
-        $table->foreign('church_id')->references('id')->on('churches')->onDelete('set null');
-
-        $table->rememberToken();
-        $table->timestamps();
-    });
-}
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

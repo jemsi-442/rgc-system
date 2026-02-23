@@ -3,78 +3,107 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
-    // REGISTER
-    public function register(Request $request)
+    public function register(Request $request): JsonResponse
     {
-        $request->validate([
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6'
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:30',
+            'region_id' => 'required|exists:regions,id',
+            'district_id' => [
+                'required',
+                Rule::exists('districts', 'id')->where(
+                    fn ($query) => $query->where('region_id', $request->input('region_id'))
+                ),
+            ],
+            'church_id' => [
+                'required',
+                Rule::exists('churches', 'id')->where(
+                    fn ($query) => $query
+                        ->where('district_id', $request->input('district_id'))
+                        ->where('status', 'active')
+                ),
+            ],
         ]);
 
         $user = User::create([
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => 'member',
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'phone' => $validated['phone'] ?? null,
+            'role' => 'member',
+            'region_id' => $validated['region_id'],
+            'district_id' => $validated['district_id'],
+            'branch_id' => $validated['church_id'],
+            'church_id' => $validated['church_id'],
+            'status' => 'active',
         ]);
 
-        $token = auth('api')->login($user);
+        if (method_exists($user, 'syncRoles')) {
+            $user->syncRoles([$user->role]);
+        }
+
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'status' => 'success',
-            'user'   => $user,
-            'token'  => $token,
-            'type'   => 'bearer'
+            'user' => $user->load(['roles', 'church.district.region']),
+            'token' => $token,
+            'type' => 'Bearer',
         ], 201);
     }
 
-    // LOGIN
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
-        $credentials = $request->only('email', 'password');
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (!Auth::attempt($validated)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid email or password'
+                'message' => 'Invalid email or password',
             ], 401);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'user'   => auth('api')->user(),
-            'token'  => $token,
-            'type'   => 'bearer'
-        ]);
-    }
-
-    // PROFILE
-    public function profile()
-    {
-        return response()->json(auth('api')->user());
-    }
-
-    // LOGOUT
-    public function logout()
-    {
-        auth('api')->logout();
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $user->tokens()->delete();
+        $token = $user->createToken('api-token')->plainTextToken;
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Logged out successfully'
+            'user' => $user->load(['roles', 'church.district.region']),
+            'token' => $token,
+            'type' => 'Bearer',
         ]);
     }
 
-    // REFRESH TOKEN
-    public function refresh()
+    public function profile(Request $request): JsonResponse
     {
         return response()->json([
-            'token' => auth('api')->refresh(),
-            'type'  => 'bearer'
+            'status' => 'success',
+            'user' => $request->user()?->load(['roles', 'church.district.region']),
+        ]);
+    }
+
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()?->currentAccessToken()?->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Logged out successfully',
         ]);
     }
 }

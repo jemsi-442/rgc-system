@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../services/apiAuth";
+import api from "../services/api";
 import { Button, Card, Modal, Form, Table, Spinner } from "react-bootstrap";
 import { toast } from "react-toastify";
 import "../styles/regions.css";
@@ -37,8 +37,8 @@ export default function Regions() {
       setLoading(true);
       const res = await api.get("/regions");
 
-      if (Array.isArray(res.data?.data)) {
-        setRegions(res.data.data);
+      if (Array.isArray(res.data)) {
+        setRegions(res.data);
       } else {
         toast.error("Invalid data format received");
       }

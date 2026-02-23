@@ -41,7 +41,7 @@ class AttendanceController extends Controller
             ($validated['youth'] ?? 0) +
             ($validated['children'] ?? 0);
 
-        $validated['recorded_by'] = auth()->id();
+        $validated['recorded_by'] = $request->user()->id;
 
         $att = Attendance::create($validated);
 
@@ -62,7 +62,7 @@ class AttendanceController extends Controller
             'records.*.notes' => 'nullable|string',
         ]);
 
-        $userId = auth()->id();
+        $userId = $request->user()->id;
         $data = [];
 
         foreach ($validated['records'] as $rec) {
@@ -149,5 +149,31 @@ class AttendanceController extends Controller
         $att->delete();
 
         return response()->json(['message' => 'Deleted']);
+    }
+
+    public function summary(Request $request)
+    {
+        $validated = $request->validate([
+            'from' => 'nullable|date',
+            'to' => 'nullable|date|after_or_equal:from',
+            'church_id' => 'nullable|exists:churches,id',
+        ]);
+
+        $query = Attendance::query()
+            ->when($validated['church_id'] ?? null, fn ($q, $churchId) => $q->where('church_id', $churchId))
+            ->when($validated['from'] ?? null, fn ($q, $from) => $q->whereDate('date', '>=', $from))
+            ->when($validated['to'] ?? null, fn ($q, $to) => $q->whereDate('date', '<=', $to));
+
+        $totalAdults = (clone $query)->sum('men') + (clone $query)->sum('women');
+        $totalYouth = (clone $query)->sum('youth');
+        $totalChildren = (clone $query)->sum('children');
+        $grandTotal = (clone $query)->sum('total');
+
+        return response()->json([
+            'total_adults' => (int) $totalAdults,
+            'total_youth' => (int) $totalYouth,
+            'total_children' => (int) $totalChildren,
+            'grand_total' => (int) $grandTotal,
+        ]);
     }
 }
