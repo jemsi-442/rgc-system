@@ -25,6 +25,21 @@ class AuthApiTest extends TestCase
             ]);
     }
 
+    public function test_api_login_error_message_is_localized_to_kiswahili_when_requested(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $this->withHeader('Accept-Language', 'sw')
+            ->postJson('/api/auth/login', [
+                'email' => 'superadmin@rgc.or.tz',
+                'password' => 'wrong-password',
+            ])
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'Taarifa za kuingia si sahihi.',
+            ]);
+    }
+
     public function test_api_login_returns_a_bearer_token_and_persists_its_hash(): void
     {
         $this->seed(DatabaseSeeder::class);
@@ -72,6 +87,16 @@ class AuthApiTest extends TestCase
             ]);
     }
 
+    public function test_api_missing_token_message_is_localized_to_kiswahili_when_requested(): void
+    {
+        $this->withHeader('Accept-Language', 'sw')
+            ->getJson('/api/me')
+            ->assertStatus(401)
+            ->assertJson([
+                'message' => 'Hujaruhusiwa. Bearer token haipo.',
+            ]);
+    }
+
     public function test_api_logout_revokes_the_token_and_blocks_further_access(): void
     {
         $this->seed(DatabaseSeeder::class);
@@ -100,6 +125,28 @@ class AuthApiTest extends TestCase
             ->assertStatus(401)
             ->assertJson([
                 'message' => 'Unauthorized. Invalid token.',
+            ]);
+    }
+
+    public function test_api_logout_message_uses_the_authenticated_user_locale(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $user->forceFill(['locale' => 'sw'])->save();
+
+        $login = $this->postJson('/api/auth/login', [
+            'email' => 'superadmin@rgc.or.tz',
+            'password' => 'ChangeMe123!',
+        ]);
+
+        $token = $login->json('access_token');
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/auth/logout')
+            ->assertOk()
+            ->assertJson([
+                'message' => 'Umetoka.',
             ]);
     }
 }

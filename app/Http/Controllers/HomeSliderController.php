@@ -38,7 +38,7 @@ class HomeSliderController extends Controller
             'sort_order' => (int) HomeSlider::query()->max('sort_order') + 1,
         ]);
 
-        return redirect()->route('sliders.index')->with('status', 'Slider added.');
+        return redirect()->route('sliders.index')->with('status', __('Slider added.'));
     }
 
     public function destroy(HomeSlider $slider)
@@ -46,6 +46,6 @@ class HomeSliderController extends Controller
         Storage::disk('public')->delete($slider->image_path);
         $slider->delete();
 
-        return back()->with('status', 'Slider removed.');
+        return back()->with('status', __('Slider removed.'));
     }
 }

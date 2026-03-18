@@ -188,6 +188,49 @@ class UpdateDeletePermissionTest extends TestCase
         ]);
     }
 
+    public function test_super_admin_can_update_and_delete_a_global_announcement(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $announcement = Announcement::query()->create([
+            'title' => 'National Notice',
+            'body' => 'Initial national body.',
+            'region_id' => null,
+            'district_id' => null,
+            'church_id' => null,
+            'created_by' => $superAdmin->id,
+            'is_global' => true,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->put(route('announcements.update', $announcement), [
+                'title' => 'National Notice Updated',
+                'body' => 'Updated national body.',
+                'is_pinned' => '1',
+            ])
+            ->assertRedirect(route('announcements.index'));
+
+        $this->assertDatabaseHas('announcements', [
+            'id' => $announcement->id,
+            'title' => 'National Notice Updated',
+            'body' => 'Updated national body.',
+            'is_global' => true,
+            'is_pinned' => true,
+        ]);
+
+        $announcement->refresh();
+        $this->assertNotNull($announcement->pinned_at);
+
+        $this->actingAs($superAdmin)
+            ->delete(route('announcements.destroy', $announcement))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('announcements', [
+            'id' => $announcement->id,
+        ]);
+    }
+
     private function apiAs(User $user)
     {
         $rawToken = 'token-for-user-' . $user->id;

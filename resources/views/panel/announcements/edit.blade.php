@@ -1,11 +1,21 @@
 @extends('layouts.app')
+
+@section('title', __('Edit Announcement') . ' - RGC')
+
 @section('content')
-<div class="card-rgc max-w-2xl">
-    <h1 class="text-xl font-semibold">Edit Announcement</h1>
-    <form class="mt-3 grid gap-3" method="POST" action="{{ route('announcements.update',$announcement) }}">@csrf @method('PUT')
-        <input class="rounded border px-3 py-2" name="title" value="{{ $announcement->title }}" required>
-        <textarea class="rounded border px-3 py-2" name="body" rows="5" required>{{ $announcement->body }}</textarea>
-        <button class="btn-rgc" type="submit">Save</button>
+<section class="page-banner">
+    <div class="page-banner-content">
+        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
+        <h1 class="mt-5">{{ __('Edit Announcement') }}</h1>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Update the announcement details, refresh the image if needed, or remove the visual and keep the message only.') }}</p>
+    </div>
+</section>
+
+<section class="card-rgc mt-8 max-w-4xl">
+    <form method="POST" action="{{ route('announcements.update', $announcement) }}" enctype="multipart/form-data">
+        @csrf
+        @method('PUT')
+        @include('panel.announcements._form', ['submitLabel' => __('Save')])
     </form>
-</div>
+</section>
 @endsection

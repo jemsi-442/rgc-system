@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $stats = $this->buildStats($user, $branchId);
         $announcements = $this->buildAnnouncements($user, $branchId);
         $scope = $this->buildScope($user, $branchId);
-        $roleLabel = str($user->normalizedRoleName() ?? 'member')->replace('_', ' ')->title()->toString();
+        $roleLabel = __(str($user->normalizedRoleName() ?? 'member')->replace('_', ' ')->title()->toString());
 
         return view('panel.dashboard', compact('stats', 'announcements', 'scope', 'roleLabel'));
     }
@@ -85,22 +85,11 @@ class DashboardController extends Controller
 
     private function buildAnnouncements(User $user, ?int $branchId)
     {
-        $query = Announcement::query()->with('creator')->latest();
-
-        if ($user->hasSystemRole('super_admin')) {
-            return $query->paginate(10);
-        }
-
-        if ($user->hasSystemRole('regional_admin')) {
-            return $query->where('region_id', $user->region_id)->paginate(10);
-        }
-
-        if ($user->hasSystemRole('district_admin')) {
-            return $query->where('district_id', $user->district_id)->paginate(10);
-        }
-
-        return $query
-            ->when($branchId, fn ($builder) => $builder->where('church_id', $branchId))
+        return Announcement::query()
+            ->with(['creator', 'region', 'district', 'branch'])
+            ->visibleTo($user)
+            ->dashboardVisible()
+            ->orderedForDisplay()
             ->paginate(10);
     }
 
@@ -135,8 +124,10 @@ class DashboardController extends Controller
 
         if ($user->hasSystemRole('member')) {
             return Announcement::query()
-                ->where('church_id', $branchId)
-                ->latest()
+                ->with(['creator', 'region', 'district', 'branch'])
+                ->visibleTo($user)
+                ->dashboardVisible()
+                ->orderedForDisplay()
                 ->limit(20)
                 ->get();
         }

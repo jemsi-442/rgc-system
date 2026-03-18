@@ -34,7 +34,7 @@ class ExpenseController extends Controller
             'description' => $description,
         ]);
 
-        return redirect()->route('expenses.index')->with('status', 'Expense recorded.');
+        return redirect()->route('expenses.index')->with('status', __('Expense recorded.'));
     }
 
     public function edit(Expense $expense)
@@ -56,7 +56,7 @@ class ExpenseController extends Controller
             'description' => $description,
         ]);
 
-        return redirect()->route('expenses.index')->with('status', 'Expense updated.');
+        return redirect()->route('expenses.index')->with('status', __('Expense updated.'));
     }
 
     public function destroy(Expense $expense)
@@ -64,6 +64,6 @@ class ExpenseController extends Controller
         $this->authorize('delete', $expense);
         $expense->delete();
 
-        return back()->with('status', 'Expense deleted.');
+        return back()->with('status', __('Expense deleted.'));
     }
 }

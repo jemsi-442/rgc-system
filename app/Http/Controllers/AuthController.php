@@ -26,10 +26,14 @@ class AuthController extends Controller
         ]);
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
-            return back()->withErrors(['email' => 'Invalid login credentials.'])->onlyInput('email');
+            return back()->withErrors(['email' => __('Invalid login credentials.')])->onlyInput('email');
         }
 
         $request->session()->regenerate();
+
+        $locale = $this->resolveSupportedLocale(Auth::user()?->locale, $request->session()->get('locale'));
+        $request->session()->put('locale', $locale);
+        app()->setLocale($locale);
 
         return redirect()->intended(route('dashboard'));
     }
@@ -46,6 +50,7 @@ class AuthController extends Controller
     public function register(RegisterUserRequest $request)
     {
         $branchId = $request->integer('branch_id');
+        $locale = $this->resolveSupportedLocale($request->session()->get('locale'), app()->getLocale());
 
         $user = User::query()->create([
             'name' => $request->string('name')->toString(),
@@ -53,6 +58,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->string('password')->toString()),
             'role' => 'member',
             'status' => 'active',
+            'locale' => $locale,
             'region_id' => $request->integer('region_id'),
             'district_id' => $request->integer('district_id'),
             'branch_id' => $branchId,
@@ -63,6 +69,8 @@ class AuthController extends Controller
 
         Auth::login($user);
         $request->session()->regenerate();
+        $request->session()->put('locale', $locale);
+        app()->setLocale($locale);
 
         return redirect()->route('dashboard');
     }
@@ -74,5 +82,18 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
+    }
+
+    private function resolveSupportedLocale(?string ...$candidates): string
+    {
+        $supported = config('app.supported_locales', ['en', 'sw']);
+
+        foreach ($candidates as $candidate) {
+            if ($candidate && in_array($candidate, $supported, true)) {
+                return $candidate;
+            }
+        }
+
+        return config('app.locale', 'sw');
     }
 }

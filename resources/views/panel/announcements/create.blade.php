@@ -1,11 +1,20 @@
 @extends('layouts.app')
+
+@section('title', __('New Announcement') . ' - RGC')
+
 @section('content')
-<div class="card-rgc max-w-2xl">
-    <h1 class="text-xl font-semibold">New Announcement</h1>
-    <form class="mt-3 grid gap-3" method="POST" action="{{ route('announcements.store') }}">@csrf
-        <input class="rounded border px-3 py-2" name="title" placeholder="Title" required>
-        <textarea class="rounded border px-3 py-2" name="body" rows="5" placeholder="Body" required></textarea>
-        <button class="btn-rgc" type="submit">Publish</button>
+<section class="page-banner">
+    <div class="page-banner-content">
+        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
+        <h1 class="mt-5">{{ __('New Announcement') }}</h1>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Send an official update with text, image support, and governance-aware delivery.') }}</p>
+    </div>
+</section>
+
+<section class="card-rgc mt-8 max-w-4xl">
+    <form method="POST" action="{{ route('announcements.store') }}" enctype="multipart/form-data">
+        @csrf
+        @include('panel.announcements._form', ['submitLabel' => __('Publish')])
     </form>
-</div>
+</section>
 @endsection

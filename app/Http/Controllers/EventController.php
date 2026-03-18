@@ -38,7 +38,7 @@ class EventController extends Controller
             'created_by' => $user->id,
         ]);
 
-        return redirect()->route('events.index')->with('status', 'Event created.');
+        return redirect()->route('events.index')->with('status', __('Event created.'));
     }
 
     public function edit(Event $event)
@@ -53,7 +53,7 @@ class EventController extends Controller
         $this->authorize('update', $event);
         $event->update($request->validated());
 
-        return redirect()->route('events.index')->with('status', 'Event updated.');
+        return redirect()->route('events.index')->with('status', __('Event updated.'));
     }
 
     public function destroy(Event $event)
@@ -61,6 +61,6 @@ class EventController extends Controller
         $this->authorize('delete', $event);
         $event->delete();
 
-        return back()->with('status', 'Event deleted.');
+        return back()->with('status', __('Event deleted.'));
     }
 }

@@ -45,7 +45,7 @@ class BranchController extends Controller
             'status' => 'active',
         ]);
 
-        return redirect()->route('branches.index')->with('status', 'Branch created successfully.');
+        return redirect()->route('branches.index')->with('status', __('Branch created successfully.'));
     }
 
     public function edit(Branch $branch)
@@ -71,7 +71,7 @@ class BranchController extends Controller
             'district_id' => $request->integer('district_id'),
         ]);
 
-        return redirect()->route('branches.index')->with('status', 'Branch updated successfully.');
+        return redirect()->route('branches.index')->with('status', __('Branch updated successfully.'));
     }
 
     public function destroy(Branch $branch)
@@ -79,6 +79,6 @@ class BranchController extends Controller
         $this->authorize('delete', $branch);
         $branch->delete();
 
-        return redirect()->route('branches.index')->with('status', 'Branch removed.');
+        return redirect()->route('branches.index')->with('status', __('Branch removed.'));
     }
 }

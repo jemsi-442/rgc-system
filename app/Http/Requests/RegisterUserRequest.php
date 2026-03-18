@@ -33,11 +33,11 @@ class RegisterUserRequest extends FormRequest
             $branch = Branch::query()->find($this->integer('branch_id'));
 
             if (! $district || (int) $district->region_id !== $this->integer('region_id')) {
-                $validator->errors()->add('district_id', 'Selected district does not belong to the selected region.');
+                $validator->errors()->add('district_id', __('Selected district does not belong to the selected region.'));
             }
 
             if (! $branch || (int) $branch->district_id !== $this->integer('district_id')) {
-                $validator->errors()->add('branch_id', 'Selected branch does not belong to the selected district.');
+                $validator->errors()->add('branch_id', __('Selected branch does not belong to the selected district.'));
             }
         });
     }

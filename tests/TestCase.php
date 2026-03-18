@@ -16,4 +16,13 @@ abstract class TestCase extends BaseTestCase
             self::markTestSkipped('Feature tests require the pdo_sqlite extension or a non-SQLite testing database configuration.');
         }
     }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['app.locale' => 'en']);
+        app()->setLocale('en');
+        session(['locale' => 'en']);
+    }
 }

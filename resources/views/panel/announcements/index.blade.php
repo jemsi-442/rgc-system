@@ -1,21 +1,119 @@
 @extends('layouts.app')
-@section('title', 'Announcements - RGC')
+
+@section('title', __('Announcements') . ' - RGC')
+
 @section('content')
-<div class="card-rgc">
-    <div class="flex items-center justify-between">
-        <h1 class="text-xl font-semibold">Announcements</h1>
-        @can('create', App\Models\Announcement::class)
-            <a class="btn-rgc" href="{{ route('announcements.create') }}">New</a>
-        @endcan
+<section class="page-banner">
+    <div class="page-banner-content">
+        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
+        <h1 class="mt-5">{{ __('Announcements') }}</h1>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official communication across national, regional, district, and branch governance scope.') }}</p>
     </div>
-    <ul class="mt-3 space-y-3">
-        @foreach($announcements as $a)
-            <li class="rounded border p-3">
-                <p class="font-semibold">{{ $a->title }}</p>
-                <p class="text-sm">{{ $a->body }}</p>
-            </li>
-        @endforeach
-    </ul>
-    <div class="mt-3">{{ $announcements->links() }}</div>
-</div>
+</section>
+
+<section class="card-rgc mt-8">
+    <div class="announcement-toolbar">
+        <div>
+            <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your scope') : __('Recent activity across your scope') }}</h2>
+            <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have expired and were archived automatically. They stay available here for reference.') : __('Global announcements from Super Admin appear here together with notices inside your approved governance area.') }}</p>
+        </div>
+        <div class="announcement-toolbar-actions">
+            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</a>
+            @can('create', App\Models\Announcement::class)
+                <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.create') }}">{{ __('New Announcement') }}</a>
+            @endcan
+        </div>
+    </div>
+
+    <div class="announcement-grid mt-8">
+        @forelse($announcements as $announcement)
+            <article class="announcement-card {{ $announcement->hasPin() ? 'is-pinned' : '' }}">
+                @if($announcement->hasImage())
+                    <button
+                        class="announcement-media announcement-media-button"
+                        type="button"
+                        data-announcement-lightbox-trigger
+                        data-image-src="{{ route('announcements.image', $announcement) }}"
+                        data-image-alt="{{ $announcement->title }}"
+                        data-image-title="{{ $announcement->title }}"
+                    >
+                        <img src="{{ route('announcements.image', $announcement) }}" alt="{{ $announcement->title }}">
+                        <span class="announcement-media-caption">{{ __('View full image') }}</span>
+                    </button>
+                @endif
+
+                <div class="announcement-card-body">
+                    <div class="announcement-card-meta">
+                        <div class="announcement-meta-badges">
+                            <span class="announcement-audience {{ $announcement->is_global ? 'is-global' : '' }}">{{ $announcement->audienceLabel() }}</span>
+                            @if($announcement->hasPin())
+                                <span class="announcement-pin-chip">{{ __('Pinned') }}</span>
+                            @endif
+                            @if($announcement->isArchived())
+                                <span class="announcement-archived-chip">{{ __('Archived') }}</span>
+                            @endif
+                        </div>
+                        <div class="announcement-meta-trail">
+                            @if($announcement->hasExpiry())
+                                <span class="announcement-expiry-chip {{ $announcement->isExpired() ? 'is-expired' : '' }}">
+                                    {{ $announcement->isExpired() ? __('Expired') : __('Expires :date', ['date' => $announcement->expires_at->translatedFormat('d M Y')]) }}
+                                </span>
+                            @endif
+                            <span>{{ optional($announcement->created_at)->diffForHumans() }}</span>
+                        </div>
+                    </div>
+
+                    <div class="announcement-card-heading">
+                        <div>
+                            <h3><a href="{{ route('announcements.show', $announcement) }}">{{ $announcement->title }}</a></h3>
+                            <p>{{ $announcement->creator?->name ?? __('System') }}</p>
+                        </div>
+                        @if($announcement->region || $announcement->district || $announcement->branch)
+                            <div class="announcement-scope-stack">
+                                @if($announcement->region)
+                                    <span>{{ $announcement->region->name }}</span>
+                                @endif
+                                @if($announcement->district)
+                                    <span>{{ $announcement->district->name }}</span>
+                                @endif
+                                @if($announcement->branch)
+                                    <span>{{ $announcement->branch->name }}</span>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+
+                    @if(filled($announcement->body))
+                        <p class="announcement-card-copy">{{ $announcement->body }}</p>
+                    @endif
+
+                    <div class="announcement-actions">
+                        <a class="btn-rgc-alt" href="{{ route('announcements.show', $announcement) }}">{{ __('Open details') }}</a>
+                        @canany(['update', 'delete'], $announcement)
+                            @can('update', $announcement)
+                                <a class="btn-rgc-alt" href="{{ route('announcements.edit', $announcement) }}">{{ __('Edit') }}</a>
+                            @endcan
+                            @can('delete', $announcement)
+                                <form method="POST" action="{{ route('announcements.destroy', $announcement) }}" onsubmit="return confirm('{{ __('Delete this announcement?') }}')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="announcement-delete" type="submit">{{ __('Delete') }}</button>
+                                </form>
+                            @endcan
+                        @endcanany
+                    </div>
+                </div>
+            </article>
+        @empty
+            <article class="announcement-empty-state">
+                <strong>{{ __('No announcements available in your scope yet.') }}</strong>
+                <p>{{ __('When leaders publish new updates, they will appear here with their image, delivery scope, and details.') }}</p>
+            </article>
+        @endforelse
+    </div>
+
+    <div class="mt-8">{{ $announcements->links() }}</div>
+</section>
+
+@include('panel.announcements._lightbox')
 @endsection

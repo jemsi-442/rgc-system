@@ -28,7 +28,7 @@ class StoreBranchRequest extends FormRequest
             $district = District::query()->find($this->integer('district_id'));
 
             if (! $district || (int) $district->region_id !== $this->integer('region_id')) {
-                $validator->errors()->add('district_id', 'District must belong to selected region.');
+                $validator->errors()->add('district_id', __('District must belong to selected region.'));
             }
         });
     }

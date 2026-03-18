@@ -38,11 +38,11 @@ class UpdateUserRequest extends FormRequest
             $branch = Branch::query()->find($this->integer('branch_id'));
 
             if (! $district || (int) $district->region_id !== $this->integer('region_id')) {
-                $validator->errors()->add('district_id', 'District must belong to selected region.');
+                $validator->errors()->add('district_id', __('District must belong to selected region.'));
             }
 
             if (! $branch || (int) $branch->district_id !== $this->integer('district_id')) {
-                $validator->errors()->add('branch_id', 'Branch must belong to selected district.');
+                $validator->errors()->add('branch_id', __('Branch must belong to selected district.'));
             }
         });
     }

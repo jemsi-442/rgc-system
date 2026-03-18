@@ -80,6 +80,60 @@ class DashboardScopeTest extends TestCase
             ->assertDontSee($outsideBranch->name);
     }
 
+
+    public function test_expired_announcement_is_archived_by_command_and_removed_from_dashboard(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $darRegion, $temekeDistrict, $hqBranch, 'member.dashboard.archive@rgc.test');
+
+        $expired = Announcement::query()->create([
+            'title' => 'Expired Dashboard Notice',
+            'body' => 'This should leave the dashboard after archival.',
+            'region_id' => $darRegion->id,
+            'district_id' => $temekeDistrict->id,
+            'church_id' => $hqBranch->id,
+            'created_by' => $member->id,
+            'is_global' => false,
+            'is_pinned' => true,
+            'pinned_at' => now()->subDays(2),
+            'expires_at' => now()->subDay(),
+        ]);
+
+        Announcement::query()->create([
+            'title' => 'Active Dashboard Notice',
+            'body' => 'This one should remain visible.',
+            'region_id' => $darRegion->id,
+            'district_id' => $temekeDistrict->id,
+            'church_id' => $hqBranch->id,
+            'created_by' => $member->id,
+            'is_global' => false,
+            'expires_at' => now()->addDays(3),
+        ]);
+
+        $this->artisan('announcements:archive-expired')
+            ->expectsOutput('Archived 1 expired announcements.')
+            ->assertExitCode(0);
+
+        $expired->refresh();
+        $this->assertNotNull($expired->archived_at);
+        $this->assertFalse($expired->is_pinned);
+        $this->assertNull($expired->pinned_at);
+
+        $this->actingAs($member)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Active Dashboard Notice')
+            ->assertDontSee('Expired Dashboard Notice');
+
+        $this->actingAs($member)
+            ->get(route('announcements.index', ['archived' => 1]))
+            ->assertOk()
+            ->assertSee('Expired Dashboard Notice')
+            ->assertSee('Archived');
+    }
+
     private function darHeadquartersContext(): array
     {
         $region = Region::query()->where('name', 'Dar es Salaam')->firstOrFail();

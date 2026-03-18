@@ -26,6 +26,7 @@ class User extends Authenticatable
         'api_token',
         'role',
         'status',
+        'locale',
         'region_id',
         'district_id',
         'branch_id',

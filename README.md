@@ -283,8 +283,8 @@ The current suite covers:
 - update/delete authorization for announcements, offerings, expenses, and users
 
 Current baseline at the time of this README update:
-- `27` tests passed
-- `102` assertions passed
+- `60` tests passed
+- `266` assertions passed
 
 ### Manual QA Checklist
 
@@ -383,6 +383,43 @@ After deployment, verify:
 - `php artisan test` still passes in the deployment pipeline or staging environment
 - queue workers are running
 - the seeded super admin can log in and land on `/dashboard`
+
+### Railway Deployment
+
+This repository now includes Railway-ready files:
+- `nixpacks.toml`
+- `Procfile`
+- `scripts/railway-start.sh`
+- `scripts/railway-worker.sh`
+
+Recommended Railway layout:
+- one `web` service from this repo
+- one `worker` service from this repo
+- one MySQL service attached to the project
+
+Recommended Railway environment values:
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+- `APP_URL=https://your-railway-domain`
+- `APP_KEY=base64:...`
+- real `DB_*` values from the Railway MySQL service
+- `SESSION_DRIVER=database`
+- `CACHE_STORE=database`
+- `QUEUE_CONNECTION=database`
+- `FILESYSTEM_DISK=public` if you want uploads on the public disk by default
+- real `MAIL_*` values
+
+Railway first-deploy sequence:
+1. Deploy the repo and let Nixpacks run Composer and Vite build steps.
+2. Set `APP_KEY` before opening the app publicly.
+3. Run `php artisan migrate --force`.
+4. Run `php artisan db:seed --force` on the first deploy only.
+5. Keep the `worker` service running with `bash scripts/railway-worker.sh`.
+
+Branch chat realtime note:
+- branch chat now uses Server-Sent Events on `/messages/stream`
+- Railway should handle this normally
+- if you later place another proxy/CDN in front, make sure buffering is disabled for that route
 
 ### Notes
 

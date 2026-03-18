@@ -58,11 +58,11 @@ class UserController extends Controller
         $role = $this->normalizeRole($request->string('role')->toString());
 
         if (! $this->canAssignRole($actor, $role)) {
-            return response()->json(['message' => 'Unauthorized role assignment.'], 403);
+            return response()->json(['message' => __('Unauthorized role assignment.')], 403);
         }
 
         if (! $this->withinActorScope($actor, $request->integer('region_id'), $request->integer('district_id'), $request->integer('branch_id'))) {
-            return response()->json(['message' => 'Cannot create user outside your governance scope.'], 403);
+            return response()->json(['message' => __('Cannot create user outside your governance scope.')], 403);
         }
 
         $branchId = $request->integer('branch_id');
@@ -102,11 +102,11 @@ class UserController extends Controller
             : $this->normalizeRole($user->normalizedRoleName() ?? 'member');
 
         if (! $targetRole || ! $this->canAssignRole($actor, $targetRole)) {
-            return response()->json(['message' => 'Unauthorized role assignment.'], 403);
+            return response()->json(['message' => __('Unauthorized role assignment.')], 403);
         }
 
         if (! $this->withinActorScope($actor, $request->integer('region_id'), $request->integer('district_id'), $request->integer('branch_id'))) {
-            return response()->json(['message' => 'Cannot update user outside your governance scope.'], 403);
+            return response()->json(['message' => __('Cannot update user outside your governance scope.')], 403);
         }
 
         $branchId = $request->integer('branch_id');
@@ -141,7 +141,7 @@ class UserController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'User deleted.']);
+        return response()->json(['message' => __('User deleted.')]);
     }
 
     private function normalizeRole(string $role): string

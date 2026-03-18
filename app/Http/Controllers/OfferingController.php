@@ -31,7 +31,7 @@ class OfferingController extends Controller
             'amount' => $request->input('amount'),
         ]);
 
-        return redirect()->route('offerings.index')->with('status', 'Offering recorded.');
+        return redirect()->route('offerings.index')->with('status', __('Offering recorded.'));
     }
 
     public function edit(Offering $offering)
@@ -49,7 +49,7 @@ class OfferingController extends Controller
             'amount' => $request->input('amount'),
         ]);
 
-        return redirect()->route('offerings.index')->with('status', 'Offering updated.');
+        return redirect()->route('offerings.index')->with('status', __('Offering updated.'));
     }
 
     public function destroy(Offering $offering)
@@ -57,6 +57,6 @@ class OfferingController extends Controller
         $this->authorize('delete', $offering);
         $offering->delete();
 
-        return back()->with('status', 'Offering deleted.');
+        return back()->with('status', __('Offering deleted.'));
     }
 }

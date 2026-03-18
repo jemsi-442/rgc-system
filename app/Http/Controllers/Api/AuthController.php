@@ -21,7 +21,7 @@ class AuthController extends Controller
         $user = User::query()->where('email', $data['email'])->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
-            return response()->json(['message' => 'Invalid credentials.'], 422);
+            return response()->json(['message' => __('Invalid credentials.')], 422);
         }
 
         $plainToken = Str::random(80);
@@ -40,6 +40,6 @@ class AuthController extends Controller
     {
         $request->user()->update(['api_token' => null]);
 
-        return response()->json(['message' => 'Logged out.']);
+        return response()->json(['message' => __('Logged out.')]);
     }
 }
