@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $title ?? 'Ripoti ya Fedha' }} - {{ $settings->company_name ?? 'RGC Makabe RGC' }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/RGC_logo.png') }}">
+    <title>{{ $title ?? 'Ripoti ya Fedha' }} - {{ $settings->company_name ?? 'Redeemed Gospel Church Inc. Tanzania' }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <style>
         @page {
             margin: 10mm;
@@ -114,7 +114,7 @@
             font-weight: bold;
             margin-bottom: 10px;
             text-align: center;
-            background: #360958;
+            background: #c00000;
             color: white;
             padding: 8px;
         }
@@ -140,7 +140,7 @@
             font-weight: bold;
             margin: 20px 0 10px 0;
             text-align: center;
-            background: #360958;
+            background: #c00000;
             color: white;
             padding: 8px;
         }
@@ -152,7 +152,7 @@
         }
 
         .data-table th {
-            background: #360958;
+            background: #c00000;
             color: white;
             font-weight: bold;
             text-align: left;
@@ -210,14 +210,14 @@
     <!-- Header Section -->
     <div class="report-header">
         <div class="header-left">
-            @if(file_exists(public_path('images/RGC_logo.png')))
-                <img src="{{ asset('images/RGC_logo.png') }}" alt="Church Logo" class="church-logo">
+            @if(file_exists(public_path('images/rgc_logo.png')))
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="church-logo">
             @endif
         </div>
         <div class="header-center">
-            <div class="church-name">{{ $settings->company_name ?? 'RGC MAKABE RGC' }}</div>
-            <div class="church-address">{{ $settings->address ?? 'P.O. Box 123, Makabe' }}</div>
-            <div class="church-contact">{{ $settings->phone ?? '+255 123 456 789' }} | {{ $settings->email ?? 'makabe@RGC.go.tz' }}</div>
+            <div class="church-name">{{ $settings->company_name ?? 'REDEEMED GOSPEL CHURCH INC. TANZANIA' }}</div>
+            <div class="church-address">{{ $settings->address ?? 'Toangoma, Temeke, Dar es Salaam' }}</div>
+            <div class="church-contact">{{ $settings->phone ?? '+255 123 456 789' }} | {{ $settings->email ?? 'noreply@rgc.or.tz' }}</div>
         </div>
         <div class="header-right"></div>
     </div>
@@ -329,7 +329,7 @@
         .church-name {
             font-size: 22px;
             font-weight: bold;
-            color: #360958;
+            color: #c00000;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -351,7 +351,7 @@
             text-align: center;
             margin: 20px 0;
             padding: 15px;
-            background: linear-gradient(135deg, #360958 0%, #2a0745 100%);
+            background: linear-gradient(135deg, #c00000 0%, #8f1111 100%);
             color: #fff;
             border-radius: 8px;
         }
@@ -423,11 +423,11 @@
         .section-title {
             font-size: 14px;
             font-weight: bold;
-            color: #360958;
+            color: #c00000;
             margin: 25px 0 12px;
             padding: 10px 15px;
             background: #f5f5f5;
-            border-left: 4px solid #360958;
+            border-left: 4px solid #c00000;
             border-radius: 0 5px 5px 0;
         }
 
@@ -439,7 +439,7 @@
         }
 
         table thead {
-            background: #360958;
+            background: #c00000;
             color: #fff;
         }
 
@@ -481,7 +481,7 @@
         }
 
         .table-total td {
-            border-top: 2px solid #360958;
+            border-top: 2px solid #c00000;
             padding: 12px 10px;
         }
 
@@ -489,13 +489,13 @@
         .final-summary {
             width: 50%;
             margin: 30px auto;
-            border: 2px solid #360958;
+            border: 2px solid #c00000;
             border-radius: 8px;
             overflow: hidden;
         }
 
         .final-summary-header {
-            background: #360958;
+            background: #c00000;
             color: #fff;
             text-align: center;
             padding: 12px;
@@ -528,7 +528,7 @@
         .signature-title {
             font-size: 12px;
             font-weight: bold;
-            color: #360958;
+            color: #c00000;
             margin-bottom: 30px;
             text-transform: uppercase;
         }
@@ -589,12 +589,12 @@
         }
 
         .print-btn.primary {
-            background: #360958;
+            background: #c00000;
             color: #fff;
         }
 
         .print-btn.primary:hover {
-            background: #2a0745;
+            background: #8f1111;
         }
 
         .print-btn.secondary {
@@ -658,13 +658,13 @@
     <!-- Report Header with Logo -->
     <div class="report-header">
         <div class="logo-container">
-            <img src="{{ asset('images/RGC_logo.png') }}" alt="Logo" class="logo">
+            <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="logo">
             <div class="church-info">
-                <div class="church-name">{{ $settings->company_name ?? 'RGC Makabe RGC' }}</div>
+                <div class="church-name">{{ $settings->company_name ?? 'Redeemed Gospel Church Inc. Tanzania' }}</div>
                 <div class="church-address">{{ $settings->address ?? 'Dar es Salaam, Tanzania' }}</div>
                 <div class="church-contact">
                     Simu: {{ $settings->phone ?? '+255 XXX XXX XXX' }} |
-                    Email: {{ $settings->email ?? 'info@RGCagape.or.tz' }}
+                    Email: {{ $settings->email ?? 'noreply@rgc.or.tz' }}
                 </div>
             </div>
         </div>
@@ -812,7 +812,7 @@
 
     <!-- Footer -->
     <div class="report-footer">
-        <div>{{ $settings->company_name ?? 'RGC Makabe RGC' }}</div>
+        <div>{{ $settings->company_name ?? 'Redeemed Gospel Church Inc. Tanzania' }}</div>
         <div>Ripoti imetengenezwa na Mfumo wa Kanisa</div>
         <div>{{ now()->format('d/m/Y H:i') }}</div>
     </div>

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weka Nenosiri Jipya - RGC RGC</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/RGC_logo.png') }}">
+    <title>Weka Nenosiri Jipya - RGC</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -19,11 +19,11 @@
                             200: '#ddd6fe',
                             300: '#c4b5fd',
                             400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#360958',
-                            700: '#2a0745',
-                            800: '#1e0533',
-                            900: '#140322',
+                            500: '#c00000',
+                            600: '#a40000',
+                            700: '#7f0000',
+                            800: '#5e0000',
+                            900: '#3f0000',
                         }
                     }
                 }
@@ -33,17 +33,17 @@
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .btn-primary {
-            background: #360958;
+            background: #c00000;
             transition: all 0.2s;
         }
         .btn-primary:hover {
-            background: #2a0745;
+            background: #8f1111;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(54, 9, 88, 0.3);
+            box-shadow: 0 4px 12px rgba(192, 0, 0, 0.24);
         }
         .input-focus:focus {
-            border-color: #360958;
-            box-shadow: 0 0 0 3px rgba(54, 9, 88, 0.2);
+            border-color: #c00000;
+            box-shadow: 0 0 0 3px rgba(192, 0, 0, 0.14);
         }
     </style>
 </head>
@@ -52,7 +52,7 @@
         <!-- Logo and Title -->
         <div class="text-center mb-6">
             <div class="flex justify-center items-center mb-4">
-                <img src="{{ asset('images/RGC_logo.png') }}" alt="RGC RGC Logo" class="w-24 h-24 object-contain">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="w-24 h-24 object-contain">
             </div>
             <span class="text-2xl font-bold text-primary-600 block">RGC</span>
             <h1 class="text-xl font-bold text-gray-800 mt-2">Weka Nenosiri Jipya</h1>

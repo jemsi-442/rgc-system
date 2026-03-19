@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Announcement extends Model
 {
@@ -63,6 +64,11 @@ class Announcement extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function targetBranches(): BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class, 'announcement_branch_targets', 'announcement_id', 'church_id');
+    }
+
     public function scopeVisibleTo(Builder $query, User $user): Builder
     {
         if ($user->hasSystemRole('super_admin')) {
@@ -72,14 +78,44 @@ class Announcement extends Model
         return $query->where(function (Builder $builder) use ($user): void {
             $builder->where('is_global', true);
 
+            if ($user->effectiveBranchId()) {
+                $builder->orWhereHas('targetBranches', function (Builder $targetBuilder) use ($user): void {
+                    $targetBuilder->where('churches.id', $user->effectiveBranchId());
+                });
+            }
+
             if ($user->hasSystemRole('regional_admin') && $user->region_id) {
                 $builder->orWhere('region_id', $user->region_id);
                 return;
             }
 
             if ($user->hasSystemRole('district_admin') && $user->district_id) {
+                $builder->orWhere(function (Builder $regionBuilder) use ($user): void {
+                    $regionBuilder
+                        ->where('region_id', $user->region_id)
+                        ->whereNull('district_id')
+                        ->whereNull('church_id');
+                });
+
                 $builder->orWhere('district_id', $user->district_id);
                 return;
+            }
+
+            if ($user->region_id) {
+                $builder->orWhere(function (Builder $regionBuilder) use ($user): void {
+                    $regionBuilder
+                        ->where('region_id', $user->region_id)
+                        ->whereNull('district_id')
+                        ->whereNull('church_id');
+                });
+            }
+
+            if ($user->district_id) {
+                $builder->orWhere(function (Builder $districtBuilder) use ($user): void {
+                    $districtBuilder
+                        ->where('district_id', $user->district_id)
+                        ->whereNull('church_id');
+                });
             }
 
             if ($user->effectiveBranchId()) {
@@ -141,10 +177,70 @@ class Announcement extends Model
         return $this->archived_at !== null;
     }
 
+    public function hasExplicitBranchTargets(): bool
+    {
+        if ($this->relationLoaded('targetBranches')) {
+            return $this->targetBranches->isNotEmpty();
+        }
+
+        return $this->targetBranches()->exists();
+    }
+
+    public function targetBranchCount(): int
+    {
+        if ($this->relationLoaded('targetBranches')) {
+            return $this->targetBranches->count();
+        }
+
+        return $this->targetBranches()->count();
+    }
+
+    public function targetBranchNames(int $limit = 3): array
+    {
+        $branches = $this->relationLoaded('targetBranches')
+            ? $this->targetBranches->take($limit)
+            : $this->targetBranches()->limit($limit)->get(['churches.id', 'name']);
+
+        return $branches
+            ->pluck('name')
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function audienceVariant(): string
+    {
+        if ($this->is_global) {
+            return 'global';
+        }
+
+        if ($this->hasExplicitBranchTargets()) {
+            return 'selected';
+        }
+
+        if ($this->church_id) {
+            return 'branch';
+        }
+
+        if ($this->district_id) {
+            return 'district';
+        }
+
+        if ($this->region_id) {
+            return 'region';
+        }
+
+        return 'default';
+    }
+
     public function audienceLabel(): string
     {
         if ($this->is_global) {
             return __('National');
+        }
+
+        if ($this->hasExplicitBranchTargets()) {
+            return $this->targetBranchCount() === 1 ? __('Branch') : __('Selected Branches');
         }
 
         if ($this->church_id) {
@@ -157,6 +253,38 @@ class Announcement extends Model
 
         if ($this->region_id) {
             return __('Region');
+        }
+
+        return __('Announcement');
+    }
+
+    public function deliverySummary(): string
+    {
+        if ($this->is_global) {
+            return __('All system users and branches');
+        }
+
+        if ($this->hasExplicitBranchTargets()) {
+            $count = $this->targetBranchCount();
+            $names = $this->targetBranchNames(3);
+
+            if ($count === 1 && isset($names[0])) {
+                return __('Selected branch: :branch', ['branch' => $names[0]]);
+            }
+
+            return __('Selected branches: :count', ['count' => $count]);
+        }
+
+        if ($this->church_id) {
+            return __('Branch: :branch', ['branch' => $this->branch?->name ?? __('Branch')]);
+        }
+
+        if ($this->district_id) {
+            return __('District: :district', ['district' => $this->district?->name ?? __('District')]);
+        }
+
+        if ($this->region_id) {
+            return __('Region: :region', ['region' => $this->region?->name ?? __('Region')]);
         }
 
         return __('Announcement');

@@ -27,6 +27,7 @@
 
     <div class="announcement-grid mt-8">
         @forelse($announcements as $announcement)
+            @php($targetNames = $announcement->targetBranchNames())
             <article class="announcement-card {{ $announcement->hasPin() ? 'is-pinned' : '' }}">
                 @if($announcement->hasImage())
                     <button
@@ -45,7 +46,7 @@
                 <div class="announcement-card-body">
                     <div class="announcement-card-meta">
                         <div class="announcement-meta-badges">
-                            <span class="announcement-audience {{ $announcement->is_global ? 'is-global' : '' }}">{{ $announcement->audienceLabel() }}</span>
+                            <span class="announcement-audience is-{{ $announcement->audienceVariant() }}">{{ $announcement->audienceLabel() }}</span>
                             @if($announcement->hasPin())
                                 <span class="announcement-pin-chip">{{ __('Pinned') }}</span>
                             @endif
@@ -68,20 +69,32 @@
                             <h3><a href="{{ route('announcements.show', $announcement) }}">{{ $announcement->title }}</a></h3>
                             <p>{{ $announcement->creator?->name ?? __('System') }}</p>
                         </div>
-                        @if($announcement->region || $announcement->district || $announcement->branch)
-                            <div class="announcement-scope-stack">
-                                @if($announcement->region)
-                                    <span>{{ $announcement->region->name }}</span>
-                                @endif
-                                @if($announcement->district)
-                                    <span>{{ $announcement->district->name }}</span>
-                                @endif
-                                @if($announcement->branch)
-                                    <span>{{ $announcement->branch->name }}</span>
-                                @endif
-                            </div>
-                        @endif
                     </div>
+
+                    <p class="announcement-delivery-summary">{{ $announcement->deliverySummary() }}</p>
+
+                    @if($announcement->hasExplicitBranchTargets())
+                        <div class="announcement-scope-stack">
+                            @foreach($targetNames as $name)
+                                <span>{{ $name }}</span>
+                            @endforeach
+                            @if($announcement->targetBranchCount() > count($targetNames))
+                                <span>{{ __('+:count more', ['count' => $announcement->targetBranchCount() - count($targetNames)]) }}</span>
+                            @endif
+                        </div>
+                    @elseif($announcement->region || $announcement->district || $announcement->branch)
+                        <div class="announcement-scope-stack">
+                            @if($announcement->region)
+                                <span>{{ $announcement->region->name }}</span>
+                            @endif
+                            @if($announcement->district)
+                                <span>{{ $announcement->district->name }}</span>
+                            @endif
+                            @if($announcement->branch)
+                                <span>{{ $announcement->branch->name }}</span>
+                            @endif
+                        </div>
+                    @endif
 
                     @if(filled($announcement->body))
                         <p class="announcement-card-copy">{{ $announcement->body }}</p>

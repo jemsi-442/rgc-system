@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>{{ $title ?? 'Ripoti ya Fedha' }} - {{ $settings->company_name ?? 'RGC Makabe RGC' }}</title>
+    <title>{{ $title ?? 'Ripoti ya Fedha' }} - {{ $settings->company_name ?? 'Redeemed Gospel Church Inc. Tanzania' }}</title>
     <style>
         @page {
             margin: 10mm;
@@ -344,17 +344,17 @@
     <div class="report-header">
         <div class="header-left">
             @if($include_logo ?? true)
-            <img src="{{ public_path('images/RGC_logo.png') }}" alt="Logo" class="logo">
+            <img src="{{ public_path('images/rgc_logo.png') }}" alt="RGC Logo" class="logo">
             @endif
         </div>
         <div class="header-center">
-            <div class="church-name">{{ $settings->company_name ?? 'RGC MAKABE RGC' }}</div>
-            <div class="diocese">RGC DAYOSI YA KINONDONI</div>
-            <div class="parish">JUMUIYA YA MAKABE</div>
+            <div class="church-name">{{ $settings->company_name ?? 'REDEEMED GOSPEL CHURCH INC. TANZANIA' }}</div>
+            <div class="diocese">RGC TANZANIA HEAD OFFICE</div>
+            <div class="parish">REDEEMED GOSPEL CHURCH INC. TANZANIA</div>
             <div class="report-meta">
-                <div>Sanduku la Post: P.O. Box 76485, Dar es Salaam</div>
+                <div>Makao Makuu: Toangoma, Temeke, Dar es Salaam</div>
                 <div>Simu: {{ $settings->phone ?? '+255 22 266 9035' }}</div>
-                <div>Barua pepe: {{ $settings->email ?? 'info@RGCagape.or.tz' }}</div>
+                <div>Barua pepe: {{ $settings->email ?? 'noreply@rgc.or.tz' }}</div>
             </div>
         </div>
         <div class="header-right">
@@ -505,7 +505,7 @@
 
     <!-- Footer -->
     <div class="report-footer">
-        <div class="footer-left">{{ $settings->company_name ?? 'RGC Makabe RGC' }}</div>
+        <div class="footer-left">{{ $settings->company_name ?? 'Redeemed Gospel Church Inc. Tanzania' }}</div>
         <div class="footer-center">Ripoti imetengenezwa na Mfumo wa Kanisa</div>
         <div class="footer-right">Ukurasa wa <span class="page-number"></span></div>
     </div>

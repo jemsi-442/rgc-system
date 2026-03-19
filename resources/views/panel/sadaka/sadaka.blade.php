@@ -92,8 +92,8 @@
                     <p class="text-sm text-gray-600 mb-1">Jumla ya Ahadi</p>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($totalAhadi, 0) }} TZS</p>
                 </div>
-                <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-hands-praying text-xl text-purple-600"></i>
+                <div class="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-hands-praying text-xl text-amber-600"></i>
                 </div>
             </div>
         </div>
@@ -143,10 +143,10 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-purple-300 hover:shadow-md transition-all duration-200" onclick="openModal('ahadiModal')">
+            <div class="bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:border-amber-300 hover:shadow-md transition-all duration-200" onclick="openModal('ahadiModal')">
                 <div class="flex items-center">
-                    <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                        <i class="fas fa-hands-praying text-purple-600 text-lg"></i>
+                    <div class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-hands-praying text-amber-600 text-lg"></i>
                     </div>
                     <div>
                         <div class="font-medium text-gray-900">Ahadi Mpya</div>
@@ -378,7 +378,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 flex items-center">
-                        <i class="fas fa-hands-praying text-purple-600 mr-2"></i> Ahadi na Malipo
+                        <i class="fas fa-hands-praying text-amber-600 mr-2"></i> Ahadi na Malipo
                         <span class="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                             <span id="ahadiCount">{{ $ahadi->total() }}</span> rekodi
                         </span>
@@ -398,12 +398,12 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
                     <div class="flex items-center">
-                        <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                            <i class="fas fa-hands-praying text-purple-600 text-lg"></i>
+                        <div class="h-10 w-10 bg-amber-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-hands-praying text-amber-600 text-lg"></i>
                         </div>
                         <div>
                             <div class="font-medium text-gray-900">Jumla ya Ahadi</div>
-                            <div class="text-lg font-bold text-purple-600">{{ number_format($totalAhadi, 0) }} TZS</div>
+                            <div class="text-lg font-bold text-amber-600">{{ number_format($totalAhadi, 0) }} TZS</div>
                         </div>
                     </div>
                 </div>
@@ -510,7 +510,7 @@
 
                                 <!-- Pledge Amount -->
                                 <td class="py-4 px-6">
-                                    <div class="text-lg font-bold text-purple-600">{{ number_format($record->amount, 0) }}</div>
+                                    <div class="text-lg font-bold text-amber-600">{{ number_format($record->amount, 0) }}</div>
                                 </td>
 
                                 <!-- Paid Amount -->
@@ -635,8 +635,8 @@
         <div class="sticky top-0 bg-white px-6 py-5 rounded-t-xl border-b border-gray-200 z-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center mr-3">
-                        <i class="fas fa-hands-praying text-purple-600 text-xl"></i>
+                    <div class="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center mr-3">
+                        <i class="fas fa-hands-praying text-amber-600 text-xl"></i>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">Ahadi Mpya</h3>
@@ -653,7 +653,7 @@
             <div class="p-6 space-y-4">
                 <div>
                     <label for="member_id" class="block text-gray-700 text-sm font-medium mb-1">Muumini</label>
-                    <select id="member_id" name="member_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                    <select id="member_id" name="member_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
                         <option value="">Chagua muumini (hiari)</option>
                         @foreach(\App\Models\Member::orderBy('first_name')->get() as $member)
                             <option value="{{ $member->id }}">{{ $member->full_name }}</option>
@@ -662,7 +662,7 @@
                 </div>
                 <div>
                     <label for="pledge_type" class="block text-gray-700 text-sm font-medium mb-1">Aina ya Ahadi</label>
-                    <select id="pledge_type" name="pledge_type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    <select id="pledge_type" name="pledge_type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500" required>
                         <option value="">Chagua aina</option>
                         <option value="Kiwanja">Kiwanja</option>
                         <option value="Usiku wa RGC">Usiku wa RGC</option>
@@ -673,16 +673,16 @@
                 </div>
                 <div>
                     <label for="kiasi_ahadi" class="block text-gray-700 text-sm font-medium mb-1">Kiasi (TZS)</label>
-                    <input type="number" id="kiasi_ahadi" name="amount" placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-purple-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
+                    <input type="number" id="kiasi_ahadi" name="amount" placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-amber-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500" required>
                 </div>
                 <div>
                     <label for="tarehe_ahadi" class="block text-gray-700 text-sm font-medium mb-1">Tarehe</label>
-                    <input type="text" id="tarehe_ahadi" name="pledge_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" value="{{ date('Y-m-d') }}" required>
+                    <input type="text" id="tarehe_ahadi" name="pledge_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500" value="{{ date('Y-m-d') }}" required>
                 </div>
             </div>
             <div class="sticky bottom-0 flex justify-end gap-3 px-6 py-5 bg-gray-50 rounded-b-xl border-t border-gray-200">
                 <button type="button" onclick="closeModal('ahadiModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">Ghairi</button>
-                <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center gap-2">
+                <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-all duration-200 flex items-center gap-2">
                     <i class="fas fa-save"></i>
                     <span>Hifadhi</span>
                 </button>

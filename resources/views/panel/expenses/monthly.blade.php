@@ -10,16 +10,16 @@
         'red' => ['bg' => 'bg-gradient-to-br from-red-50/80 to-red-100/80', 'text' => 'text-red-700', 'border' => 'border-red-200', 'dot' => 'bg-red-500', 'gradient' => 'from-red-500 to-red-600', 'light' => 'bg-red-50'],
         'blue' => ['bg' => 'bg-gradient-to-br from-blue-50/80 to-blue-100/80', 'text' => 'text-blue-700', 'border' => 'border-blue-200', 'dot' => 'bg-blue-500', 'gradient' => 'from-blue-500 to-blue-600', 'light' => 'bg-blue-50'],
         'green' => ['bg' => 'bg-gradient-to-br from-green-50/80 to-emerald-100/80', 'text' => 'text-green-700', 'border' => 'border-green-200', 'dot' => 'bg-green-500', 'gradient' => 'from-green-500 to-emerald-600', 'light' => 'bg-green-50'],
-        'purple' => ['bg' => 'bg-gradient-to-br from-purple-50/80 to-violet-100/80', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'dot' => 'bg-purple-500', 'gradient' => 'from-purple-500 to-violet-600', 'light' => 'bg-purple-50'],
+        'purple' => ['bg' => 'bg-gradient-to-br from-red-50/80 to-amber-100/80', 'text' => 'text-red-700', 'border' => 'border-red-200', 'dot' => 'bg-red-500', 'gradient' => 'from-red-500 to-amber-500', 'light' => 'bg-red-50'],
         'orange' => ['bg' => 'bg-gradient-to-br from-orange-50/80 to-amber-100/80', 'text' => 'text-orange-700', 'border' => 'border-orange-200', 'dot' => 'bg-orange-500', 'gradient' => 'from-orange-500 to-amber-600', 'light' => 'bg-orange-50'],
         'pink' => ['bg' => 'bg-gradient-to-br from-pink-50/80 to-rose-100/80', 'text' => 'text-pink-700', 'border' => 'border-pink-200', 'dot' => 'bg-pink-500', 'gradient' => 'from-pink-500 to-rose-600', 'light' => 'bg-pink-50'],
         'teal' => ['bg' => 'bg-gradient-to-br from-teal-50/80 to-cyan-100/80', 'text' => 'text-teal-700', 'border' => 'border-teal-200', 'dot' => 'bg-teal-500', 'gradient' => 'from-teal-500 to-cyan-600', 'light' => 'bg-teal-50'],
-        'indigo' => ['bg' => 'bg-gradient-to-br from-indigo-50/80 to-blue-100/80', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200', 'dot' => 'bg-indigo-500', 'gradient' => 'from-indigo-500 to-blue-600', 'light' => 'bg-indigo-50'],
+        'indigo' => ['bg' => 'bg-gradient-to-br from-amber-50/80 to-yellow-100/80', 'text' => 'text-amber-700', 'border' => 'border-amber-200', 'dot' => 'bg-amber-500', 'gradient' => 'from-amber-500 to-yellow-500', 'light' => 'bg-amber-50'],
         'amber' => ['bg' => 'bg-gradient-to-br from-amber-50/80 to-yellow-100/80', 'text' => 'text-amber-700', 'border' => 'border-amber-200', 'dot' => 'bg-amber-500', 'gradient' => 'from-amber-500 to-yellow-600', 'light' => 'bg-amber-50'],
         'cyan' => ['bg' => 'bg-gradient-to-br from-cyan-50/80 to-sky-100/80', 'text' => 'text-cyan-700', 'border' => 'border-cyan-200', 'dot' => 'bg-cyan-500', 'gradient' => 'from-cyan-500 to-sky-600', 'light' => 'bg-cyan-50'],
         'lime' => ['bg' => 'bg-gradient-to-br from-lime-50/80 to-green-100/80', 'text' => 'text-lime-700', 'border' => 'border-lime-200', 'dot' => 'bg-lime-500', 'gradient' => 'from-lime-500 to-green-600', 'light' => 'bg-lime-50'],
         'emerald' => ['bg' => 'bg-gradient-to-br from-emerald-50/80 to-green-100/80', 'text' => 'text-emerald-700', 'border' => 'border-emerald-200', 'dot' => 'bg-emerald-500', 'gradient' => 'from-emerald-500 to-green-600', 'light' => 'bg-emerald-50'],
-        'violet' => ['bg' => 'bg-gradient-to-br from-violet-50/80 to-purple-100/80', 'text' => 'text-violet-700', 'border' => 'border-violet-200', 'dot' => 'bg-violet-500', 'gradient' => 'from-violet-500 to-purple-600', 'light' => 'bg-violet-50'],
+        'violet' => ['bg' => 'bg-gradient-to-br from-rose-50/80 to-red-100/80', 'text' => 'text-rose-700', 'border' => 'border-rose-200', 'dot' => 'bg-rose-500', 'gradient' => 'from-rose-500 to-red-600', 'light' => 'bg-rose-50'],
         'fuchsia' => ['bg' => 'bg-gradient-to-br from-fuchsia-50/80 to-pink-100/80', 'text' => 'text-fuchsia-700', 'border' => 'border-fuchsia-200', 'dot' => 'bg-fuchsia-500', 'gradient' => 'from-fuchsia-500 to-pink-600', 'light' => 'bg-fuchsia-50'],
         'rose' => ['bg' => 'bg-gradient-to-br from-rose-50/80 to-red-100/80', 'text' => 'text-rose-700', 'border' => 'border-rose-200', 'dot' => 'bg-rose-500', 'gradient' => 'from-rose-500 to-red-600', 'light' => 'bg-rose-50'],
         'sky' => ['bg' => 'bg-gradient-to-br from-sky-50/80 to-blue-100/80', 'text' => 'text-sky-700', 'border' => 'border-sky-200', 'dot' => 'bg-sky-500', 'gradient' => 'from-sky-500 to-blue-600', 'light' => 'bg-sky-50'],
@@ -152,10 +152,10 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600 mb-1">Wastani kwa Rekodi</p>
-                    <p class="text-2xl font-bold text-purple-600">{{ $totalCount > 0 ? number_format($totalAmount / $totalCount, 0) : 0 }} TSh</p>
+                    <p class="text-2xl font-bold text-red-600">{{ $totalCount > 0 ? number_format($totalAmount / $totalCount, 0) : 0 }} TSh</p>
                 </div>
-                <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-chart-line text-xl text-purple-600"></i>
+                <div class="h-12 w-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-chart-line text-xl text-red-600"></i>
                 </div>
             </div>
         </div>

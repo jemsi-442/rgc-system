@@ -1,5 +1,4 @@
 {
-    "$schema": "https://getcomposer.org/schema.json",
     "name": "rgc/church-management-platform",
     "type": "project",
     "description": "RGC - Redeemed Gospel Church Inc. Tanzania Management Platform",

@@ -57,7 +57,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 - Hitilafu ya Seva</title>
-    <link rel="icon" type="image/png" href="{{ asset('images/RGC_logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -67,15 +67,15 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#faf5ff',
-                            100: '#f3e8ff',
-                            500: '#360958',
-                            600: '#2a0745',
-                            700: '#1f0533',
+                            50: '#fff8df',
+                            100: '#ffe9a8',
+                            500: '#c00000',
+                            600: '#8f1111',
+                            700: '#6f0d0d',
                         },
                         secondary: {
-                            500: '#efc120',
-                            600: '#d4a81c',
+                            500: '#ffd700',
+                            600: '#d4aa00',
                         }
                     }
                 }
@@ -90,7 +90,7 @@
     <div class="max-w-lg w-full text-center">
         <!-- Logo -->
         <div class="mb-8">
-            <img src="{{ asset('images/RGC_logo.png') }}" alt="RGC Logo" class="w-24 h-24 mx-auto object-contain">
+            <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="w-24 h-24 mx-auto object-contain">
         </div>
 
         <!-- Error Card -->
@@ -126,7 +126,7 @@
 
         <!-- Footer -->
         <p class="mt-8 text-sm text-gray-500">
-            <i class="fas fa-church mr-1"></i> RGC Usharika wa RGC - Mfumo wa Kanisa
+            <i class="fas fa-church mr-1"></i> RGC - Mfumo wa Kanisa
         </p>
     </div>
 </body>

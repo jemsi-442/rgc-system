@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Announcement;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -24,3 +25,16 @@ Artisan::command('announcements:archive-expired', function () {
 })->purpose('Archive expired announcements and remove them from dashboard surfaces.');
 
 Schedule::command('announcements:archive-expired')->hourly();
+
+Artisan::command('mail:test {email}', function (string $email) {
+    Mail::raw(
+        "RGC SMTP test email. If you received this message, outbound mail is configured correctly.",
+        function ($message) use ($email): void {
+            $message
+                ->to($email)
+                ->subject('RGC SMTP Test');
+        }
+    );
+
+    $this->info("Test email sent to {$email}.");
+})->purpose('Send a test email using the current mailer configuration.');

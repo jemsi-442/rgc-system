@@ -15,7 +15,7 @@
     <article class="card-rgc announcement-detail-main {{ $announcement->hasPin() ? 'is-pinned' : '' }}">
         <div class="announcement-detail-header">
             <div class="announcement-meta-badges">
-                <span class="announcement-audience {{ $announcement->is_global ? 'is-global' : '' }}">{{ $announcement->audienceLabel() }}</span>
+                <span class="announcement-audience is-{{ $announcement->audienceVariant() }}">{{ $announcement->audienceLabel() }}</span>
                 @if($announcement->hasPin())
                     <span class="announcement-pin-chip">{{ __('Pinned') }}</span>
                 @endif
@@ -59,6 +59,8 @@
             </div>
         </div>
 
+        <p class="announcement-detail-summary">{{ $announcement->deliverySummary() }}</p>
+
         @if($announcement->hasImage())
             <button
                 class="announcement-detail-image announcement-media-button"
@@ -95,6 +97,10 @@
                 <p>{{ $announcement->audienceLabel() }}</p>
             </div>
             <div>
+                <strong>{{ __('Delivery Summary') }}</strong>
+                <p>{{ $announcement->deliverySummary() }}</p>
+            </div>
+            <div>
                 <strong>{{ __('Created by') }}</strong>
                 <p>{{ $announcement->creator?->name ?? __('System') }}</p>
             </div>
@@ -112,23 +118,39 @@
                 <strong>{{ __('Archive Status') }}</strong>
                 <p>{{ $announcement->isArchived() ? __('Archived automatically after expiry') : __('Active announcement') }}</p>
             </div>
-            @if($announcement->region)
+            @if($announcement->hasExplicitBranchTargets())
                 <div>
-                    <strong>{{ __('Region') }}</strong>
-                    <p>{{ $announcement->region->name }}</p>
+                    <strong>{{ __('Selected Branch Targets') }}</strong>
+                    <div class="announcement-target-list mt-2">
+                        @foreach($announcement->targetBranches as $targetBranch)
+                            <span>
+                                {{ $targetBranch->name }}
+                                @if($targetBranch->district || $targetBranch->region)
+                                    <small>{{ collect([$targetBranch->district?->name, $targetBranch->region?->name])->filter()->implode(', ') }}</small>
+                                @endif
+                            </span>
+                        @endforeach
+                    </div>
                 </div>
-            @endif
-            @if($announcement->district)
-                <div>
-                    <strong>{{ __('District') }}</strong>
-                    <p>{{ $announcement->district->name }}</p>
-                </div>
-            @endif
-            @if($announcement->branch)
-                <div>
-                    <strong>{{ __('Branch') }}</strong>
-                    <p>{{ $announcement->branch->name }}</p>
-                </div>
+            @else
+                @if($announcement->region)
+                    <div>
+                        <strong>{{ __('Region') }}</strong>
+                        <p>{{ $announcement->region->name }}</p>
+                    </div>
+                @endif
+                @if($announcement->district)
+                    <div>
+                        <strong>{{ __('District') }}</strong>
+                        <p>{{ $announcement->district->name }}</p>
+                    </div>
+                @endif
+                @if($announcement->branch)
+                    <div>
+                        <strong>{{ __('Branch') }}</strong>
+                        <p>{{ $announcement->branch->name }}</p>
+                    </div>
+                @endif
             @endif
         </div>
     </aside>

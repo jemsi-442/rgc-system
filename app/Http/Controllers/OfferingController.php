@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOfferingRequest;
 use App\Models\Offering;
+use App\Models\OfferingPayment;
 
 class OfferingController extends Controller
 {
@@ -14,7 +15,13 @@ class OfferingController extends Controller
             ->orderByDesc('date')
             ->paginate(20);
 
-        return view('panel.offerings.index', compact('offerings'));
+        $payments = OfferingPayment::query()
+            ->with(['reviewedBy'])
+            ->where('church_id', auth()->user()->effectiveBranchId())
+            ->latest()
+            ->paginate(10, ['*'], 'payments_page');
+
+        return view('panel.offerings.index', compact('offerings', 'payments'));
     }
 
     public function create()
@@ -29,6 +36,7 @@ class OfferingController extends Controller
             'recorded_by' => $request->user()->name,
             'date' => $request->input('offering_date'),
             'amount' => $request->input('amount'),
+            'description' => $request->input('description'),
         ]);
 
         return redirect()->route('offerings.index')->with('status', __('Offering recorded.'));
@@ -47,6 +55,7 @@ class OfferingController extends Controller
         $offering->update([
             'date' => $request->input('offering_date'),
             'amount' => $request->input('amount'),
+            'description' => $request->input('description'),
         ]);
 
         return redirect()->route('offerings.index')->with('status', __('Offering updated.'));

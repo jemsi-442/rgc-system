@@ -10,16 +10,27 @@
             font-size: 12px;
             line-height: 1.65;
             margin: 0;
+            background: #ffffff;
         }
 
         .page {
-            padding: 28px 32px;
+            padding: 0 34px 30px;
         }
 
-        .brand {
+        .top-stripe {
+            height: 12px;
+            margin: 0 -34px 18px;
+            background: #000000;
+            border-bottom: 5px solid #c00000;
+            box-shadow: inset 0 -2px 0 #ffd700;
+        }
+
+        .brand-shell {
+            border: 1px solid #e6ded0;
+            border-radius: 18px;
+            background: #fffdf7;
+            padding: 18px 22px;
             margin-bottom: 18px;
-            padding-bottom: 14px;
-            border-bottom: 2px solid #ffd700;
         }
 
         .brand-table {
@@ -28,7 +39,7 @@
         }
 
         .brand-table td {
-            vertical-align: middle;
+            vertical-align: top;
         }
 
         .brand-logo-cell {
@@ -42,19 +53,64 @@
             object-fit: contain;
         }
 
-        .brand h1 {
+        .brand-copy h1 {
             margin: 0;
-            font-size: 22px;
-            color: #c00000;
+            font-size: 24px;
+            line-height: 1.15;
+            color: #8f1111;
         }
 
-        .brand p {
+        .brand-copy p {
             margin: 6px 0 0;
             color: #444;
         }
 
+        .brand-copy .subline {
+            margin-top: 10px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #666;
+        }
+
+        .brand-badge-cell {
+            width: 168px;
+            padding-left: 16px;
+        }
+
+        .brand-badge {
+            border: 1px solid #e7d7a8;
+            border-radius: 16px;
+            background: #fff6d6;
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        .brand-badge strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #8f1111;
+        }
+
+        .brand-badge span {
+            display: block;
+            color: #444;
+            font-size: 11px;
+        }
+
+        .summary-strip {
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-left: 4px solid #c00000;
+            background: #fffaf0;
+            color: #4b4b4b;
+        }
+
         .chips {
-            margin: 10px 0 18px;
+            margin: 0 0 18px;
         }
 
         .chip {
@@ -174,10 +230,46 @@
             color: #666;
         }
 
+        .qr-copy p {
+            margin: 0 0 8px;
+            color: #444;
+        }
+
         .qr-link {
             font-size: 10px;
             color: #444;
             word-break: break-all;
+        }
+
+        .signature-block {
+            margin-top: 22px;
+            padding: 16px 18px;
+            border: 1px solid #ece6d6;
+            border-radius: 14px;
+            background: #fffdfa;
+        }
+
+        .signature-label {
+            margin: 0 0 18px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #666;
+        }
+
+        .signature-line {
+            width: 220px;
+            border-top: 1px solid #444;
+            margin-bottom: 8px;
+        }
+
+        .signature-name {
+            font-weight: 700;
+            color: #8f1111;
+        }
+
+        .signature-role {
+            color: #444;
         }
 
         .footer {
@@ -191,7 +283,9 @@
 </head>
 <body>
     <div class="page">
-        <div class="brand">
+        <div class="top-stripe"></div>
+
+        <div class="brand-shell">
             <table class="brand-table">
                 <tr>
                     @if($logoDataUri)
@@ -199,12 +293,24 @@
                             <img class="brand-logo" src="{{ $logoDataUri }}" alt="{{ __('RGC Logo') }}">
                         </td>
                     @endif
-                    <td>
+                    <td class="brand-copy">
                         <h1>{{ __('Redeemed Gospel Church Inc. Tanzania') }}</h1>
                         <p>{{ __('Official announcement export generated from the RGC management platform.') }}</p>
+                        <div class="subline">{{ __('Head Office: Toangoma, Temeke, Dar es Salaam') }}</div>
+                    </td>
+                    <td class="brand-badge-cell">
+                        <div class="brand-badge">
+                            <strong>{{ __('Official Circular') }}</strong>
+                            <span>{{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}</span>
+                            <span>{{ $announcement->audienceLabel() }}</span>
+                        </div>
                     </td>
                 </tr>
             </table>
+        </div>
+
+        <div class="summary-strip">
+            {{ __('Issued through the national church management platform.') }}
         </div>
 
         <div class="chips">
@@ -277,21 +383,32 @@
             @endif
         </table>
 
-
-        @if($qrCodeSvg)
-            <div class="qr-block">
-                <table class="qr-table">
-                    <tr>
+        <div class="qr-block">
+            <table class="qr-table">
+                <tr>
+                    @if($qrCodeSvg)
                         <td class="qr-svg">{!! $qrCodeSvg !!}</td>
-                        <td class="qr-copy">
-                            <strong>{{ __('Scan to open the online announcement') }}</strong>
-                            <div>{{ __('Use this QR code to open the live version inside the RGC platform.') }}</div>
-                            <div class="qr-link">{{ $announcementUrl }}</div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        @endif
+                    @endif
+                    <td class="qr-copy">
+                        <strong>{{ __('Online version') }}</strong>
+                        @if($qrCodeSvg)
+                            <p>{{ __('Scan to open the online announcement') }}</p>
+                            <p>{{ __('Use this QR code to open the live version inside the RGC platform.') }}</p>
+                        @else
+                            <p>{{ __('Open the online announcement using the link below.') }}</p>
+                        @endif
+                        <div class="qr-link">{{ $announcementUrl }}</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="signature-block">
+            <div class="signature-label">{{ __('Authorized by') }}</div>
+            <div class="signature-line"></div>
+            <div class="signature-name">{{ __('Office of the Super Admin') }}</div>
+            <div class="signature-role">{{ __('Redeemed Gospel Church Inc. Tanzania') }}</div>
+        </div>
 
         <div class="footer">
             {{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}

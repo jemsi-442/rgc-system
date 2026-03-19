@@ -285,3 +285,574 @@ if (shareButtons.length > 0) {
     });
   });
 }
+
+const announcementScopeSelect = document.querySelector('[data-announcement-scope-select]');
+const announcementDistrictShell = document.querySelector('[data-announcement-district-shell]');
+const announcementDistrictSelect = document.querySelector('[data-announcement-district-select]');
+const announcementBranchShell = document.querySelector('[data-announcement-branch-shell]');
+const announcementBranchSelect = document.querySelector('[data-announcement-branch-select]');
+const announcementSelectedBranchesShell = document.querySelector('[data-announcement-selected-branches-shell]');
+const announcementSelectedBranchesSelect = document.querySelector('[data-announcement-selected-branches-select]');
+const announcementDeliveryPreview = document.querySelector('[data-announcement-delivery-preview]');
+
+async function loadAnnouncementBranches(districtId, selectedBranchId = '') {
+  if (!announcementBranchSelect) return;
+  announcementBranchSelect.innerHTML = `<option value="">${emptyOption(announcementBranchSelect, 'Select branch')}</option>`;
+  if (!districtId) return;
+
+  const response = await fetch(`/api/branches?district_id=${districtId}`);
+  const branches = await response.json();
+
+  branches.forEach((branch) => {
+    const option = document.createElement('option');
+    option.value = branch.id;
+    option.textContent = branch.name;
+    if (String(selectedBranchId) === String(branch.id)) {
+      option.selected = true;
+    }
+    announcementBranchSelect.appendChild(option);
+  });
+}
+
+if (announcementScopeSelect) {
+  const previewMessage = () => {
+    if (!announcementDeliveryPreview) return;
+
+    const previewBody = announcementDeliveryPreview.querySelector('p');
+
+    if (!previewBody) return;
+
+    const scope = announcementScopeSelect.value;
+    const selectedCount = announcementSelectedBranchesSelect
+      ? Array.from(announcementSelectedBranchesSelect.selectedOptions).length
+      : 0;
+
+    if (scope === 'global') {
+      previewBody.textContent = announcementDeliveryPreview.dataset.labelGlobal ?? 'This announcement will go to all users and all branches.';
+      return;
+    }
+
+    if (scope === 'selected_branches') {
+      const template = selectedCount === 1
+        ? announcementDeliveryPreview.dataset.labelSelectedOne
+        : announcementDeliveryPreview.dataset.labelSelectedCount;
+
+      previewBody.textContent = (template ?? 'This announcement will go to :count selected branches.')
+        .replace(':count', String(selectedCount));
+      return;
+    }
+
+    if (scope === 'region') {
+      previewBody.textContent = announcementDeliveryPreview.dataset.labelRegion ?? 'This announcement will go to your whole region.';
+      return;
+    }
+
+    if (scope === 'district') {
+      previewBody.textContent = announcementDistrictSelect
+        ? (announcementDeliveryPreview.dataset.labelDistrict ?? 'This announcement will go to the selected district only.')
+        : (announcementDeliveryPreview.dataset.labelDistrictFixed ?? 'This announcement will go to your whole district.');
+      return;
+    }
+
+    previewBody.textContent = announcementBranchSelect
+      ? (announcementDeliveryPreview.dataset.labelBranch ?? 'This announcement will go to the selected branch only.')
+      : (announcementDeliveryPreview.dataset.labelBranchFixed ?? 'This announcement will stay inside your branch only.');
+  };
+
+  const syncAnnouncementScope = async () => {
+    const scope = announcementScopeSelect.value;
+    const showDistrict = scope === 'district' || scope === 'branch';
+    const showBranch = scope === 'branch';
+    const showSelectedBranches = scope === 'selected_branches';
+
+    if (announcementSelectedBranchesShell && announcementSelectedBranchesSelect) {
+      announcementSelectedBranchesShell.classList.toggle('hidden', !showSelectedBranches);
+      announcementSelectedBranchesSelect.disabled = !showSelectedBranches;
+
+      if (!showSelectedBranches) {
+        Array.from(announcementSelectedBranchesSelect.options).forEach((option) => {
+          option.selected = false;
+        });
+      }
+    }
+
+    if (announcementDistrictShell && announcementDistrictSelect) {
+      announcementDistrictShell.classList.toggle('hidden', !showDistrict);
+      announcementDistrictSelect.disabled = !showDistrict;
+
+      if (!showDistrict) {
+        announcementDistrictSelect.value = '';
+      }
+    }
+
+    if (announcementBranchShell && announcementBranchSelect) {
+      announcementBranchShell.classList.toggle('hidden', !showBranch);
+      announcementBranchSelect.disabled = !showBranch;
+
+      if (!showBranch) {
+        announcementBranchSelect.innerHTML = `<option value="">${emptyOption(announcementBranchSelect, 'Select branch')}</option>`;
+      }
+    }
+
+    if (showBranch && announcementDistrictSelect) {
+      await loadAnnouncementBranches(announcementDistrictSelect.value, selectedOption(announcementBranchSelect));
+    }
+
+    previewMessage();
+  };
+
+  announcementScopeSelect.addEventListener('change', () => {
+    syncAnnouncementScope().catch(() => {
+      // Keep the form usable even if branch lookups fail temporarily.
+    });
+  });
+
+  if (announcementDistrictSelect) {
+    announcementDistrictSelect.addEventListener('change', async (event) => {
+      if (announcementScopeSelect.value === 'branch') {
+        await loadAnnouncementBranches(event.target.value);
+      }
+
+      previewMessage();
+    });
+  }
+
+  if (announcementBranchSelect) {
+    announcementBranchSelect.addEventListener('change', previewMessage);
+  }
+
+  if (announcementSelectedBranchesSelect) {
+    announcementSelectedBranchesSelect.addEventListener('change', previewMessage);
+  }
+
+  syncAnnouncementScope().catch(() => {
+    // Keep the form usable even if branch lookups fail temporarily.
+  });
+}
+
+const sliderDropzone = document.querySelector('[data-slider-dropzone]');
+const sliderImageInput = document.querySelector('[data-slider-image-input]');
+const sliderPreview = document.querySelector('[data-slider-preview]');
+const sliderPreviewImage = document.querySelector('[data-slider-preview-image]');
+const sliderPreviewName = document.querySelector('[data-slider-preview-name]');
+let sliderPreviewUrl = null;
+
+if (sliderDropzone && sliderImageInput && sliderPreview && sliderPreviewImage) {
+  const showSliderPreview = (file) => {
+    if (!file) {
+      sliderPreview.classList.add('hidden');
+      sliderPreviewImage.removeAttribute('src');
+
+      if (sliderPreviewName) {
+        sliderPreviewName.textContent = sliderPreview.dataset.emptyLabel ?? 'Selected image';
+      }
+
+      if (sliderPreviewUrl) {
+        URL.revokeObjectURL(sliderPreviewUrl);
+        sliderPreviewUrl = null;
+      }
+
+      return;
+    }
+
+    if (sliderPreviewUrl) {
+      URL.revokeObjectURL(sliderPreviewUrl);
+    }
+
+    sliderPreviewUrl = URL.createObjectURL(file);
+    sliderPreviewImage.src = sliderPreviewUrl;
+    sliderPreview.classList.remove('hidden');
+
+    if (sliderPreviewName) {
+      sliderPreviewName.textContent = file.name;
+    }
+  };
+
+  sliderImageInput.addEventListener('change', (event) => {
+    const [file] = event.target.files ?? [];
+    showSliderPreview(file);
+  });
+
+  ['dragenter', 'dragover'].forEach((eventName) => {
+    sliderDropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      sliderDropzone.classList.add('is-dragover');
+    });
+  });
+
+  ['dragleave', 'dragend', 'drop'].forEach((eventName) => {
+    sliderDropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      sliderDropzone.classList.remove('is-dragover');
+    });
+  });
+
+  sliderDropzone.addEventListener('drop', (event) => {
+    const files = event.dataTransfer?.files;
+    const [file] = files ?? [];
+
+    if (!file) {
+      return;
+    }
+
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    sliderImageInput.files = transfer.files;
+    showSliderPreview(file);
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (sliderPreviewUrl) {
+      URL.revokeObjectURL(sliderPreviewUrl);
+    }
+  });
+}
+
+document.querySelectorAll('[data-quick-amount]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const amountInput = document.querySelector('#giving_amount');
+        if (!amountInput) {
+            return;
+        }
+
+        amountInput.value = button.getAttribute('data-quick-amount') || '';
+        amountInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+});
+
+
+document.querySelectorAll('[data-copy-text]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const value = button.getAttribute('data-copy-text') || '';
+    if (!value) {
+      return;
+    }
+
+    const originalText = button.textContent;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const temp = document.createElement('input');
+        temp.value = value;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+      }
+
+      button.textContent = button.dataset.copiedLabel || 'Copied';
+    } catch (error) {
+      button.textContent = button.dataset.failedLabel || 'Copy failed';
+    }
+
+    window.setTimeout(() => {
+      button.textContent = originalText;
+    }, 1800);
+  });
+});
+
+document.querySelectorAll('[data-share-link]').forEach((button) => {
+  button.addEventListener('click', async () => {
+    const url = button.getAttribute('data-share-link') || '';
+    const title = button.getAttribute('data-share-title') || document.title;
+
+    if (!url) {
+      return;
+    }
+
+    const originalText = button.textContent;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+
+      button.textContent = button.dataset.sharedLabel || 'Shared';
+    } catch (error) {
+      button.textContent = button.dataset.failedLabel || 'Share failed';
+    }
+
+    window.setTimeout(() => {
+      button.textContent = originalText;
+    }, 1800);
+  });
+});
+
+const assistantWidget = document.querySelector('[data-assistant-widget]');
+
+if (assistantWidget) {
+  const assistantLauncher = assistantWidget.querySelector('[data-assistant-launcher]');
+  const assistantPanel = assistantWidget.querySelector('[data-assistant-panel]');
+  const assistantClose = assistantWidget.querySelector('[data-assistant-close]');
+  const assistantForm = assistantWidget.querySelector('[data-assistant-form]');
+  const assistantInput = assistantWidget.querySelector('[data-assistant-input]');
+  const assistantMessages = assistantWidget.querySelector('[data-assistant-messages]');
+  const assistantSuggestions = assistantWidget.querySelector('[data-assistant-suggestions]');
+  const assistantSubmit = assistantWidget.querySelector('[data-assistant-submit]');
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+  const endpoint = assistantWidget.dataset.endpoint ?? '';
+  const feedbackEndpointTemplate = assistantWidget.dataset.feedbackEndpointTemplate ?? '';
+  const thinkingLabel = assistantWidget.dataset.thinkingLabel ?? 'Thinking...';
+  const errorLabel = assistantWidget.dataset.errorLabel ?? 'Something went wrong. Please try again in a moment.';
+  const assistantName = assistantWidget.dataset.assistantName ?? 'RGC Assistant';
+  const userName = assistantWidget.dataset.userName ?? 'You';
+  const feedbackPrompt = assistantWidget.dataset.feedbackPrompt ?? 'Was this answer helpful?';
+  const feedbackHelpful = assistantWidget.dataset.feedbackHelpful ?? 'Helpful';
+  const feedbackUnhelpful = assistantWidget.dataset.feedbackUnhelpful ?? 'Not helpful';
+  const feedbackSaved = assistantWidget.dataset.feedbackSaved ?? 'Feedback saved';
+
+  const setPanelState = (isOpen) => {
+    if (!assistantPanel || !assistantLauncher) {
+      return;
+    }
+
+    assistantPanel.hidden = !isOpen;
+    assistantPanel.classList.toggle('is-open', isOpen);
+    assistantLauncher.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+    if (isOpen && assistantInput) {
+      window.setTimeout(() => assistantInput.focus(), 60);
+    }
+  };
+
+  const scrollMessages = () => {
+    if (assistantMessages) {
+      assistantMessages.scrollTop = assistantMessages.scrollHeight;
+    }
+  };
+
+  const buildFeedbackControls = (interactionId) => {
+    if (!interactionId || !feedbackEndpointTemplate) {
+      return null;
+    }
+
+    const shell = document.createElement('div');
+    shell.className = 'assistant-feedback';
+    shell.dataset.feedbackFor = String(interactionId);
+
+    const prompt = document.createElement('span');
+    prompt.className = 'assistant-feedback-prompt';
+    prompt.textContent = feedbackPrompt;
+    shell.appendChild(prompt);
+
+    const buttons = document.createElement('div');
+    buttons.className = 'assistant-feedback-actions';
+
+    [
+      { label: feedbackHelpful, value: '1' },
+      { label: feedbackUnhelpful, value: '0' },
+    ].forEach((item) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'assistant-feedback-button';
+      button.dataset.assistantFeedback = item.value;
+      button.dataset.interactionId = String(interactionId);
+      button.textContent = item.label;
+      buttons.appendChild(button);
+    });
+
+    shell.appendChild(buttons);
+
+    const status = document.createElement('span');
+    status.className = 'assistant-feedback-status';
+    status.hidden = true;
+    shell.appendChild(status);
+
+    return shell;
+  };
+
+  const appendMessage = (author, content, type = 'bot', options = {}) => {
+    if (!assistantMessages) {
+      return null;
+    }
+
+    const message = document.createElement('article');
+    message.className = `assistant-message assistant-message--${type}`;
+
+    const authorElement = document.createElement('span');
+    authorElement.className = 'assistant-message-author';
+    authorElement.textContent = author;
+
+    const bodyElement = document.createElement('p');
+    bodyElement.textContent = content;
+
+    message.appendChild(authorElement);
+    message.appendChild(bodyElement);
+
+    if (type === 'bot') {
+      const feedbackControls = buildFeedbackControls(options.interactionId);
+      if (feedbackControls) {
+        message.appendChild(feedbackControls);
+      }
+    }
+
+    assistantMessages.appendChild(message);
+    scrollMessages();
+
+    return message;
+  };
+
+  const renderSuggestions = (items) => {
+    if (!assistantSuggestions) {
+      return;
+    }
+
+    assistantSuggestions.innerHTML = '';
+
+    (items ?? []).slice(0, 3).forEach((item) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'assistant-suggestion';
+      button.setAttribute('data-assistant-suggestion', '');
+      button.textContent = item;
+      assistantSuggestions.appendChild(button);
+    });
+  };
+
+  const setFeedbackState = (shell, selectedValue) => {
+    shell.querySelectorAll('[data-assistant-feedback]').forEach((button) => {
+      const isSelected = button.dataset.assistantFeedback === selectedValue;
+      button.disabled = true;
+      button.classList.toggle('is-selected', isSelected);
+    });
+
+    const status = shell.querySelector('.assistant-feedback-status');
+    if (status) {
+      status.hidden = false;
+      status.textContent = feedbackSaved;
+    }
+  };
+
+  assistantLauncher?.addEventListener('click', () => {
+    const shouldOpen = assistantLauncher.getAttribute('aria-expanded') !== 'true';
+    setPanelState(shouldOpen);
+  });
+
+  assistantClose?.addEventListener('click', () => {
+    setPanelState(false);
+  });
+
+  assistantSuggestions?.addEventListener('click', (event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLButtonElement) || !target.hasAttribute('data-assistant-suggestion')) {
+      return;
+    }
+
+    if (assistantInput) {
+      assistantInput.value = target.textContent ?? '';
+      assistantInput.focus();
+    }
+  });
+
+  assistantMessages?.addEventListener('click', async (event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLButtonElement) || !target.hasAttribute('data-assistant-feedback')) {
+      return;
+    }
+
+    const interactionId = target.dataset.interactionId ?? '';
+    if (!interactionId || !feedbackEndpointTemplate) {
+      return;
+    }
+
+    const shell = target.closest('.assistant-feedback');
+    if (!(shell instanceof HTMLElement)) {
+      return;
+    }
+
+    const endpointUrl = feedbackEndpointTemplate.replace('__ID__', interactionId);
+
+    try {
+      const response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ helpful: target.dataset.assistantFeedback === '1' }),
+      });
+
+      if (!response.ok) {
+        throw new Error(errorLabel);
+      }
+
+      setFeedbackState(shell, target.dataset.assistantFeedback ?? '');
+    } catch (_error) {
+      const status = shell.querySelector('.assistant-feedback-status');
+      if (status) {
+        status.hidden = false;
+        status.textContent = errorLabel;
+      }
+    }
+  });
+
+  assistantInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      assistantForm?.requestSubmit();
+    }
+  });
+
+  assistantForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    if (!assistantInput || !assistantSubmit || !endpoint) {
+      return;
+    }
+
+    const question = assistantInput.value.trim();
+
+    if (!question) {
+      return;
+    }
+
+    appendMessage(userName, question, 'user');
+    assistantInput.value = '';
+    assistantSubmit.disabled = true;
+
+    const thinkingMessage = appendMessage(assistantName, thinkingLabel, 'bot');
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ question }),
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message ?? errorLabel);
+      }
+
+      if (thinkingMessage) {
+        thinkingMessage.remove();
+      }
+
+      appendMessage(assistantName, payload.answer ?? errorLabel, 'bot', {
+        interactionId: payload.interaction_id ?? null,
+      });
+      renderSuggestions(payload.suggestions ?? []);
+    } catch (_error) {
+      if (thinkingMessage) {
+        thinkingMessage.remove();
+      }
+
+      appendMessage(assistantName, errorLabel, 'bot');
+    } finally {
+      assistantSubmit.disabled = false;
+      scrollMessages();
+    }
+  });
+}

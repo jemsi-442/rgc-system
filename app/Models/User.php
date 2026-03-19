@@ -72,6 +72,11 @@ class User extends Authenticatable
         return $this->hasMany(Announcement::class, 'created_by');
     }
 
+    public function offeringPayments(): HasMany
+    {
+        return $this->hasMany(OfferingPayment::class);
+    }
+
     public function normalizedRoleName(?string $role = null): ?string
     {
         $value = $role;

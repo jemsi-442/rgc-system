@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Http\Requests\StoreAnnouncementRequest;
 use App\Models\Announcement;
+use App\Models\Branch;
+use App\Models\District;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -23,7 +27,7 @@ class AnnouncementController extends Controller
         $showArchived = $request->boolean('archived');
 
         $announcements = Announcement::query()
-            ->with(['creator', 'region', 'district', 'branch'])
+            ->with(['creator', 'region', 'district', 'branch', 'targetBranches'])
             ->visibleTo($user)
             ->when($showArchived, fn ($query) => $query->archivedOnly(), fn ($query) => $query->activeListing()->orderedForDisplay())
             ->paginate(12)
@@ -35,16 +39,15 @@ class AnnouncementController extends Controller
     public function show(Announcement $announcement)
     {
         $this->authorize('view', $announcement);
-        $announcement->loadMissing(['creator', 'region', 'district', 'branch']);
+        $announcement->loadMissing(['creator', 'region', 'district', 'branch', 'targetBranches.region', 'targetBranches.district']);
 
         return view('panel.announcements.show', compact('announcement'));
     }
 
-
     public function pdf(Announcement $announcement)
     {
         $this->authorize('view', $announcement);
-        $announcement->loadMissing(['creator', 'region', 'district', 'branch']);
+        $announcement->loadMissing(['creator', 'region', 'district', 'branch', 'targetBranches.region', 'targetBranches.district']);
 
         $pdf = Pdf::loadView('panel.announcements.pdf', [
             'announcement' => $announcement,
@@ -61,7 +64,10 @@ class AnnouncementController extends Controller
     {
         $this->authorize('create', Announcement::class);
 
-        return view('panel.announcements.create');
+        return view('panel.announcements.create', [
+            'availableDistricts' => $this->availableDistrictsFor(auth()->user()),
+            'availableBranches' => $this->availableBranchesFor(auth()->user()),
+        ]);
     }
 
     public function store(StoreAnnouncementRequest $request)
@@ -70,11 +76,15 @@ class AnnouncementController extends Controller
         $image = $this->storeImageFromRequest($request, $user);
 
         try {
-            Announcement::query()->create(array_merge([
-                'title' => $request->string('title')->toString(),
-                'body' => trim($request->string('body')->toString()) ?: null,
-                'created_by' => $user->id,
-            ], $this->scopeAttributes($user), $this->pinAttributes($request), $this->expiryAttributes($request), $image));
+            DB::transaction(function () use ($request, $user, $image): void {
+                $announcement = Announcement::query()->create(array_merge([
+                    'title' => $request->string('title')->toString(),
+                    'body' => trim($request->string('body')->toString()) ?: null,
+                    'created_by' => $user->id,
+                ], $this->resolveScopeAttributes($request, $user), $this->pinAttributes($request), $this->expiryAttributes($request), $image));
+
+                $this->syncTargetBranches($announcement, $request, $user);
+            });
         } catch (Throwable $exception) {
             $this->deleteStoredImagePath($image['image_path'] ?? null);
             throw $exception;
@@ -86,8 +96,13 @@ class AnnouncementController extends Controller
     public function edit(Announcement $announcement)
     {
         $this->authorize('update', $announcement);
+        $announcement->loadMissing('targetBranches');
 
-        return view('panel.announcements.edit', compact('announcement'));
+        return view('panel.announcements.edit', [
+            'announcement' => $announcement,
+            'availableDistricts' => $this->availableDistrictsFor(auth()->user()),
+            'availableBranches' => $this->availableBranchesFor(auth()->user()),
+        ]);
     }
 
     public function update(StoreAnnouncementRequest $request, Announcement $announcement)
@@ -97,10 +112,14 @@ class AnnouncementController extends Controller
         $imageUpdate = $this->syncAnnouncementImage($request, $announcement);
 
         try {
-            $announcement->update(array_merge([
-                'title' => $request->string('title')->toString(),
-                'body' => trim($request->string('body')->toString()) ?: null,
-            ], $this->syncPinAttributes($request, $announcement), $this->expiryAttributes($request), $imageUpdate['attributes']));
+            DB::transaction(function () use ($request, $announcement, $imageUpdate): void {
+                $announcement->update(array_merge([
+                    'title' => $request->string('title')->toString(),
+                    'body' => trim($request->string('body')->toString()) ?: null,
+                ], $this->resolveScopeAttributes($request, $request->user()), $this->syncPinAttributes($request, $announcement), $this->expiryAttributes($request), $imageUpdate['attributes']));
+
+                $this->syncTargetBranches($announcement, $request, $request->user());
+            });
         } catch (Throwable $exception) {
             $this->deleteStoredImagePath($imageUpdate['cleanup_new'] ?? null);
             throw $exception;
@@ -131,9 +150,10 @@ class AnnouncementController extends Controller
             'Content-Type' => $announcement->image_mime_type ?: 'application/octet-stream',
         ];
         $filename = $announcement->image_name ?: basename((string) $announcement->image_path);
+        $path = Storage::disk('public')->path($announcement->image_path);
         $response = $request->boolean('download')
-            ? Storage::disk('public')->download($announcement->image_path, $filename, $headers)
-            : Storage::disk('public')->response($announcement->image_path, $filename, $headers);
+            ? response()->download($path, $filename, $headers)
+            : response()->file($path, $headers);
 
         $disposition = $request->boolean('download') ? 'attachment' : 'inline';
         $response->headers->set('Content-Disposition', $disposition . '; filename="' . addslashes($filename) . '"');
@@ -141,9 +161,44 @@ class AnnouncementController extends Controller
         return $response;
     }
 
-    private function scopeAttributes(User $user): array
+    private function availableDistrictsFor(User $user): Collection
+    {
+        if (! $user->hasSystemRole('regional_admin') || ! $user->region_id) {
+            return collect();
+        }
+
+        return District::query()
+            ->where('region_id', $user->region_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
+    private function availableBranchesFor(User $user): Collection
+    {
+        if (! $user->hasSystemRole('super_admin')) {
+            return collect();
+        }
+
+        return Branch::query()
+            ->with(['region:id,name', 'district:id,name'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'region_id', 'district_id']);
+    }
+
+    private function resolveScopeAttributes(StoreAnnouncementRequest $request, User $user): array
     {
         if ($user->hasSystemRole('super_admin')) {
+            $scope = $request->input('delivery_scope', 'global');
+
+            if ($scope === 'selected_branches') {
+                return [
+                    'is_global' => false,
+                    'region_id' => null,
+                    'district_id' => null,
+                    'church_id' => null,
+                ];
+            }
+
             return [
                 'is_global' => true,
                 'region_id' => null,
@@ -153,6 +208,28 @@ class AnnouncementController extends Controller
         }
 
         if ($user->hasSystemRole('regional_admin')) {
+            $scope = $request->input('delivery_scope', 'region');
+
+            if ($scope === 'branch') {
+                $branch = Branch::query()->findOrFail($request->integer('branch_id'));
+
+                return [
+                    'is_global' => false,
+                    'region_id' => $user->region_id,
+                    'district_id' => $branch->district_id,
+                    'church_id' => $branch->id,
+                ];
+            }
+
+            if ($scope === 'district') {
+                return [
+                    'is_global' => false,
+                    'region_id' => $user->region_id,
+                    'district_id' => $request->integer('district_id'),
+                    'church_id' => null,
+                ];
+            }
+
             return [
                 'is_global' => false,
                 'region_id' => $user->region_id,
@@ -176,6 +253,29 @@ class AnnouncementController extends Controller
             'district_id' => $user->district_id,
             'church_id' => $user->effectiveBranchId(),
         ];
+    }
+
+    private function syncTargetBranches(Announcement $announcement, StoreAnnouncementRequest $request, User $user): void
+    {
+        if ($user->hasSystemRole('super_admin')) {
+            if ($request->input('delivery_scope', 'global') === 'selected_branches') {
+                $announcement->targetBranches()->sync(
+                    collect($request->input('selected_branch_ids', []))
+                        ->filter(fn ($value) => filled($value))
+                        ->map(fn ($value) => (int) $value)
+                        ->unique()
+                        ->values()
+                        ->all()
+                );
+
+                return;
+            }
+
+            $announcement->targetBranches()->sync([]);
+            return;
+        }
+
+        $announcement->targetBranches()->sync([]);
     }
 
     private function pinAttributes(StoreAnnouncementRequest $request): array
@@ -284,13 +384,9 @@ class AnnouncementController extends Controller
         ];
     }
 
-
-
-
-
     private function pdfLogoDataUri(): ?string
     {
-        $logoPath = public_path('images/RGC_logo.png');
+        $logoPath = public_path('images/rgc_logo.png');
 
         if (! is_file($logoPath)) {
             return null;
@@ -319,6 +415,7 @@ class AnnouncementController extends Controller
             return null;
         }
     }
+
     private function pdfImageDataUri(Announcement $announcement): ?string
     {
         if (! $announcement->hasImage() || ! Storage::disk('public')->exists($announcement->image_path)) {
@@ -330,6 +427,7 @@ class AnnouncementController extends Controller
 
         return 'data:' . $mimeType . ';base64,' . base64_encode($contents);
     }
+
     private function deleteImage(Announcement $announcement): void
     {
         $this->deleteStoredImagePath($announcement->image_path);

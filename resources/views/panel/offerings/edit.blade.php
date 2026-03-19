@@ -7,7 +7,7 @@
         @method('PUT')
         <div>
             <label class="field-label" for="offering_date">{{ __('Offering date') }}</label>
-            <input class="input-rgc" id="offering_date" type="date" name="offering_date" value="{{ old('offering_date', $offering->offering_date) }}" required>
+            <input class="input-rgc" id="offering_date" type="date" name="offering_date" value="{{ old('offering_date', $offering->offering_date?->format('Y-m-d')) }}" required>
         </div>
         <div>
             <label class="field-label" for="amount">{{ __('Amount') }}</label>

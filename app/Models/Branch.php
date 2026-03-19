@@ -65,4 +65,24 @@ class Branch extends Model
     {
         return $this->hasMany(BranchMessage::class, 'church_id');
     }
+
+    public function offerings(): HasMany
+    {
+        return $this->hasMany(Offering::class, 'church_id');
+    }
+
+    public function offeringPayments(): HasMany
+    {
+        return $this->hasMany(OfferingPayment::class, 'church_id');
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'church_id');
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class, 'church_id');
+    }
 }

@@ -669,6 +669,178 @@ Main service at 10:00",
     }
 
 
+
+    public function test_regional_admin_can_publish_a_district_only_announcement_inside_their_region(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $otherDistrict = District::query()
+            ->where('region_id', $region->id)
+            ->where('id', '!=', $district->id)
+            ->orderBy('name')
+            ->firstOrFail();
+
+        $otherBranch = $this->makeBranch('District Scope Test Branch', $region, $otherDistrict);
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.district.notice@rgc.test');
+        $inScopeMember = $this->makeUser('member', $region, $district, $branch, 'member.temeke.notice@rgc.test');
+        $outOfScopeMember = $this->makeUser('member', $region, $otherDistrict, $otherBranch, 'member.otherdistrict.notice@rgc.test');
+
+        $this->actingAs($regionalAdmin)
+            ->post(route('announcements.store'), [
+                'title' => 'Temeke District Notice',
+                'body' => 'District-targeted announcement from regional admin.',
+                'delivery_scope' => 'district',
+                'district_id' => $district->id,
+            ])
+            ->assertRedirect(route('announcements.index'));
+
+        $this->assertDatabaseHas('announcements', [
+            'title' => 'Temeke District Notice',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'church_id' => null,
+            'is_global' => false,
+            'created_by' => $regionalAdmin->id,
+        ]);
+
+        $this->actingAs($inScopeMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('Temeke District Notice');
+
+        $this->actingAs($outOfScopeMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertDontSee('Temeke District Notice');
+    }
+
+    public function test_district_admin_announcement_is_visible_across_their_district(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $sisterBranch = $this->makeBranch('Temeke Sister Branch', $region, $district);
+        $districtAdmin = $this->makeUser('district_admin', $region, $district, $branch, 'district.notice@rgc.test');
+        $sisterMember = $this->makeUser('member', $region, $district, $sisterBranch, 'member.sister.notice@rgc.test');
+
+        $this->actingAs($districtAdmin)
+            ->post(route('announcements.store'), [
+                'title' => 'District Operations Notice',
+                'body' => 'This should reach every branch in the district.',
+            ])
+            ->assertRedirect(route('announcements.index'));
+
+        $this->assertDatabaseHas('announcements', [
+            'title' => 'District Operations Notice',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'church_id' => null,
+            'is_global' => false,
+            'created_by' => $districtAdmin->id,
+        ]);
+
+        $this->actingAs($sisterMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('District Operations Notice');
+    }
+
+
+    public function test_regional_admin_can_publish_a_branch_only_announcement_inside_their_region(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $sisterBranch = $this->makeBranch('Temeke Branch Focus', $region, $district);
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.branch.notice@rgc.test');
+        $targetMember = $this->makeUser('member', $region, $district, $sisterBranch, 'member.target.branch.notice@rgc.test');
+        $hqMember = $this->makeUser('member', $region, $district, $branch, 'member.hq.branch.notice@rgc.test');
+
+        $this->actingAs($regionalAdmin)
+            ->post(route('announcements.store'), [
+                'title' => 'Temeke Branch Focus Notice',
+                'body' => 'This should reach one branch only.',
+                'delivery_scope' => 'branch',
+                'district_id' => $district->id,
+                'branch_id' => $sisterBranch->id,
+            ])
+            ->assertRedirect(route('announcements.index'));
+
+        $this->assertDatabaseHas('announcements', [
+            'title' => 'Temeke Branch Focus Notice',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'church_id' => $sisterBranch->id,
+            'is_global' => false,
+            'created_by' => $regionalAdmin->id,
+        ]);
+
+        $this->actingAs($targetMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('Temeke Branch Focus Notice');
+
+        $this->actingAs($hqMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertDontSee('Temeke Branch Focus Notice');
+    }
+
+    public function test_super_admin_can_publish_an_announcement_to_selected_branches_only(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $hqBranch] = $this->darHeadquartersContext();
+        $selectedDistrictBranch = $this->makeBranch('Temeke Selected Branch', $region, $district);
+        [$otherRegion, $otherDistrict, $outsideSelectedBranch] = $this->makeBranchInAnotherRegion();
+        $outsideUntargetedBranch = $this->makeBranch($otherRegion->name . ' Untargeted Branch', $otherRegion, $otherDistrict);
+
+        $superAdmin = $this->makeUser('super_admin', $region, $district, $hqBranch, 'super.selected.notice@rgc.test');
+        $hqMember = $this->makeUser('member', $region, $district, $hqBranch, 'member.hq.selected.notice@rgc.test');
+        $selectedDistrictMember = $this->makeUser('member', $region, $district, $selectedDistrictBranch, 'member.selected.district.notice@rgc.test');
+        $selectedOutsideMember = $this->makeUser('member', $otherRegion, $otherDistrict, $outsideSelectedBranch, 'member.selected.outside.notice@rgc.test');
+        $untargetedMember = $this->makeUser('member', $otherRegion, $otherDistrict, $outsideUntargetedBranch, 'member.untargeted.notice@rgc.test');
+
+        $this->actingAs($superAdmin)
+            ->post(route('announcements.store'), [
+                'title' => 'Selected Branches Notice',
+                'body' => 'Only the chosen branches should see this update.',
+                'delivery_scope' => 'selected_branches',
+                'selected_branch_ids' => [$selectedDistrictBranch->id, $outsideSelectedBranch->id],
+            ])
+            ->assertRedirect(route('announcements.index'));
+
+        $announcement = Announcement::query()->latest('id')->firstOrFail();
+        $announcement->load('targetBranches');
+
+        $this->assertFalse($announcement->is_global);
+        $this->assertNull($announcement->region_id);
+        $this->assertNull($announcement->district_id);
+        $this->assertNull($announcement->church_id);
+        $this->assertCount(2, $announcement->targetBranches);
+
+        $this->actingAs($selectedDistrictMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('Selected Branches Notice')
+            ->assertSee('Selected Branches');
+
+        $this->actingAs($selectedOutsideMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertSee('Selected Branches Notice');
+
+        $this->actingAs($hqMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertDontSee('Selected Branches Notice');
+
+        $this->actingAs($untargetedMember)
+            ->get(route('announcements.index'))
+            ->assertOk()
+            ->assertDontSee('Selected Branches Notice');
+    }
     public function test_member_can_download_visible_announcement_as_pdf(): void
     {
         Storage::fake('public');

@@ -5,6 +5,14 @@
 @section('content')
 <div class="auth-grid">
     <aside class="auth-aside">
+        <div class="auth-brand-lockup">
+            <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="auth-brand-logo">
+            <div class="auth-brand-text">
+                <span class="auth-brand-name">{{ __('Redeemed Gospel Church') }}</span>
+                <span class="auth-brand-subtitle">{{ __('Inc. Tanzania Platform') }}</span>
+            </div>
+        </div>
+
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Secure Sign In') }}</span>
         <h2 class="mt-5">{{ __('Enter the governance platform.') }}</h2>
         <p class="mt-5 max-w-xl text-sm leading-7 text-white/80">

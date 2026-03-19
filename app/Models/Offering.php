@@ -15,6 +15,7 @@ class Offering extends Model
     protected $fillable = [
         'church_id',
         'amount',
+        'description',
         'date',
         'recorded_by',
     ];

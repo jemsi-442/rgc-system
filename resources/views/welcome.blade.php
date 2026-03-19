@@ -6,6 +6,14 @@
 <section class="hero-grid items-stretch">
     <div class="hero-panel">
         <div class="hero-copy">
+            <div class="hero-brand-lockup">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="hero-brand-logo">
+                <div class="hero-brand-text">
+                    <span class="hero-brand-name">{{ __('Redeemed Gospel Church') }}</span>
+                    <span class="hero-brand-subtitle">{{ __('Inc. Tanzania') }}</span>
+                </div>
+            </div>
+
             <span class="section-kicker">{{ __('National Church Governance') }}</span>
             <h1 class="hero-title mt-5">{{ __('Redeemed Gospel Church') }} <em>{{ __('Inc. Tanzania') }}</em></h1>
             <p class="mt-5 text-base leading-7 md:text-lg">

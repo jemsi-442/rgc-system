@@ -115,7 +115,7 @@
                     <div class="bg-gray-50 p-4 rounded-lg">
                         <p class="text-sm text-gray-600 mb-1">Aina ya Tukio</p>
                         <div class="flex items-center">
-                            <i class="fas fa-tag text-purple-500 mr-2"></i>
+                            <i class="fas fa-tag text-red-500 mr-2"></i>
                             <p class="text-base font-medium text-gray-900">{{ $event->event_type }}</p>
                         </div>
                     </div>
@@ -292,7 +292,7 @@
                     <!-- Event Date -->
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div class="flex items-center">
-                            <i class="fas fa-calendar text-purple-500 mr-2"></i>
+                            <i class="fas fa-calendar text-red-500 mr-2"></i>
                             <span class="text-sm text-gray-700">Tarehe</span>
                         </div>
                         <span class="text-base font-medium text-gray-900">{{ $event->event_date->format('d/m/Y') }}</span>

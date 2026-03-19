@@ -13,8 +13,17 @@ class AnnouncementPolicy extends BranchScopedPolicy
             return false;
         }
 
+        if ($user->hasSystemRole('super_admin')) {
+            return true;
+        }
+
         if ($model->is_global) {
             return $this->viewAny($user);
+        }
+
+        if ($model->targetBranches()->exists()) {
+            return $user->effectiveBranchId() !== null
+                && $model->targetBranches()->whereKey($user->effectiveBranchId())->exists();
         }
 
         return parent::view($user, $model);
@@ -26,7 +35,7 @@ class AnnouncementPolicy extends BranchScopedPolicy
             return false;
         }
 
-        if ($model->is_global) {
+        if ($model->is_global || $model->targetBranches()->exists()) {
             return $user->hasSystemRole('super_admin');
         }
 
@@ -39,7 +48,7 @@ class AnnouncementPolicy extends BranchScopedPolicy
             return false;
         }
 
-        if ($model->is_global) {
+        if ($model->is_global || $model->targetBranches()->exists()) {
             return $user->hasSystemRole('super_admin');
         }
 

@@ -5,7 +5,7 @@ Built with Laravel 12, Vite, Tailwind CSS, and Spatie Permission.
 
 ## Overview
 
-This codebase has already been refactored away from the original cloned project and now runs as an RGC application with:
+This codebase has already been refactored away from the original Trashed project and now runs as an RGC application with:
 
 - public homepage at `/`
 - web authentication for dashboard users
@@ -14,6 +14,7 @@ This codebase has already been refactored away from the original cloned project 
 - strict role and scope enforcement
 - Tanzania master data for regions and districts
 - branch-scoped announcements, events, offerings, expenses, and chat
+- Snippe-hosted offering payment sessions with webhook reconciliation
 
 ## Active Runtime Surface
 
@@ -28,6 +29,7 @@ Active controllers:
 - `AnnouncementController`
 - `EventController`
 - `OfferingController`
+- `OfferingPaymentController`
 - `ExpenseController`
 - `HomeSliderController`
 - `Api\AuthController`
@@ -42,6 +44,7 @@ Active models:
 - `Announcement`
 - `Event`
 - `Offering`
+- `OfferingPayment`
 - `Expense`
 - `BranchMessage`
 - `HomeSlider` (`slides` table)
@@ -97,6 +100,7 @@ Primary master and governance tables:
 - `announcements`
 - `events`
 - `offerings`
+- `offering_payments`
 - `expenses`
 - `slides`
 - Spatie permission tables: `roles`, `permissions`, `model_has_roles`, `model_has_permissions`, `role_has_permissions`
@@ -174,6 +178,78 @@ Validation enforced by the app:
 - branch must belong to selected district
 - scoped users cannot create records outside their hierarchy
 
+
+## Snippe Payments
+
+The offerings module now supports Snippe hosted payment sessions.
+
+Admin flow:
+- create a payment link from `/offerings/create`
+- share the hosted checkout link with the giver
+- let Snippe call the webhook after payment
+- the system creates the final offering record automatically when the payment is confirmed
+
+Routes:
+- `POST /offerings/payments`
+- `POST /offerings/payments/{payment}/sync`
+- `GET /giving/{publicReference}`
+- `POST /api/payments/snippe/webhook`
+
+Required `.env` values:
+- `SNIPPE_BASE_URL=https://api.snippe.sh`
+- `SNIPPE_API_KEY=`
+- `SNIPPE_WEBHOOK_SECRET=`
+- `SNIPPE_TIMEOUT=15`
+
+Security note:
+- keep Snippe credentials only in `.env`
+- do not commit live keys or webhook secrets into the repository
+- if credentials were previously shared outside `.env`, rotate them before production
+
+
+## SMTP Mail Setup
+
+The current mail features already support:
+- donor receipt emails after completed payments
+- branch payment alert emails for branch leaders
+
+To send emails to real inboxes, configure SMTP in `.env`.
+
+Recommended production values:
+
+```env
+MAIL_MAILER=smtp
+MAIL_SCHEME=tls
+MAIL_HOST=smtp.your-provider.com
+MAIL_PORT=587
+MAIL_USERNAME=your_smtp_username
+MAIL_PASSWORD=your_smtp_password
+MAIL_FROM_ADDRESS=noreply@rgc.or.tz
+MAIL_FROM_NAME="RGC Platform"
+```
+
+Notes:
+- `MAIL_MAILER=log` keeps emails in local logs only and does not deliver to real inboxes.
+- the current `.env` in local development is still set to `log`
+- change `MAIL_FROM_ADDRESS` to a real domain address you control before production
+
+After updating SMTP credentials, clear config cache:
+
+```bash
+php artisan optimize:clear
+```
+
+Send a test email:
+
+```bash
+php artisan mail:test your-email@example.com
+```
+
+If delivery fails, verify:
+- SMTP host and port
+- username and password
+- TLS requirement of the provider
+- sender address/domain verification at your provider
 ## Theme
 
 RGC brand colors:
@@ -280,11 +356,12 @@ The current suite covers:
 - dashboard scope for member and regional admin views
 - branch chat isolation
 - announcements, offerings, and expenses branch scoping
+- Snippe offering payment session creation and webhook confirmation
 - update/delete authorization for announcements, offerings, expenses, and users
 
 Current baseline at the time of this README update:
-- `60` tests passed
-- `266` assertions passed
+- `87` tests passed
+- `416` assertions passed
 
 ### Manual QA Checklist
 

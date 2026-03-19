@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Requests;
+
+use App\Models\SystemAssistantTopic;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateSystemAssistantTopicRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->hasSystemRole('super_admin') ?? false;
+    }
+
+    public function rules(): array
+    {
+        /** @var SystemAssistantTopic|null $topic */
+        $topic = $this->route('topic');
+
+        return [
+            'title' => ['required', 'string', 'max:120'],
+            'slug' => ['nullable', 'string', 'max:120', 'regex:/^[a-z0-9\-]+$/', Rule::unique('system_assistant_topics', 'slug')->ignore($topic?->id)->where(fn ($query) => $query->where('locale', $this->input('locale', $topic?->locale)))],
+            'locale' => ['required', 'string', Rule::in(config('app.supported_locales', ['en', 'sw']))],
+            'answer' => ['required', 'string', 'max:6000'],
+            'keywords_text' => ['required', 'string', 'max:4000'],
+            'suggestions_text' => ['nullable', 'string', 'max:4000'],
+            'roles' => ['nullable', 'array'],
+            'roles.*' => ['string', Rule::in(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'bishop', 'pastor', 'accountant', 'member'])],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'is_active' => ['nullable', 'boolean'],
+        ];
+    }
+}

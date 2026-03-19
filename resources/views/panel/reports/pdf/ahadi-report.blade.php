@@ -114,7 +114,7 @@
             font-weight: bold;
             margin-bottom: 10px;
             text-align: center;
-            background: #360958;
+            background: #c00000;
             color: white;
             padding: 8px;
         }
@@ -140,7 +140,7 @@
             font-weight: bold;
             margin: 20px 0 10px 0;
             text-align: center;
-            background: #360958;
+            background: #c00000;
             color: white;
             padding: 8px;
         }
@@ -152,7 +152,7 @@
         }
 
         .data-table th {
-            background: #360958;
+            background: #c00000;
             color: white;
             font-weight: bold;
             text-align: left;
@@ -225,14 +225,14 @@
     <!-- Header Section -->
     <div class="report-header">
         <div class="header-left">
-            @if(file_exists(public_path('images/RGC_logo.png')))
-                <img src="{{ asset('images/RGC_logo.png') }}" alt="Church Logo" class="church-logo">
+            @if(file_exists(public_path('images/rgc_logo.png')))
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="church-logo">
             @endif
         </div>
         <div class="header-center">
-            <div class="church-name">{{ $churchName ?? 'RGC MAKABE RGC' }}</div>
-            <div class="church-address">{{ $address ?? 'P.O. Box 123, Makabe' }}</div>
-            <div class="church-contact">{{ $phone ?? '+255 123 456 789' }} | {{ $email ?? 'makabe@RGC.go.tz' }}</div>
+            <div class="church-name">{{ $churchName ?? 'REDEEMED GOSPEL CHURCH INC. TANZANIA' }}</div>
+            <div class="church-address">{{ $address ?? 'Toangoma, Temeke, Dar es Salaam' }}</div>
+            <div class="church-contact">{{ $phone ?? '+255 123 456 789' }} | {{ $email ?? 'noreply@rgc.or.tz' }}</div>
         </div>
         <div class="header-right"></div>
     </div>
