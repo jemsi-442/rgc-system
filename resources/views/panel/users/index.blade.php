@@ -8,13 +8,13 @@
         <div>
             <span class="section-kicker">{{ __('User Governance') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('All user accounts') }}</h1>
-            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create, update, reset passwords, and remove any user account except their own deletion.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create, activate, deactivate, reset passwords, and remove any user account except deleting or deactivating the current super admin account.') }}</p>
         </div>
         <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add User') }}</a>
     </div>
 
     <form class="mt-5 flex flex-col gap-3 sm:flex-row" method="GET" action="{{ route('admin.users.index') }}">
-        <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search by name, email, or role') }}">
+        <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search by name, email, role, or status') }}">
         <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Search') }}</button>
     </form>
 
@@ -25,6 +25,7 @@
                     <th>{{ __('Name') }}</th>
                     <th>{{ __('Email') }}</th>
                     <th>{{ __('Role') }}</th>
+                    <th>{{ __('Status') }}</th>
                     <th>{{ __('Branch') }}</th>
                     <th>{{ __('District') }}</th>
                     <th>{{ __('Region') }}</th>
@@ -42,6 +43,11 @@
                         </td>
                         <td class="break-all">{{ $managedUser->email }}</td>
                         <td>{{ __(Illuminate\Support\Str::headline($managedUser->normalizedRoleName() ?? $managedUser->role)) }}</td>
+                        <td>
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $managedUser->isActive() ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
+                                {{ $managedUser->isActive() ? __('Active') : __('Inactive') }}
+                            </span>
+                        </td>
                         <td>{{ $managedUser->branch?->name ?? '—' }}</td>
                         <td>{{ $managedUser->district?->name ?? '—' }}</td>
                         <td>{{ $managedUser->region?->name ?? '—' }}</td>
@@ -60,7 +66,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="py-6 text-center text-sm text-black/65">{{ __('No users found for the current search.') }}</td>
+                        <td colspan="8" class="py-6 text-center text-sm text-black/65">{{ __('No users found for the current search.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

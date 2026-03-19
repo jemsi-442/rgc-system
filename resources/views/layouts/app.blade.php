@@ -65,6 +65,8 @@
                         <a class="nav-link" href="{{ route('admin.users.index') }}">{{ __('Users') }}</a>
                         <a class="nav-link" href="{{ route('branches.index') }}">{{ __('Branches') }}</a>
                         <a class="nav-link" href="{{ route('sliders.index') }}">{{ __('Slides') }}</a>
+                    @endif
+                    @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
                         <a class="nav-link" href="{{ route('assistant.topics.index') }}">{{ __('Assistant Knowledge') }}</a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
@@ -123,6 +125,12 @@
     data-feedback-helpful="{{ __('Helpful') }}"
     data-feedback-unhelpful="{{ __('Not helpful') }}"
     data-feedback-saved="{{ __('Feedback saved') }}"
+    data-feedback-saving="{{ __('Saving feedback...') }}"
+    data-feedback-note-label="{{ __('Tell us what was missing (optional)') }}"
+    data-feedback-note-placeholder="{{ __('Write a short note so we can improve this answer.') }}"
+    data-feedback-note-save="{{ __('Save feedback') }}"
+    data-feedback-note-skip="{{ __('Skip note') }}"
+    data-feedback-note-title="{{ __('Feedback note') }}"
 >
     <button
         type="button"

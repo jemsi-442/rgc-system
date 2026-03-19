@@ -24,6 +24,7 @@ class SystemAssistantInteraction extends Model
         'ip_address',
         'user_agent',
         'helpful',
+        'feedback_note',
         'feedback_submitted_at',
     ];
 
@@ -33,6 +34,7 @@ class SystemAssistantInteraction extends Model
             'confidence' => 'integer',
             'role_snapshot' => 'array',
             'helpful' => 'boolean',
+            'feedback_note' => 'string',
             'feedback_submitted_at' => 'datetime',
         ];
     }

@@ -604,6 +604,12 @@ if (assistantWidget) {
   const feedbackHelpful = assistantWidget.dataset.feedbackHelpful ?? 'Helpful';
   const feedbackUnhelpful = assistantWidget.dataset.feedbackUnhelpful ?? 'Not helpful';
   const feedbackSaved = assistantWidget.dataset.feedbackSaved ?? 'Feedback saved';
+  const feedbackSaving = assistantWidget.dataset.feedbackSaving ?? 'Saving feedback...';
+  const feedbackNoteLabel = assistantWidget.dataset.feedbackNoteLabel ?? 'Tell us what was missing (optional)';
+  const feedbackNotePlaceholder = assistantWidget.dataset.feedbackNotePlaceholder ?? 'Write a short note so we can improve this answer.';
+  const feedbackNoteSave = assistantWidget.dataset.feedbackNoteSave ?? 'Save feedback';
+  const feedbackNoteSkip = assistantWidget.dataset.feedbackNoteSkip ?? 'Skip note';
+  const feedbackNoteTitle = assistantWidget.dataset.feedbackNoteTitle ?? 'Feedback note';
 
   const setPanelState = (isOpen) => {
     if (!assistantPanel || !assistantLauncher) {
@@ -622,6 +628,109 @@ if (assistantWidget) {
   const scrollMessages = () => {
     if (assistantMessages) {
       assistantMessages.scrollTop = assistantMessages.scrollHeight;
+    }
+  };
+
+  const setFeedbackStatus = (shell, message, isError = false) => {
+    const status = shell.querySelector('.assistant-feedback-status');
+    if (!status) {
+      return;
+    }
+
+    status.hidden = false;
+    status.textContent = message;
+    status.classList.toggle('is-error', isError);
+  };
+
+  const toggleFeedbackNoteShell = (shell, isVisible) => {
+    const noteShell = shell.querySelector('[data-assistant-feedback-note-shell]');
+    if (!(noteShell instanceof HTMLElement)) {
+      return;
+    }
+
+    noteShell.hidden = !isVisible;
+
+    if (isVisible) {
+      const textarea = noteShell.querySelector('[data-assistant-feedback-note-input]');
+      if (textarea instanceof HTMLTextAreaElement) {
+        window.setTimeout(() => textarea.focus(), 30);
+      }
+    }
+  };
+
+  const setFeedbackBusy = (shell, isBusy) => {
+    shell.querySelectorAll('button, textarea').forEach((element) => {
+      if ('disabled' in element) {
+        element.disabled = isBusy;
+      }
+    });
+  };
+
+  const setFeedbackState = (shell, selectedValue, note = '') => {
+    shell.querySelectorAll('[data-assistant-feedback]').forEach((button) => {
+      const isSelected = button.dataset.assistantFeedback === selectedValue;
+      button.disabled = true;
+      button.classList.toggle('is-selected', isSelected);
+    });
+
+    const noteShell = shell.querySelector('[data-assistant-feedback-note-shell]');
+    if (noteShell instanceof HTMLElement) {
+      noteShell.hidden = true;
+      noteShell.querySelectorAll('button, textarea').forEach((element) => {
+        if ('disabled' in element) {
+          element.disabled = true;
+        }
+      });
+    }
+
+    let noteDisplay = shell.querySelector('.assistant-feedback-note-saved');
+    if (note) {
+      if (!(noteDisplay instanceof HTMLElement)) {
+        noteDisplay = document.createElement('p');
+        noteDisplay.className = 'assistant-feedback-note-saved';
+        shell.appendChild(noteDisplay);
+      }
+      noteDisplay.textContent = `${feedbackNoteTitle}: ${note}`;
+    } else if (noteDisplay instanceof HTMLElement) {
+      noteDisplay.remove();
+    }
+
+    setFeedbackStatus(shell, feedbackSaved, false);
+  };
+
+  const sendFeedback = async (shell, helpful, note = '') => {
+    const interactionId = shell.dataset.feedbackFor ?? '';
+    if (!interactionId || !feedbackEndpointTemplate) {
+      return;
+    }
+
+    const endpointUrl = feedbackEndpointTemplate.replace('__ID__', interactionId);
+    setFeedbackBusy(shell, true);
+    setFeedbackStatus(shell, feedbackSaving, false);
+
+    try {
+      const response = await fetch(endpointUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+        },
+        body: JSON.stringify({ helpful, note }),
+      });
+
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message ?? errorLabel);
+      }
+
+      setFeedbackState(shell, helpful ? '1' : '0', payload.feedback_note ?? note);
+    } catch (_error) {
+      setFeedbackBusy(shell, false);
+      setFeedbackStatus(shell, errorLabel, true);
+      if (!helpful) {
+        toggleFeedbackNoteShell(shell, true);
+      }
     }
   };
 
@@ -650,12 +759,48 @@ if (assistantWidget) {
       button.type = 'button';
       button.className = 'assistant-feedback-button';
       button.dataset.assistantFeedback = item.value;
-      button.dataset.interactionId = String(interactionId);
       button.textContent = item.label;
       buttons.appendChild(button);
     });
 
     shell.appendChild(buttons);
+
+    const noteShell = document.createElement('div');
+    noteShell.className = 'assistant-feedback-note-shell';
+    noteShell.hidden = true;
+    noteShell.setAttribute('data-assistant-feedback-note-shell', '');
+
+    const noteLabel = document.createElement('label');
+    noteLabel.className = 'assistant-feedback-note-label';
+    noteLabel.textContent = feedbackNoteLabel;
+    noteShell.appendChild(noteLabel);
+
+    const noteInput = document.createElement('textarea');
+    noteInput.className = 'assistant-feedback-note-input';
+    noteInput.rows = 3;
+    noteInput.placeholder = feedbackNotePlaceholder;
+    noteInput.setAttribute('data-assistant-feedback-note-input', '');
+    noteShell.appendChild(noteInput);
+
+    const noteActions = document.createElement('div');
+    noteActions.className = 'assistant-feedback-note-actions';
+
+    const saveButton = document.createElement('button');
+    saveButton.type = 'button';
+    saveButton.className = 'assistant-feedback-note-submit';
+    saveButton.setAttribute('data-assistant-feedback-note-save', '');
+    saveButton.textContent = feedbackNoteSave;
+    noteActions.appendChild(saveButton);
+
+    const skipButton = document.createElement('button');
+    skipButton.type = 'button';
+    skipButton.className = 'assistant-feedback-note-skip';
+    skipButton.setAttribute('data-assistant-feedback-note-skip', '');
+    skipButton.textContent = feedbackNoteSkip;
+    noteActions.appendChild(skipButton);
+
+    noteShell.appendChild(noteActions);
+    shell.appendChild(noteShell);
 
     const status = document.createElement('span');
     status.className = 'assistant-feedback-status';
@@ -713,20 +858,6 @@ if (assistantWidget) {
     });
   };
 
-  const setFeedbackState = (shell, selectedValue) => {
-    shell.querySelectorAll('[data-assistant-feedback]').forEach((button) => {
-      const isSelected = button.dataset.assistantFeedback === selectedValue;
-      button.disabled = true;
-      button.classList.toggle('is-selected', isSelected);
-    });
-
-    const status = shell.querySelector('.assistant-feedback-status');
-    if (status) {
-      status.hidden = false;
-      status.textContent = feedbackSaved;
-    }
-  };
-
   assistantLauncher?.addEventListener('click', () => {
     const shouldOpen = assistantLauncher.getAttribute('aria-expanded') !== 'true';
     setPanelState(shouldOpen);
@@ -751,13 +882,7 @@ if (assistantWidget) {
 
   assistantMessages?.addEventListener('click', async (event) => {
     const target = event.target;
-
-    if (!(target instanceof HTMLButtonElement) || !target.hasAttribute('data-assistant-feedback')) {
-      return;
-    }
-
-    const interactionId = target.dataset.interactionId ?? '';
-    if (!interactionId || !feedbackEndpointTemplate) {
+    if (!(target instanceof HTMLElement)) {
       return;
     }
 
@@ -766,30 +891,29 @@ if (assistantWidget) {
       return;
     }
 
-    const endpointUrl = feedbackEndpointTemplate.replace('__ID__', interactionId);
-
-    try {
-      const response = await fetch(endpointUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-        body: JSON.stringify({ helpful: target.dataset.assistantFeedback === '1' }),
-      });
-
-      if (!response.ok) {
-        throw new Error(errorLabel);
+    if (target instanceof HTMLButtonElement && target.hasAttribute('data-assistant-feedback')) {
+      if ((target.dataset.assistantFeedback ?? '') === '0') {
+        shell.querySelectorAll('[data-assistant-feedback]').forEach((button) => {
+          button.classList.toggle('is-selected', button === target);
+        });
+        setFeedbackStatus(shell, feedbackNoteLabel, false);
+        toggleFeedbackNoteShell(shell, true);
+        return;
       }
 
-      setFeedbackState(shell, target.dataset.assistantFeedback ?? '');
-    } catch (_error) {
-      const status = shell.querySelector('.assistant-feedback-status');
-      if (status) {
-        status.hidden = false;
-        status.textContent = errorLabel;
-      }
+      await sendFeedback(shell, true);
+      return;
+    }
+
+    if (target instanceof HTMLButtonElement && target.hasAttribute('data-assistant-feedback-note-save')) {
+      const noteInput = shell.querySelector('[data-assistant-feedback-note-input]');
+      const note = noteInput instanceof HTMLTextAreaElement ? noteInput.value.trim() : '';
+      await sendFeedback(shell, false, note);
+      return;
+    }
+
+    if (target instanceof HTMLButtonElement && target.hasAttribute('data-assistant-feedback-note-skip')) {
+      await sendFeedback(shell, false, '');
     }
   });
 
@@ -808,7 +932,6 @@ if (assistantWidget) {
     }
 
     const question = assistantInput.value.trim();
-
     if (!question) {
       return;
     }
@@ -824,14 +947,13 @@ if (assistantWidget) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'X-CSRF-TOKEN': csrfToken,
         },
         body: JSON.stringify({ question }),
       });
 
       const payload = await response.json();
-
       if (!response.ok) {
         throw new Error(payload.message ?? errorLabel);
       }

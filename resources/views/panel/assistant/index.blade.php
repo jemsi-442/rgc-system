@@ -3,6 +3,11 @@
 @section('title', __('Assistant Knowledge') . ' - RGC')
 
 @section('content')
+@php
+    $feedbackTotal = max(1, $stats['helpful_count'] + $stats['unhelpful_count']);
+    $helpfulWidth = (int) round(($stats['helpful_count'] / $feedbackTotal) * 100);
+    $unhelpfulWidth = (int) round(($stats['unhelpful_count'] / $feedbackTotal) * 100);
+@endphp
 <div class="space-y-8">
     <section class="card-rgc">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -10,13 +15,21 @@
                 <span class="section-kicker">{{ __('System guide') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Assistant Knowledge') }}</h1>
                 <p class="mt-2 text-sm text-black/65">{{ __('Manage what the offline assistant knows, which roles each topic serves, and how recent questions are flowing through the platform.') }}</p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <span class="payment-status-badge is-pending">{{ $scopeSummary }}</span>
+                    @if($manager->hasSystemRole('regional_admin'))
+                        <span class="payment-status-badge is-completed">{{ __('Regional scope') }}</span>
+                    @endif
+                </div>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
                 <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('assistant.topics.export', request()->query()) }}">{{ __('Export topics backup') }}</a>
-                <form method="POST" action="{{ route('assistant.topics.restore-defaults') }}">
-                    @csrf
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="submit">{{ __('Restore defaults') }}</button>
-                </form>
+                @if($manager->hasSystemRole('super_admin'))
+                    <form method="POST" action="{{ route('assistant.topics.restore-defaults') }}">
+                        @csrf
+                        <button class="btn-rgc-outline w-full sm:w-auto" type="submit">{{ __('Restore defaults') }}</button>
+                    </form>
+                @endif
                 <a class="btn-rgc w-full sm:w-auto" href="{{ route('assistant.topics.create') }}">{{ __('Add topic') }}</a>
             </div>
         </div>
@@ -53,20 +66,78 @@
         </div>
     </section>
 
-    <section class="card-rgc assistant-import-panel">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <span class="section-kicker">{{ __('Backup and restore') }}</span>
-                <h2 class="mt-4 text-2xl font-semibold">{{ __('Import assistant topics') }}</h2>
-                <p class="mt-2 text-sm text-black/65">{{ __('Upload a JSON backup to restore or move assistant knowledge between environments. Existing topics with the same slug and locale will be updated safely.') }}</p>
+    <section class="tablet-stack two">
+        <article class="card-rgc assistant-usage-card">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <span class="section-kicker">{{ __('Usage trend') }}</span>
+                    <h2 class="mt-4 text-2xl font-semibold">{{ __('Assistant usage in the last 7 days') }}</h2>
+                    <p class="mt-2 text-sm text-black/65">{{ __('This gives you a quick read on how often people are depending on the church system assistant each day.') }}</p>
+                </div>
+                <div class="assistant-usage-summary">
+                    <span class="payment-status-badge is-pending">{{ __('Peak day') }}: {{ $usagePeak }}</span>
+                </div>
             </div>
-            <form method="POST" action="{{ route('assistant.topics.import') }}" enctype="multipart/form-data" class="assistant-import-form">
-                @csrf
-                <input class="input-rgc" type="file" name="topics_file" accept=".json,application/json,text/plain" required>
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Import topics backup') }}</button>
-            </form>
-        </div>
+
+            <div class="assistant-usage-chart mt-6">
+                @foreach($usageByDay as $day)
+                    @php($height = $day['count'] > 0 ? max(12, (int) round(($day['count'] / $usagePeak) * 100)) : 10)
+                    <article class="assistant-usage-column">
+                        <span class="assistant-usage-count">{{ $day['count'] }}</span>
+                        <div class="assistant-usage-bar-shell" aria-hidden="true">
+                            <span class="assistant-usage-bar" style="height: {{ $height }}%"></span>
+                        </div>
+                        <span class="assistant-usage-label">{{ $day['label'] }}</span>
+                        <span class="assistant-usage-date">{{ $day['date'] }}</span>
+                    </article>
+                @endforeach
+            </div>
+        </article>
+
+        <article class="card-rgc assistant-feedback-mix-card">
+            <span class="section-kicker">{{ __('Feedback mix') }}</span>
+            <h2 class="mt-4 text-2xl font-semibold">{{ __('Helpful vs needs improvement') }}</h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('Use this split to see whether the assistant is guiding church users clearly or still missing detail.') }}</p>
+
+            <div class="assistant-feedback-mix mt-6">
+                <div class="assistant-feedback-mix-row">
+                    <div class="assistant-feedback-mix-labels">
+                        <strong>{{ __('Helpful') }}</strong>
+                        <span>{{ $stats['helpful_count'] }}</span>
+                    </div>
+                    <div class="assistant-feedback-mix-bar-shell">
+                        <span class="assistant-feedback-mix-bar is-helpful" style="width: {{ $helpfulWidth }}%"></span>
+                    </div>
+                </div>
+                <div class="assistant-feedback-mix-row">
+                    <div class="assistant-feedback-mix-labels">
+                        <strong>{{ __('Needs improvement') }}</strong>
+                        <span>{{ $stats['unhelpful_count'] }}</span>
+                    </div>
+                    <div class="assistant-feedback-mix-bar-shell">
+                        <span class="assistant-feedback-mix-bar is-unhelpful" style="width: {{ $unhelpfulWidth }}%"></span>
+                    </div>
+                </div>
+            </div>
+        </article>
     </section>
+
+    @if($manager->hasSystemRole('super_admin'))
+        <section class="card-rgc assistant-import-panel">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <span class="section-kicker">{{ __('Backup and restore') }}</span>
+                    <h2 class="mt-4 text-2xl font-semibold">{{ __('Import assistant topics') }}</h2>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Upload a JSON backup to restore or move assistant knowledge between environments. Existing topics with the same slug and locale will be updated safely.') }}</p>
+                </div>
+                <form method="POST" action="{{ route('assistant.topics.import') }}" enctype="multipart/form-data" class="assistant-import-form">
+                    @csrf
+                    <input class="input-rgc" type="file" name="topics_file" accept=".json,application/json,text/plain" required>
+                    <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Import topics backup') }}</button>
+                </form>
+            </div>
+        </section>
+    @endif
 
     <section class="card-rgc">
         <form class="flex flex-col gap-3 lg:flex-row" method="GET" action="{{ route('assistant.topics.index') }}">
@@ -77,6 +148,15 @@
                     <option value="{{ $localeOption }}" @selected($localeFilter === $localeOption)>{{ strtoupper($localeOption) }}</option>
                 @endforeach
             </select>
+            @if($manager->hasSystemRole('super_admin'))
+                <select class="select-rgc" name="scope">
+                    <option value="">{{ __('All scopes') }}</option>
+                    <option value="global" @selected($scopeFilter === 'global')>{{ __('Global') }}</option>
+                    @foreach($regionOptions as $regionOption)
+                        <option value="{{ $regionOption->id }}" @selected((string) $scopeFilter === (string) $regionOption->id)>{{ $regionOption->name }}</option>
+                    @endforeach
+                </select>
+            @endif
             <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Search') }}</button>
         </form>
 
@@ -86,6 +166,7 @@
                     <tr>
                         <th>{{ __('Topic') }}</th>
                         <th>{{ __('Locale') }}</th>
+                        <th>{{ __('Scope') }}</th>
                         <th>{{ __('Roles') }}</th>
                         <th>{{ __('Keywords') }}</th>
                         <th>{{ __('Status') }}</th>
@@ -101,6 +182,9 @@
                                 <div class="mt-1 text-xs text-black/50">{{ $topic->slug }}</div>
                             </td>
                             <td>{{ strtoupper($topic->locale) }}</td>
+                            <td>
+                                <span class="payment-status-badge is-pending">{{ $topic->scopeLabel() }}</span>
+                            </td>
                             <td>
                                 @if(empty($topic->roles))
                                     <span class="text-sm text-black/60">{{ __('All users') }}</span>
@@ -133,7 +217,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-6 text-center text-black/60">{{ __('No assistant topics found for the current filter.') }}</td>
+                            <td colspan="8" class="py-6 text-center text-black/60">{{ __('No assistant topics found for the current filter.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -147,6 +231,21 @@
         <article class="card-rgc">
             <span class="section-kicker">{{ __('Recent assistant questions') }}</span>
             <h2 class="mt-5 text-2xl font-semibold">{{ __('Latest chat history') }}</h2>
+            <form class="mt-5 flex flex-col gap-3 lg:flex-row" method="GET" action="{{ route('assistant.topics.index') }}">
+                <input type="hidden" name="q" value="{{ $search }}">
+                <input type="hidden" name="locale" value="{{ $localeFilter }}">
+                @if($manager->hasSystemRole('super_admin'))
+                    <input type="hidden" name="scope" value="{{ $scopeFilter }}">
+                @endif
+                <input class="input-rgc" type="search" name="interaction_q" value="{{ $interactionSearch }}" placeholder="{{ __('Search recent questions, answers, or matched topics') }}">
+                <select class="select-rgc" name="interaction_feedback">
+                    <option value="">{{ __('All feedback states') }}</option>
+                    @foreach($interactionFeedbackOptions as $interactionFeedbackValue => $interactionFeedbackLabel)
+                        <option value="{{ $interactionFeedbackValue }}" @selected($interactionFeedback === $interactionFeedbackValue)>{{ $interactionFeedbackLabel }}</option>
+                    @endforeach
+                </select>
+                <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Filter interactions') }}</button>
+            </form>
             <div class="mt-5 space-y-4">
                 @forelse($recentInteractions as $interaction)
                     <div class="branch-item">
@@ -164,6 +263,12 @@
                             <span class="payment-status-badge {{ $interaction->helpful === true ? 'is-completed' : ($interaction->helpful === false ? 'is-failed' : 'is-pending') }}">{{ $interaction->feedbackLabel() }}</span>
                         </div>
                         <p class="mt-3 text-sm text-black/70">{{ \Illuminate\Support\Str::limit($interaction->answer, 180) }}</p>
+                        @if($interaction->feedback_note)
+                            <div class="assistant-feedback-note-display mt-3">
+                                <strong>{{ __('Feedback note') }}:</strong>
+                                <span>{{ $interaction->feedback_note }}</span>
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="branch-item text-sm text-black/60">{{ __('No assistant questions have been logged yet.') }}</div>

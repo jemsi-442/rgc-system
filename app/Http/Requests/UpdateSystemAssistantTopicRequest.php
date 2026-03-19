@@ -10,7 +10,7 @@ class UpdateSystemAssistantTopicRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasSystemRole('super_admin') ?? false;
+        return $this->user()?->hasAnySystemRole(['super_admin', 'regional_admin']) ?? false;
     }
 
     public function rules(): array
@@ -22,6 +22,7 @@ class UpdateSystemAssistantTopicRequest extends FormRequest
             'title' => ['required', 'string', 'max:120'],
             'slug' => ['nullable', 'string', 'max:120', 'regex:/^[a-z0-9\-]+$/', Rule::unique('system_assistant_topics', 'slug')->ignore($topic?->id)->where(fn ($query) => $query->where('locale', $this->input('locale', $topic?->locale)))],
             'locale' => ['required', 'string', Rule::in(config('app.supported_locales', ['en', 'sw']))],
+            'region_id' => ['nullable', 'integer', 'exists:regions,id'],
             'answer' => ['required', 'string', 'max:6000'],
             'keywords_text' => ['required', 'string', 'max:4000'],
             'suggestions_text' => ['nullable', 'string', 'max:4000'],

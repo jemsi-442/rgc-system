@@ -14,7 +14,7 @@ Route::post('/payments/snippe/webhook', [OfferingPaymentController::class, 'webh
     ->name('payments.snippe.webhook');
 
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:api');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:api-login');
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth.api');
 });
 

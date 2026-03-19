@@ -24,6 +24,12 @@ class AuthController extends Controller
             return response()->json(['message' => __('Invalid credentials.')], 422);
         }
 
+        if (! $user->isActive()) {
+            return response()->json([
+                'message' => __('Your account is inactive. Please contact church leadership.'),
+            ], 403);
+        }
+
         $plainToken = Str::random(80);
         $user->update([
             'api_token' => hash('sha256', $plainToken),

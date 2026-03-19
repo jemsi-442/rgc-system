@@ -92,18 +92,22 @@ Route::middleware('auth')->group(function () {
         Route::resource('sliders', HomeSliderController::class)->except(['show']);
 
         Route::resource('users', UserManagementController::class)->except(['show'])->names('admin.users');
+    });
 
-        Route::prefix('assistant/topics')->name('assistant.topics.')->group(function () {
-            Route::get('/', [SystemAssistantTopicController::class, 'index'])->name('index');
-            Route::get('/export', [SystemAssistantTopicController::class, 'export'])->name('export');
-            Route::post('/import', [SystemAssistantTopicController::class, 'import'])->name('import');
-            Route::get('/create', [SystemAssistantTopicController::class, 'create'])->name('create');
-            Route::post('/', [SystemAssistantTopicController::class, 'store'])->name('store');
-            Route::post('/restore-defaults', [SystemAssistantTopicController::class, 'restoreDefaults'])->name('restore-defaults');
-            Route::get('/{topic}/edit', [SystemAssistantTopicController::class, 'edit'])->name('edit');
-            Route::put('/{topic}', [SystemAssistantTopicController::class, 'update'])->name('update');
-            Route::delete('/{topic}', [SystemAssistantTopicController::class, 'destroy'])->name('destroy');
-        });
+    Route::middleware('role:super_admin|regional_admin')->prefix('assistant/topics')->name('assistant.topics.')->group(function () {
+        Route::get('/', [SystemAssistantTopicController::class, 'index'])->name('index');
+        Route::get('/export', [SystemAssistantTopicController::class, 'export'])->name('export');
+        Route::get('/create', [SystemAssistantTopicController::class, 'create'])->name('create');
+        Route::post('/', [SystemAssistantTopicController::class, 'store'])->name('store');
+        Route::get('/{topic}/edit', [SystemAssistantTopicController::class, 'edit'])->name('edit');
+        Route::put('/{topic}', [SystemAssistantTopicController::class, 'update'])->name('update');
+        Route::post('/{topic}/versions/{version}/restore', [SystemAssistantTopicController::class, 'restoreVersion'])->name('versions.restore');
+        Route::delete('/{topic}', [SystemAssistantTopicController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::middleware('role:super_admin')->prefix('assistant/topics')->name('assistant.topics.')->group(function () {
+        Route::post('/import', [SystemAssistantTopicController::class, 'import'])->name('import');
+        Route::post('/restore-defaults', [SystemAssistantTopicController::class, 'restoreDefaults'])->name('restore-defaults');
     });
 
     Route::middleware('role:branch_admin|district_admin|regional_admin|super_admin')->group(function () {

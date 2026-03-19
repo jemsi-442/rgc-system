@@ -53,6 +53,7 @@ Active seed flow:
 - `TanzaniaRegionDistrictSeeder`
 - `RgcRolePermissionSeeder`
 - `RgcSuperAdminSeeder`
+- `RgcRoleDashboardSeeder`
 
 ## Legacy Archive
 
@@ -313,14 +314,16 @@ npm run build
 php artisan serve
 ```
 
-## Default Seeded Admin
+## Default Seeded Dashboard Accounts
 
-After seeding:
+After seeding the local or QA database:
 
-- Email: `superadmin@rgc.or.tz`
-- Password: `ChangeMe123!`
+- `Super Admin`: `superadmin@rgc.or.tz` / `ChangeMe123!`
+- `Regional Admin`: `regionaladmin@rgc.or.tz` / `ChangeMe123!`
+- `District Admin`: `districtadmin@rgc.or.tz` / `ChangeMe123!`
+- `Branch Admin`: `branchadmin@rgc.or.tz` / `ChangeMe123!`
 
-Change this password immediately.
+These seeded credentials are for local QA and dashboard review only. Rotate or remove them for production-ready data. The login page surfaces them only in `local` and `testing` environments.
 
 ## Testing and QA
 
@@ -360,8 +363,8 @@ The current suite covers:
 - update/delete authorization for announcements, offerings, expenses, and users
 
 Current baseline at the time of this README update:
-- `87` tests passed
-- `416` assertions passed
+- `126` tests passed
+- `607` assertions passed
 
 ### Manual QA Checklist
 
@@ -466,8 +469,10 @@ After deployment, verify:
 This repository now includes Railway-ready files:
 - `nixpacks.toml`
 - `Procfile`
+- `scripts/railway-release.sh`
 - `scripts/railway-start.sh`
 - `scripts/railway-worker.sh`
+- `railway.env.example`
 
 Recommended Railway layout:
 - one `web` service from this repo
@@ -475,6 +480,7 @@ Recommended Railway layout:
 - one MySQL service attached to the project
 
 Recommended Railway environment values:
+- start from [railway.env.example](/home/jaykali/rgc-system/railway.env.example)
 - `APP_ENV=production`
 - `APP_DEBUG=false`
 - `APP_URL=https://your-railway-domain`
@@ -483,15 +489,33 @@ Recommended Railway environment values:
 - `SESSION_DRIVER=database`
 - `CACHE_STORE=database`
 - `QUEUE_CONNECTION=database`
-- `FILESYSTEM_DISK=public` if you want uploads on the public disk by default
+- `FILESYSTEM_DISK=s3` if you need persistent uploads on Railway, with Cloudflare R2 as the recommended S3-compatible provider
+- or keep `FILESYSTEM_DISK=public` only when a persistent volume is attached
 - real `MAIL_*` values
+- real `SNIPPE_*` values
+- `LOG_CHANNEL=stack`
+- `LOG_STACK=stderr`
 
 Railway first-deploy sequence:
 1. Deploy the repo and let Nixpacks run Composer and Vite build steps.
 2. Set `APP_KEY` before opening the app publicly.
-3. Run `php artisan migrate --force`.
+3. Run `bash scripts/railway-release.sh`.
 4. Run `php artisan db:seed --force` on the first deploy only.
 5. Keep the `worker` service running with `bash scripts/railway-worker.sh`.
+6. Confirm `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all point to durable database-backed drivers.
+
+Persistent upload note:
+- Railway containers are ephemeral by default.
+- This app stores slider images, announcement images, and branch chat attachments on the `public` disk.
+- For production, prefer `FILESYSTEM_DISK=s3` with object storage, or attach a persistent volume before relying on local/public uploads.
+- If you stay on ephemeral local storage, uploaded files may disappear after redeploys or restarts.
+
+Upload storage decision:
+- Choose `FILESYSTEM_DISK=s3` if you want the safest production path on Railway.
+- Choose `FILESYSTEM_DISK=public` only if you have attached a persistent volume and you accept managing local file growth yourself.
+- For this app, my recommendation remains `FILESYSTEM_DISK=s3` before go-live because slides, announcement images, and branch chat attachments are user-facing content.
+- Recommended provider: `Cloudflare R2`, because it exposes an S3-compatible endpoint that Laravel can use through the existing `s3` disk config.
+- For R2 specifically, use `AWS_DEFAULT_REGION=auto` and set `AWS_ENDPOINT=https://<your-account-id>.r2.cloudflarestorage.com`.
 
 Branch chat realtime note:
 - branch chat now uses Server-Sent Events on `/messages/stream`
@@ -518,3 +542,4 @@ php artisan test
 - The runtime has been reconciled with the current database naming used by the application.
 - `Branch` uses the `churches` table and `HomeSlider` uses the `slides` table.
 - The active authorization surface is protected by middleware, policies, scoped queries, and regression tests.
+- Full regression baseline after the latest production hardening: `126` tests passed and `607` assertions passed.

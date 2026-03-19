@@ -120,6 +120,11 @@ class User extends Authenticatable
         return false;
     }
 
+    public function isActive(): bool
+    {
+        return ($this->status ?? 'active') === 'active';
+    }
+
     public function effectiveBranchId(): ?int
     {
         return $this->church_id ?: $this->branch_id;
@@ -127,7 +132,11 @@ class User extends Authenticatable
 
     public function canManageRegion(int $regionId): bool
     {
-        return $this->hasSystemRole('super_admin') || (int) $this->region_id === $regionId;
+        if ($this->hasSystemRole('super_admin')) {
+            return true;
+        }
+
+        return $this->hasSystemRole('regional_admin') && (int) $this->region_id === $regionId;
     }
 
     public function canManageDistrict(int $districtId): bool
@@ -137,10 +146,13 @@ class User extends Authenticatable
         }
 
         if ($this->hasSystemRole('regional_admin')) {
-            return (int) optional($this->district)->region_id === (int) $this->region_id;
+            return District::query()
+                ->whereKey($districtId)
+                ->where('region_id', $this->region_id)
+                ->exists();
         }
 
-        return (int) $this->district_id === $districtId;
+        return $this->hasSystemRole('district_admin') && (int) $this->district_id === $districtId;
     }
 
     public function canManageBranch(int $branchId): bool
@@ -157,6 +169,10 @@ class User extends Authenticatable
             return Branch::query()->where('id', $branchId)->where('district_id', $this->district_id)->exists();
         }
 
-        return (int) $this->effectiveBranchId() === $branchId;
+        if ($this->hasAnySystemRole(['branch_admin', 'pastor', 'bishop', 'accountant', 'member'])) {
+            return (int) $this->effectiveBranchId() === $branchId;
+        }
+
+        return false;
     }
 }

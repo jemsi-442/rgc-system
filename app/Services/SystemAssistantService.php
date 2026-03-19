@@ -31,7 +31,7 @@ class SystemAssistantService
         $normalizedQuestion = $this->normalize($question);
         $tokens = $this->tokens($normalizedQuestion);
         $roles = $this->orderedRoles($user);
-        $topics = $this->topicsFor($locale, $roles);
+        $topics = $this->topicsFor($locale, $roles, $user);
         $bestMatch = null;
         $bestScore = 0;
         $bestPriority = -1;
@@ -115,13 +115,13 @@ class SystemAssistantService
         if ($user->hasSystemRole('regional_admin')) {
             return $locale === 'sw'
                 ? [
+                    'Nawezaje kusimamia assistant topics za region yangu?',
                     'Nawezaje kutuma tangazo kwa district moja tu?',
-                    'Nawezaje kutuma tangazo kwa branch moja ndani ya region yangu?',
                     'Dashboard yangu inaonyesha nini kwa region yangu?',
                 ]
                 : [
+                    'How do I manage assistant topics for my region?',
                     'How do I send an announcement to one district only?',
-                    'How do I send an announcement to one branch inside my region?',
                     'What does my regional dashboard show?',
                 ];
         }
@@ -170,19 +170,19 @@ class SystemAssistantService
     /**
      * @return array<int, array<string, mixed>>
      */
-    protected function topicsFor(string $locale, array $roles): array
+    protected function topicsFor(string $locale, array $roles, ?User $user = null): array
     {
         $locale = $locale === 'sw' ? 'sw' : 'en';
 
         if (Schema::hasTable('system_assistant_topics')) {
-            $topics = $this->databaseTopicsFor($locale, $roles);
+            $topics = $this->databaseTopicsFor($locale, $roles, $user);
 
             if ($topics !== []) {
                 return $topics;
             }
 
             if ($locale !== 'en') {
-                $fallbackTopics = $this->databaseTopicsFor('en', $roles);
+                $fallbackTopics = $this->databaseTopicsFor('en', $roles, $user);
 
                 if ($fallbackTopics !== []) {
                     return $fallbackTopics;
@@ -202,17 +202,25 @@ class SystemAssistantService
             ));
         }
 
-        return array_map(fn (array $topic): array => $topic + ['source' => 'static'], $topics);
+        return array_map(fn (array $topic): array => $topic + ['source' => 'static', 'region_match' => false], $topics);
     }
 
     /**
      * @return array<int, array<string, mixed>>
      */
-    protected function databaseTopicsFor(string $locale, array $roles): array
+    protected function databaseTopicsFor(string $locale, array $roles, ?User $user = null): array
     {
         return SystemAssistantTopic::query()
+            ->with('region:id,name')
             ->where('locale', $locale)
             ->where('is_active', true)
+            ->where(function ($query) use ($user) {
+                $query->whereNull('region_id');
+
+                if ($user?->region_id) {
+                    $query->orWhere('region_id', $user->region_id);
+                }
+            })
             ->orderBy('sort_order')
             ->orderBy('title')
             ->get()
@@ -226,6 +234,8 @@ class SystemAssistantService
                 'suggestions' => $topic->suggestions ?? [],
                 'roles' => $topic->roles,
                 'source' => 'database',
+                'region_id' => $topic->region_id,
+                'region_match' => $user?->region_id !== null && (int) $topic->region_id === (int) $user->region_id,
             ])
             ->values()
             ->all();
@@ -288,6 +298,10 @@ class SystemAssistantService
                     break;
                 }
             }
+        }
+
+        if (($topic['region_match'] ?? false) === true) {
+            $priority += 20;
         }
 
         if (($topic['source'] ?? null) === 'database') {

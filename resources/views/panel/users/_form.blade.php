@@ -2,7 +2,7 @@
     <section class="form-section">
         <div class="form-section-heading">
             <h2>{{ __('Account details') }}</h2>
-            <p>{{ __('Set the user identity and the role they will use across the RGC platform.') }}</p>
+            <p>{{ __('Set the user identity, access status, and the role they will use across the RGC platform.') }}</p>
         </div>
 
         <div class="form-grid-responsive">
@@ -28,6 +28,16 @@
                         <option value="{{ $roleOption }}" @selected(old('role', $managedUser?->normalizedRoleName() ?? 'member') === $roleOption)>{{ __(Illuminate\Support\Str::headline($roleOption)) }}</option>
                     @endforeach
                 </select>
+            </div>
+
+            <div>
+                <label class="field-label" for="status">{{ __('Account status') }}</label>
+                <select class="select-rgc" id="status" name="status">
+                    @foreach($statusOptions as $statusOption)
+                        <option value="{{ $statusOption }}" @selected(old('status', $managedUser?->status ?? 'active') === $statusOption)>{{ __(Illuminate\Support\Str::headline($statusOption)) }}</option>
+                    @endforeach
+                </select>
+                <p class="form-hint mt-2">{{ __('Inactive accounts can stay in the system for audit purposes but cannot sign in to web or API access.') }}</p>
             </div>
         </div>
     </section>

@@ -26,6 +26,11 @@ class UserManagementController extends Controller
         'member',
     ];
 
+    private const STATUS_OPTIONS = [
+        'active',
+        'inactive',
+    ];
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', User::class);
@@ -38,7 +43,8 @@ class UserManagementController extends Controller
                 $query->where(function ($inner) use ($search) {
                     $inner->where('name', 'like', '%' . $search . '%')
                         ->orWhere('email', 'like', '%' . $search . '%')
-                        ->orWhere('role', 'like', '%' . $search . '%');
+                        ->orWhere('role', 'like', '%' . $search . '%')
+                        ->orWhere('status', 'like', '%' . $search . '%');
                 });
             })
             ->latest('id')
@@ -67,6 +73,7 @@ class UserManagementController extends Controller
         ]);
 
         $role = $this->validatedRole($request->string('role')->toString());
+        $status = $this->validatedStatus($request->input('status', 'active'));
         $branchId = $request->integer('branch_id');
 
         $user = User::query()->create([
@@ -75,7 +82,7 @@ class UserManagementController extends Controller
             'phone' => $request->input('phone'),
             'password' => $request->string('password')->toString(),
             'role' => $role,
-            'status' => 'active',
+            'status' => $status,
             'region_id' => $request->integer('region_id'),
             'district_id' => $request->integer('district_id'),
             'branch_id' => $branchId,
@@ -110,6 +117,24 @@ class UserManagementController extends Controller
             ? $this->validatedRole($request->string('role')->toString())
             : $this->validatedRole($user->normalizedRoleName() ?? 'member');
 
+        $status = $request->filled('status')
+            ? $this->validatedStatus((string) $request->input('status'))
+            : $this->validatedStatus($user->status ?? 'active');
+
+        if ($request->user()?->id === $user->id) {
+            if ($role !== 'super_admin') {
+                throw ValidationException::withMessages([
+                    'role' => __('You cannot downgrade your own super admin account from this screen.'),
+                ]);
+            }
+
+            if ($status !== 'active') {
+                throw ValidationException::withMessages([
+                    'status' => __('You cannot deactivate your own account from this screen.'),
+                ]);
+            }
+        }
+
         $branchId = $request->integer('branch_id');
 
         $payload = [
@@ -117,6 +142,7 @@ class UserManagementController extends Controller
             'email' => $request->string('email')->toString(),
             'phone' => $request->input('phone'),
             'role' => $role,
+            'status' => $status,
             'region_id' => $request->integer('region_id'),
             'district_id' => $request->integer('district_id'),
             'branch_id' => $branchId,
@@ -153,6 +179,7 @@ class UserManagementController extends Controller
             'districts' => District::query()->orderBy('name')->get(),
             'branches' => Branch::query()->orderBy('name')->get(),
             'roleOptions' => self::ROLE_OPTIONS,
+            'statusOptions' => self::STATUS_OPTIONS,
         ];
     }
 
@@ -167,6 +194,19 @@ class UserManagementController extends Controller
         if (! in_array($normalized, self::ROLE_OPTIONS, true)) {
             throw ValidationException::withMessages([
                 'role' => __('Invalid role selected.'),
+            ]);
+        }
+
+        return $normalized;
+    }
+
+    private function validatedStatus(string $status): string
+    {
+        $normalized = Str::of($status)->lower()->trim()->value();
+
+        if (! in_array($normalized, self::STATUS_OPTIONS, true)) {
+            throw ValidationException::withMessages([
+                'status' => __('Invalid account status selected.'),
             ]);
         }
 

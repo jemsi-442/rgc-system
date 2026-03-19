@@ -79,4 +79,29 @@ class SystemAssistantTest extends TestCase
         $this->assertTrue((bool) $interaction->helpful);
         $this->assertNotNull($interaction->feedback_submitted_at);
     }
+
+    public function test_assistant_feedback_note_can_be_saved_for_unhelpful_answer(): void
+    {
+        $response = $this->postJson(route('assistant.chat'), [
+            'question' => 'How do I register a new account?',
+        ]);
+
+        $interactionId = $response->json('interaction_id');
+
+        $this->postJson(route('assistant.feedback', $interactionId), [
+            'helpful' => false,
+            'note' => 'Need step by step guidance for church members.',
+        ])
+            ->assertOk()
+            ->assertJsonFragment([
+                'helpful' => false,
+                'feedback_note' => 'Need step by step guidance for church members.',
+            ]);
+
+        $this->assertDatabaseHas('system_assistant_interactions', [
+            'id' => $interactionId,
+            'helpful' => false,
+            'feedback_note' => 'Need step by step guidance for church members.',
+        ]);
+    }
 }

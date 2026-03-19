@@ -25,6 +25,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:25'],
             'password' => ['nullable', 'string', 'min:8'],
             'role' => ['nullable', 'string', 'max:60'],
+            'status' => ['nullable', 'in:active,inactive'],
             'region_id' => ['required', 'integer', 'exists:regions,id'],
             'district_id' => ['required', 'integer', 'exists:districts,id'],
             'branch_id' => ['required', 'integer', 'exists:churches,id'],

@@ -5,14 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
-class SystemAssistantTopic extends Model
+class SystemAssistantTopicVersion extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'topic_id',
         'slug',
         'locale',
         'region_id',
@@ -24,8 +23,9 @@ class SystemAssistantTopic extends Model
         'is_active',
         'is_system',
         'sort_order',
+        'action',
         'created_by',
-        'updated_by',
+        'restored_from_version_id',
     ];
 
     protected function casts(): array
@@ -37,17 +37,13 @@ class SystemAssistantTopic extends Model
             'is_active' => 'boolean',
             'is_system' => 'boolean',
             'sort_order' => 'integer',
+            'restored_from_version_id' => 'integer',
         ];
     }
 
-    public function creator(): BelongsTo
+    public function topic(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updater(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(SystemAssistantTopic::class, 'topic_id');
     }
 
     public function region(): BelongsTo
@@ -55,21 +51,14 @@ class SystemAssistantTopic extends Model
         return $this->belongsTo(Region::class);
     }
 
-    public function interactions(): HasMany
+    public function creator(): BelongsTo
     {
-        return $this->hasMany(SystemAssistantInteraction::class, 'matched_topic_id');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function versions(): HasMany
+    public function restoredFrom(): BelongsTo
     {
-        return $this->hasMany(SystemAssistantTopicVersion::class, 'topic_id')->latest('id');
-    }
-
-    public function roleLabels(): array
-    {
-        return collect($this->roles ?? [])
-            ->map(fn (string $role): string => Str::headline(str_replace('_', ' ', $role)))
-            ->all();
+        return $this->belongsTo(self::class, 'restored_from_version_id');
     }
 
     public function scopeLabel(): string

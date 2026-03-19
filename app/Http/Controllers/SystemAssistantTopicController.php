@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSystemAssistantTopicRequest;
 use App\Http\Requests\UpdateSystemAssistantTopicRequest;
+use App\Models\Region;
 use App\Models\SystemAssistantInteraction;
 use App\Models\SystemAssistantTopic;
+use App\Models\SystemAssistantTopicVersion;
+use App\Models\User;
 use App\Support\SystemAssistantKnowledge;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,27 +31,70 @@ class SystemAssistantTopicController extends Controller
         'member',
     ];
 
+    private const VERSION_ACTIONS = [
+        'baseline',
+        'created',
+        'updated',
+        'imported',
+        'deleted',
+        'restored_defaults',
+        'restored_version',
+    ];
+
     public function index(Request $request): View
     {
-        [$search, $locale, $topics] = $this->filteredTopics($request);
+        $manager = $request->user();
+        abort_unless($manager && $this->canManageTopics($manager), 403);
+
+        [$search, $locale, $scopeFilter, $topics] = $this->filteredTopics($request, $manager);
+        $interactionSearch = trim((string) $request->string('interaction_q'));
+        $interactionFeedback = trim((string) $request->string('interaction_feedback'));
+        $interactionQuery = $this->scopedInteractionsQuery($manager);
+        $manageableTopicsQuery = $this->manageableTopicsQuery($manager);
+        $regionOptions = $this->regionOptions($manager);
+        $managedRegion = $regionOptions->firstWhere('id', $manager->region_id);
 
         $stats = [
-            'topics_total' => SystemAssistantTopic::query()->count(),
-            'topics_active' => SystemAssistantTopic::query()->where('is_active', true)->count(),
-            'questions_total' => SystemAssistantInteraction::query()->count(),
-            'questions_today' => SystemAssistantInteraction::query()->whereDate('created_at', today())->count(),
-            'fallback_count' => SystemAssistantInteraction::query()->where('source', 'fallback')->count(),
-            'helpful_count' => SystemAssistantInteraction::query()->where('helpful', true)->count(),
-            'unhelpful_count' => SystemAssistantInteraction::query()->where('helpful', false)->count(),
+            'topics_total' => (clone $manageableTopicsQuery)->count(),
+            'topics_active' => (clone $manageableTopicsQuery)->where('is_active', true)->count(),
+            'questions_total' => (clone $interactionQuery)->count(),
+            'questions_today' => (clone $interactionQuery)->whereDate('created_at', today())->count(),
+            'fallback_count' => (clone $interactionQuery)->where('source', 'fallback')->count(),
+            'helpful_count' => (clone $interactionQuery)->where('helpful', true)->count(),
+            'unhelpful_count' => (clone $interactionQuery)->where('helpful', false)->count(),
         ];
 
-        $recentInteractions = SystemAssistantInteraction::query()
-            ->with(['user:id,name,email', 'topic:id,title,slug,locale'])
+        $recentInteractionsQuery = (clone $interactionQuery)
+            ->when($interactionSearch !== '', function (Builder $query) use ($interactionSearch): void {
+                $query->where(function (Builder $inner) use ($interactionSearch): void {
+                    $inner->where('question', 'like', '%' . $interactionSearch . '%')
+                        ->orWhere('answer', 'like', '%' . $interactionSearch . '%')
+                        ->orWhere('matched_slug', 'like', '%' . $interactionSearch . '%');
+                });
+            })
+            ->when($interactionFeedback !== '', function (Builder $query) use ($interactionFeedback): void {
+                if ($interactionFeedback === 'helpful') {
+                    $query->where('helpful', true);
+                    return;
+                }
+
+                if ($interactionFeedback === 'unhelpful') {
+                    $query->where('helpful', false);
+                    return;
+                }
+
+                if ($interactionFeedback === 'pending') {
+                    $query->whereNull('helpful');
+                }
+            });
+
+        $recentInteractions = $recentInteractionsQuery
+            ->with(['user:id,name,email,region_id', 'topic:id,title,slug,locale,region_id'])
             ->latest()
             ->limit(12)
             ->get();
 
-        $topQuestions = SystemAssistantInteraction::query()
+        $topQuestions = (clone $interactionQuery)
             ->select('normalized_question')
             ->selectRaw('COUNT(*) as total')
             ->where('normalized_question', '!=', '')
@@ -56,47 +103,114 @@ class SystemAssistantTopicController extends Controller
             ->limit(6)
             ->get();
 
+        $usageByDay = collect(range(6, 0))->map(function (int $daysAgo) use ($interactionQuery): array {
+            $date = now()->subDays($daysAgo)->startOfDay();
+
+            return [
+                'label' => $date->format('D'),
+                'date' => $date->toDateString(),
+                'count' => (clone $interactionQuery)->whereDate('created_at', $date->toDateString())->count(),
+            ];
+        })->values();
+
         return view('panel.assistant.index', [
             'topics' => $topics,
             'search' => $search,
             'localeFilter' => $locale,
+            'scopeFilter' => $scopeFilter,
+            'interactionSearch' => $interactionSearch,
+            'interactionFeedback' => $interactionFeedback,
+            'interactionFeedbackOptions' => [
+                'helpful' => __('Helpful'),
+                'unhelpful' => __('Not helpful'),
+                'pending' => __('No feedback'),
+            ],
+            'scopeSummary' => $manager->hasSystemRole('super_admin')
+                ? __('Showing assistant knowledge, questions, and feedback across the whole platform.')
+                : __('Showing assistant knowledge, questions, and feedback for your region: :region.', ['region' => $managedRegion?->name ?? __('your region')]),
             'stats' => $stats,
             'recentInteractions' => $recentInteractions,
             'topQuestions' => $topQuestions,
+            'usageByDay' => $usageByDay,
+            'usagePeak' => max(1, (int) $usageByDay->max('count')),
             'localeOptions' => config('app.supported_locales', ['en', 'sw']),
+            'regionOptions' => $regionOptions,
+            'manager' => $manager,
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('panel.assistant.create', $this->formData(new SystemAssistantTopic()));
+        $manager = $request->user();
+        abort_unless($manager && $this->canManageTopics($manager), 403);
+
+        return view('panel.assistant.create', $this->formData(new SystemAssistantTopic(), $manager));
     }
 
     public function store(StoreSystemAssistantTopicRequest $request): RedirectResponse
     {
-        $topic = SystemAssistantTopic::query()->create($this->payloadFromRequest($request, auth()->id()));
+        $manager = $request->user();
+        abort_unless($manager && $this->canManageTopics($manager), 403);
+
+        $topic = SystemAssistantTopic::query()->create($this->payloadFromRequest($request, auth()->id(), $manager));
+        $this->snapshotTopic($topic, 'created');
 
         return redirect()
             ->route('assistant.topics.edit', $topic)
             ->with('status', __('Assistant topic created successfully.'));
     }
 
-    public function edit(SystemAssistantTopic $topic): View
+    public function edit(Request $request, SystemAssistantTopic $topic): View
     {
-        return view('panel.assistant.edit', $this->formData($topic));
+        $manager = $request->user();
+        abort_unless($manager, 403);
+        $this->ensureCanManageTopic($manager, $topic);
+
+        $versionSearch = trim((string) $request->string('version_q'));
+        $versionAction = trim((string) $request->string('version_action'));
+
+        $versions = $topic->versions()
+            ->with(['creator:id,name,email', 'restoredFrom:id,title', 'region:id,name'])
+            ->when($versionSearch !== '', function (Builder $query) use ($versionSearch) {
+                $query->where(function (Builder $inner) use ($versionSearch): void {
+                    $inner->where('title', 'like', '%' . $versionSearch . '%')
+                        ->orWhere('answer', 'like', '%' . $versionSearch . '%')
+                        ->orWhere('action', 'like', '%' . $versionSearch . '%');
+                });
+            })
+            ->when($versionAction !== '', fn (Builder $query) => $query->where('action', $versionAction))
+            ->limit(20)
+            ->get();
+
+        return view('panel.assistant.edit', $this->formData($topic, $manager) + [
+            'versions' => $versions,
+            'versionSearch' => $versionSearch,
+            'versionAction' => $versionAction,
+            'versionActionOptions' => self::VERSION_ACTIONS,
+        ]);
     }
 
     public function update(UpdateSystemAssistantTopicRequest $request, SystemAssistantTopic $topic): RedirectResponse
     {
-        $topic->update($this->payloadFromRequest($request, auth()->id(), $topic));
+        $manager = $request->user();
+        abort_unless($manager, 403);
+        $this->ensureCanManageTopic($manager, $topic);
+
+        $topic->update($this->payloadFromRequest($request, auth()->id(), $manager, $topic));
+        $this->snapshotTopic($topic, 'updated');
 
         return redirect()
             ->route('assistant.topics.edit', $topic)
             ->with('status', __('Assistant topic updated successfully.'));
     }
 
-    public function destroy(SystemAssistantTopic $topic): RedirectResponse
+    public function destroy(Request $request, SystemAssistantTopic $topic): RedirectResponse
     {
+        $manager = $request->user();
+        abort_unless($manager, 403);
+        $this->ensureCanManageTopic($manager, $topic);
+
+        $this->snapshotTopic($topic, 'deleted');
         $topic->delete();
 
         return redirect()
@@ -104,8 +218,10 @@ class SystemAssistantTopicController extends Controller
             ->with('status', __('Assistant topic deleted successfully.'));
     }
 
-    public function restoreDefaults(): RedirectResponse
+    public function restoreDefaults(Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasSystemRole('super_admin') ?? false, 403);
+
         DB::transaction(function (): void {
             foreach (SystemAssistantKnowledge::defaultRows() as $row) {
                 $topic = SystemAssistantTopic::query()->firstOrNew([
@@ -118,6 +234,7 @@ class SystemAssistantTopicController extends Controller
                 }
 
                 $topic->fill([
+                    'region_id' => null,
                     'title' => $row['title'],
                     'answer' => $row['answer'],
                     'keywords' => $row['keywords'],
@@ -128,6 +245,8 @@ class SystemAssistantTopicController extends Controller
                     'sort_order' => $row['sort_order'],
                     'updated_by' => auth()->id(),
                 ])->save();
+
+                $this->snapshotTopic($topic, 'restored_defaults');
             }
         });
 
@@ -138,7 +257,10 @@ class SystemAssistantTopicController extends Controller
 
     public function export(Request $request)
     {
-        [, , $topics] = $this->filteredTopics($request, false);
+        $manager = $request->user();
+        abort_unless($manager && $this->canManageTopics($manager), 403);
+
+        [, , , $topics] = $this->filteredTopics($request, $manager, false);
 
         $payload = [
             'exported_at' => now()->toIso8601String(),
@@ -147,6 +269,7 @@ class SystemAssistantTopicController extends Controller
             'topics' => $topics->map(fn (SystemAssistantTopic $topic): array => [
                 'slug' => $topic->slug,
                 'locale' => $topic->locale,
+                'region_id' => $topic->region_id,
                 'title' => $topic->title,
                 'answer' => $topic->answer,
                 'keywords' => $topic->keywords ?? [],
@@ -166,6 +289,8 @@ class SystemAssistantTopicController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
+        abort_unless($request->user()?->hasSystemRole('super_admin') ?? false, 403);
+
         $validated = $request->validate([
             'topics_file' => ['required', 'file', 'mimes:json,txt', 'max:2048'],
         ]);
@@ -203,6 +328,7 @@ class SystemAssistantTopicController extends Controller
                 $suggestions = collect($row['suggestions'] ?? [])->map(fn ($item) => trim((string) $item))->filter()->values()->all();
                 $roles = collect($row['roles'] ?? [])->map(fn ($item) => trim((string) $item))->filter()->values()->all();
                 $slug = Str::slug((string) ($row['slug'] ?? $title));
+                $regionId = blank($row['region_id'] ?? null) ? null : (int) $row['region_id'];
 
                 if ($slug === '' || $title === '' || $answer === '' || $keywords === []) {
                     throw ValidationException::withMessages([
@@ -216,6 +342,12 @@ class SystemAssistantTopicController extends Controller
                     ]);
                 }
 
+                if ($regionId !== null && ! Region::query()->whereKey($regionId)->exists()) {
+                    throw ValidationException::withMessages([
+                        'topics_file' => __('Topic row :row contains an unknown region.', ['row' => $index + 1]),
+                    ]);
+                }
+
                 $topic = SystemAssistantTopic::query()->firstOrNew([
                     'slug' => $slug,
                     'locale' => $locale,
@@ -226,6 +358,7 @@ class SystemAssistantTopicController extends Controller
                 }
 
                 $topic->fill([
+                    'region_id' => $regionId,
                     'title' => $title,
                     'answer' => $answer,
                     'keywords' => $keywords,
@@ -236,6 +369,8 @@ class SystemAssistantTopicController extends Controller
                     'sort_order' => (int) ($row['sort_order'] ?? 0),
                     'updated_by' => auth()->id(),
                 ])->save();
+
+                $this->snapshotTopic($topic, 'imported');
             }
         });
 
@@ -244,16 +379,59 @@ class SystemAssistantTopicController extends Controller
             ->with('status', __('Assistant topics imported successfully.'));
     }
 
-    private function formData(SystemAssistantTopic $topic): array
+    public function restoreVersion(Request $request, SystemAssistantTopic $topic, SystemAssistantTopicVersion $version): RedirectResponse
+    {
+        $manager = $request->user();
+        abort_unless($manager, 403);
+        $this->ensureCanManageTopic($manager, $topic);
+        abort_unless($version->topic_id === $topic->id, 404);
+
+        $hasConflict = SystemAssistantTopic::query()
+            ->where('slug', $version->slug)
+            ->where('locale', $version->locale)
+            ->whereKeyNot($topic->id)
+            ->exists();
+
+        if ($hasConflict) {
+            throw ValidationException::withMessages([
+                'version' => __('This version cannot be restored because another topic already uses the same slug and locale.'),
+            ]);
+        }
+
+        $topic->update([
+            'slug' => $version->slug,
+            'locale' => $version->locale,
+            'region_id' => $version->region_id,
+            'title' => $version->title,
+            'answer' => $version->answer,
+            'keywords' => $version->keywords ?? [],
+            'suggestions' => $version->suggestions ?? [],
+            'roles' => $version->roles,
+            'is_active' => $version->is_active,
+            'is_system' => $topic->is_system,
+            'sort_order' => $version->sort_order,
+            'updated_by' => auth()->id(),
+        ]);
+
+        $this->snapshotTopic($topic, 'restored_version', $version->id);
+
+        return redirect()
+            ->route('assistant.topics.edit', $topic)
+            ->with('status', __('Assistant topic restored from version history.'));
+    }
+
+    private function formData(SystemAssistantTopic $topic, User $manager): array
     {
         return [
             'topic' => $topic,
             'roleOptions' => self::ROLE_OPTIONS,
             'localeOptions' => config('app.supported_locales', ['en', 'sw']),
+            'regionOptions' => $this->regionOptions($manager),
+            'manager' => $manager,
         ];
     }
 
-    private function payloadFromRequest(Request $request, int $userId, ?SystemAssistantTopic $topic = null): array
+    private function payloadFromRequest(Request $request, int $userId, User $manager, ?SystemAssistantTopic $topic = null): array
     {
         $keywords = $this->parseLines((string) $request->input('keywords_text'));
         $suggestions = $this->parseLines((string) $request->input('suggestions_text'));
@@ -272,9 +450,12 @@ class SystemAssistantTopicController extends Controller
             ]);
         }
 
+        $regionId = $this->resolvedRegionId($request, $manager);
+
         return [
             'slug' => $slug,
             'locale' => $request->input('locale'),
+            'region_id' => $regionId,
             'title' => $request->input('title'),
             'answer' => $request->input('answer'),
             'keywords' => $keywords,
@@ -289,31 +470,43 @@ class SystemAssistantTopicController extends Controller
     }
 
     /**
-     * @return array{0:string,1:string,2:mixed}
+     * @return array{0:string,1:string,2:string,3:mixed}
      */
-    private function filteredTopics(Request $request, bool $paginate = true): array
+    private function filteredTopics(Request $request, User $manager, bool $paginate = true): array
     {
         $search = trim((string) $request->string('q'));
         $locale = trim((string) $request->string('locale'));
+        $scopeFilter = trim((string) $request->string('scope'));
 
-        $query = SystemAssistantTopic::query()
-            ->when($search !== '', function ($builder) use ($search) {
-                $builder->where(function ($inner) use ($search) {
+        $query = $this->manageableTopicsQuery($manager)
+            ->with('region:id,name')
+            ->when($search !== '', function (Builder $builder) use ($search): void {
+                $builder->where(function (Builder $inner) use ($search): void {
                     $inner->where('title', 'like', '%' . $search . '%')
                         ->orWhere('slug', 'like', '%' . $search . '%')
                         ->orWhere('answer', 'like', '%' . $search . '%');
                 });
             })
-            ->when($locale !== '', fn ($builder) => $builder->where('locale', $locale))
+            ->when($locale !== '', fn (Builder $builder) => $builder->where('locale', $locale))
+            ->when($manager->hasSystemRole('super_admin') && $scopeFilter !== '', function (Builder $builder) use ($scopeFilter): void {
+                if ($scopeFilter === 'global') {
+                    $builder->whereNull('region_id');
+                    return;
+                }
+
+                if (ctype_digit($scopeFilter)) {
+                    $builder->where('region_id', (int) $scopeFilter);
+                }
+            })
+            ->orderByRaw('region_id is null desc')
+            ->orderBy('region_id')
             ->orderBy('locale')
             ->orderBy('sort_order')
             ->orderBy('title');
 
-        $topics = $paginate
-            ? $query->paginate(18)->withQueryString()
-            : $query->get();
+        $topics = $paginate ? $query->paginate(18)->withQueryString() : $query->get();
 
-        return [$search, $locale, $topics];
+        return [$search, $locale, $scopeFilter, $topics];
     }
 
     /**
@@ -327,5 +520,87 @@ class SystemAssistantTopicController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function snapshotTopic(SystemAssistantTopic $topic, string $action, ?int $restoredFromVersionId = null): void
+    {
+        SystemAssistantTopicVersion::query()->create([
+            'topic_id' => $topic->id,
+            'slug' => $topic->slug,
+            'locale' => $topic->locale,
+            'region_id' => $topic->region_id,
+            'title' => $topic->title,
+            'answer' => $topic->answer,
+            'keywords' => $topic->keywords ?? [],
+            'suggestions' => $topic->suggestions ?? [],
+            'roles' => $topic->roles,
+            'is_active' => $topic->is_active,
+            'is_system' => $topic->is_system,
+            'sort_order' => $topic->sort_order,
+            'action' => $action,
+            'created_by' => auth()->id(),
+            'restored_from_version_id' => $restoredFromVersionId,
+        ]);
+    }
+
+    private function canManageTopics(User $user): bool
+    {
+        if ($user->hasSystemRole('super_admin')) {
+            return true;
+        }
+
+        return $user->hasSystemRole('regional_admin') && ! blank($user->region_id);
+    }
+
+    private function ensureCanManageTopic(User $user, SystemAssistantTopic $topic): void
+    {
+        if ($user->hasSystemRole('super_admin')) {
+            return;
+        }
+
+        abort_unless($user->hasSystemRole('regional_admin') && (int) $topic->region_id === (int) $user->region_id, 404);
+    }
+
+    private function resolvedRegionId(Request $request, User $manager): ?int
+    {
+        if ($manager->hasSystemRole('regional_admin') && ! $manager->hasSystemRole('super_admin')) {
+            return $manager->region_id ? (int) $manager->region_id : null;
+        }
+
+        return blank($request->input('region_id')) ? null : (int) $request->input('region_id');
+    }
+
+    private function manageableTopicsQuery(User $manager): Builder
+    {
+        $query = SystemAssistantTopic::query();
+
+        if ($manager->hasSystemRole('super_admin')) {
+            return $query;
+        }
+
+        return $query->where('region_id', $manager->region_id);
+    }
+
+    private function scopedInteractionsQuery(User $manager): Builder
+    {
+        $query = SystemAssistantInteraction::query();
+
+        if ($manager->hasSystemRole('super_admin')) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $builder) use ($manager): void {
+            $builder->whereHas('topic', fn (Builder $topicQuery) => $topicQuery->where('region_id', $manager->region_id))
+                ->orWhereHas('user', fn (Builder $userQuery) => $userQuery->where('region_id', $manager->region_id));
+        });
+    }
+
+    private function regionOptions(User $manager)
+    {
+        if ($manager->hasSystemRole('super_admin')) {
+            return Region::query()->orderBy('name')->get(['id', 'name']);
+        }
+
+        return Region::query()->whereKey($manager->region_id)->get(['id', 'name']);
     }
 }

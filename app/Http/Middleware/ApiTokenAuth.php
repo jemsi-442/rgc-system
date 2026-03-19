@@ -27,6 +27,12 @@ class ApiTokenAuth
             return response()->json(['message' => __('Unauthorized. Invalid token.')], 401);
         }
 
+        if (! $user->isActive()) {
+            return response()->json([
+                'message' => __('Your account is inactive. Please contact church leadership.'),
+            ], 403);
+        }
+
         Auth::setUser($user);
         $request->setUserResolver(fn () => $user);
 
