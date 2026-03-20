@@ -53,7 +53,6 @@ Active seed flow:
 - `TanzaniaRegionDistrictSeeder`
 - `RgcRolePermissionSeeder`
 - `RgcSuperAdminSeeder`
-- `RgcRoleDashboardSeeder`
 
 ## Legacy Archive
 
@@ -314,16 +313,21 @@ npm run build
 php artisan serve
 ```
 
-## Default Seeded Dashboard Accounts
+## Bootstrap Super Admin
 
-After seeding the local or QA database:
+The default seeding flow creates only the initial `super_admin` account.
+Regional, district, and branch admins should be created later by `super_admin` from the dashboard after the right branch hierarchy already exists.
 
-- `Super Admin`: `superadmin@rgc.or.tz` / `ChangeMe123!`
-- `Regional Admin`: `regionaladmin@rgc.or.tz` / `ChangeMe123!`
-- `District Admin`: `districtadmin@rgc.or.tz` / `ChangeMe123!`
-- `Branch Admin`: `branchadmin@rgc.or.tz` / `ChangeMe123!`
+For non-testing environments, set these before the first seed:
 
-These seeded credentials are for local QA and dashboard review only. Rotate or remove them for production-ready data. The login page surfaces them only in `local` and `testing` environments.
+```env
+RGC_SUPER_ADMIN_EMAIL=your-admin-email@example.com
+RGC_SUPER_ADMIN_PASSWORD=use-a-strong-random-password
+```
+
+Notes:
+- The repository intentionally does not display admin credentials in the browser or README.
+- After the first successful sign-in, rotate the bootstrap password and create other leadership accounts through the user management screen.
 
 ## Testing and QA
 
@@ -489,8 +493,8 @@ Recommended Railway environment values:
 - `SESSION_DRIVER=database`
 - `CACHE_STORE=database`
 - `QUEUE_CONNECTION=database`
-- `FILESYSTEM_DISK=s3` if you need persistent uploads on Railway, with Cloudflare R2 as the recommended S3-compatible provider
-- or keep `FILESYSTEM_DISK=public` only when a persistent volume is attached
+- `FILESYSTEM_DISK=public` when you attach a persistent Railway volume for uploads
+- or move later to `FILESYSTEM_DISK=s3` with an S3-compatible provider if you want external object storage
 - real `MAIL_*` values
 - real `SNIPPE_*` values
 - `LOG_CHANNEL=stack`
@@ -499,23 +503,22 @@ Recommended Railway environment values:
 Railway first-deploy sequence:
 1. Deploy the repo and let Nixpacks run Composer and Vite build steps.
 2. Set `APP_KEY` before opening the app publicly.
-3. Run `bash scripts/railway-release.sh`.
-4. Run `php artisan db:seed --force` on the first deploy only.
-5. Keep the `worker` service running with `bash scripts/railway-worker.sh`.
-6. Confirm `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all point to durable database-backed drivers.
+3. Attach a persistent volume and mount it to `/app/storage` before opening uploads to real users.
+4. Run `bash scripts/railway-release.sh`.
+5. Run `php artisan db:seed --force` on the first deploy only.
+6. Keep the `worker` service running with `bash scripts/railway-worker.sh`.
+7. Confirm `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all point to durable database-backed drivers.
 
 Persistent upload note:
 - Railway containers are ephemeral by default.
 - This app stores slider images, announcement images, and branch chat attachments on the `public` disk.
-- For production, prefer `FILESYSTEM_DISK=s3` with object storage, or attach a persistent volume before relying on local/public uploads.
-- If you stay on ephemeral local storage, uploaded files may disappear after redeploys or restarts.
+- For production, attach a persistent volume before relying on local/public uploads.
+- If you stay on ephemeral local storage without a volume, uploaded files may disappear after redeploys or restarts.
 
 Upload storage decision:
-- Choose `FILESYSTEM_DISK=s3` if you want the safest production path on Railway.
-- Choose `FILESYSTEM_DISK=public` only if you have attached a persistent volume and you accept managing local file growth yourself.
-- For this app, my recommendation remains `FILESYSTEM_DISK=s3` before go-live because slides, announcement images, and branch chat attachments are user-facing content.
-- Recommended provider: `Cloudflare R2`, because it exposes an S3-compatible endpoint that Laravel can use through the existing `s3` disk config.
-- For R2 specifically, use `AWS_DEFAULT_REGION=auto` and set `AWS_ENDPOINT=https://<your-account-id>.r2.cloudflarestorage.com`.
+- Current recommendation for this project: `FILESYSTEM_DISK=public` with a persistent Railway volume mounted at `/app/storage`.
+- Later, if you want external object storage, switch to `FILESYSTEM_DISK=s3` with an S3-compatible provider such as Cloudflare R2.
+- The current no-card path is the persistent volume route, because slides, announcement images, and branch chat attachments are user-facing content.
 
 Branch chat realtime note:
 - branch chat now uses Server-Sent Events on `/messages/stream`

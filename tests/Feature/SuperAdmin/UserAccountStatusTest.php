@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\SuperAdmin;
 
+use App\Models\Branch;
+use App\Models\District;
+use App\Models\Region;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,8 +18,9 @@ class UserAccountStatusTest extends TestCase
     {
         $this->seed(DatabaseSeeder::class);
 
+        [$region, $district, $branch] = $this->darHeadquartersContext();
         $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
-        $target = User::query()->where('email', 'branchadmin@rgc.or.tz')->firstOrFail();
+        $target = $this->makeUser('branch_admin', $region, $district, $branch, 'branch.status@rgc.test');
 
         $this->actingAs($superAdmin)
             ->put(route('admin.users.update', $target), [
@@ -36,7 +40,7 @@ class UserAccountStatusTest extends TestCase
         $this->post(route('logout'));
 
         $this->post(route('login.attempt'), [
-            'email' => 'branchadmin@rgc.or.tz',
+            'email' => 'branch.status@rgc.test',
             'password' => 'ChangeMe123!',
         ])
             ->assertSessionHasErrors([
@@ -68,5 +72,34 @@ class UserAccountStatusTest extends TestCase
             ]);
 
         $this->assertSame('active', $superAdmin->fresh()->status);
+    }
+
+    private function darHeadquartersContext(): array
+    {
+        $region = Region::query()->where('name', 'Dar es Salaam')->firstOrFail();
+        $district = District::query()->where('region_id', $region->id)->where('name', 'Temeke')->firstOrFail();
+        $branch = Branch::query()->where('name', 'Toangoma')->firstOrFail();
+
+        return [$region, $district, $branch];
+    }
+
+    private function makeUser(string $role, Region $region, District $district, Branch $branch, string $email): User
+    {
+        $user = User::query()->create([
+            'name' => ucwords(str_replace(['@rgc.test', '.'], ['', ' '], $email)),
+            'email' => $email,
+            'password' => 'ChangeMe123!',
+            'role' => $role,
+            'status' => 'active',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'branch_id' => $branch->id,
+            'church_id' => $branch->id,
+            'email_verified_at' => now(),
+        ]);
+
+        $user->syncRoles([$role]);
+
+        return $user;
     }
 }

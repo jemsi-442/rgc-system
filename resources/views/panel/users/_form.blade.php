@@ -28,6 +28,7 @@
                         <option value="{{ $roleOption }}" @selected(old('role', $managedUser?->normalizedRoleName() ?? 'member') === $roleOption)>{{ __(Illuminate\Support\Str::headline($roleOption)) }}</option>
                     @endforeach
                 </select>
+                <p class="form-hint mt-2">{{ __('Choose member for normal branch users, or assign regional, district, or branch admin here when the person should lead that governance area.') }}</p>
             </div>
 
             <div>
@@ -45,7 +46,7 @@
     <section class="form-section">
         <div class="form-section-heading">
             <h2>{{ __('Governance scope') }}</h2>
-            <p>{{ __('Choose the exact region, district, and branch so mobile users can review the hierarchy without confusion.') }}</p>
+            <p>{{ __('Set the exact region, district, and branch that the account will govern. This is what lets Super Admin promote someone into the right leadership scope and later return them to ordinary member access without confusion.') }}</p>
         </div>
 
         <div class="form-grid-responsive">

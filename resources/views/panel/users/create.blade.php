@@ -9,7 +9,7 @@
             <div>
                 <span class="section-kicker">{{ __('Super Admin') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Create a new user account') }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('This layout keeps long governance forms readable on mobile while preserving full authority controls.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Create the person as a normal member or assign branch, district, or regional leadership access from this same screen.') }}</p>
             </div>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.index') }}">{{ __('Back to users') }}</a>
         </div>

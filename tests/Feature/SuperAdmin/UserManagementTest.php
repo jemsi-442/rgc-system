@@ -90,6 +90,60 @@ class UserManagementTest extends TestCase
         $this->assertTrue(Hash::check('ResetUser123!', $target->password));
     }
 
+    public function test_super_admin_can_promote_a_member_into_branch_admin_access(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $member = $this->makeUser('member', $region, $district, $branch, 'member.promote@rgc.test');
+
+        $this->actingAs($superAdmin, 'web')
+            ->put(route('admin.users.update', $member), [
+                'name' => $member->name,
+                'email' => $member->email,
+                'phone' => $member->phone,
+                'role' => 'branch_admin',
+                'status' => 'active',
+                'region_id' => $region->id,
+                'district_id' => $district->id,
+                'branch_id' => $branch->id,
+            ])
+            ->assertRedirect(route('admin.users.edit', $member));
+
+        $member->refresh();
+
+        $this->assertTrue($member->hasSystemRole('branch_admin'));
+        $this->assertSame($branch->id, $member->effectiveBranchId());
+    }
+
+    public function test_super_admin_can_return_branch_admin_back_to_normal_member_access(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $leader = $this->makeUser('branch_admin', $region, $district, $branch, 'leader.demote@rgc.test');
+
+        $this->actingAs($superAdmin, 'web')
+            ->put(route('admin.users.update', $leader), [
+                'name' => $leader->name,
+                'email' => $leader->email,
+                'phone' => $leader->phone,
+                'role' => 'member',
+                'status' => 'active',
+                'region_id' => $region->id,
+                'district_id' => $district->id,
+                'branch_id' => $branch->id,
+            ])
+            ->assertRedirect(route('admin.users.edit', $leader));
+
+        $leader->refresh();
+
+        $this->assertTrue($leader->hasSystemRole('member'));
+        $this->assertFalse($leader->hasAnySystemRole(['branch_admin', 'district_admin', 'regional_admin']));
+    }
+
     public function test_super_admin_can_delete_an_admin_account_from_web_dashboard(): void
     {
         $this->seed(DatabaseSeeder::class);

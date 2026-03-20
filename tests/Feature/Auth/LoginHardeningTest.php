@@ -2,6 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Branch;
+use App\Models\District;
+use App\Models\Region;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,11 +18,12 @@ class LoginHardeningTest extends TestCase
     {
         $this->seed(DatabaseSeeder::class);
 
-        $user = User::query()->where('email', 'branchadmin@rgc.or.tz')->firstOrFail();
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $user = $this->makeUser('branch_admin', $region, $district, $branch, 'branch.login@rgc.test');
         $user->forceFill(['status' => 'inactive'])->save();
 
         $this->post(route('login.attempt'), [
-            'email' => 'branchadmin@rgc.or.tz',
+            'email' => 'branch.login@rgc.test',
             'password' => 'ChangeMe123!',
         ])
             ->assertSessionHasErrors([
@@ -29,33 +33,46 @@ class LoginHardeningTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_login_page_shows_seeded_role_credentials_in_testing_environment(): void
+    public function test_login_page_does_not_display_seeded_admin_credentials(): void
     {
         $this->seed(DatabaseSeeder::class);
 
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('superadmin@rgc.or.tz')
-            ->assertSee('regionaladmin@rgc.or.tz')
-            ->assertSee('districtadmin@rgc.or.tz')
-            ->assertSee('branchadmin@rgc.or.tz')
-            ->assertSee('Local QA access');
+            ->assertDontSee('superadmin@rgc.or.tz')
+            ->assertDontSee('regionaladmin@rgc.or.tz')
+            ->assertDontSee('districtadmin@rgc.or.tz')
+            ->assertDontSee('branchadmin@rgc.or.tz')
+            ->assertDontSee('Local QA access');
     }
 
-    public function test_seeded_role_dashboard_accounts_can_open_their_expected_dashboards(): void
+    public function test_super_admin_created_role_accounts_can_open_their_expected_dashboards(): void
     {
         $this->seed(DatabaseSeeder::class);
 
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+
         $accounts = [
-            'superadmin@rgc.or.tz' => 'Super Admin Workspace',
-            'regionaladmin@rgc.or.tz' => 'Regional Admin Workspace',
-            'districtadmin@rgc.or.tz' => 'District Admin Workspace',
-            'branchadmin@rgc.or.tz' => 'Branch Admin Workspace',
+            [$this->makeUser('regional_admin', $region, $district, $branch, 'regional.login@rgc.test'), 'Regional Admin Workspace'],
+            [$this->makeUser('district_admin', $region, $district, $branch, 'district.login@rgc.test'), 'District Admin Workspace'],
+            [$this->makeUser('branch_admin', $region, $district, $branch, 'branch.dashboard@rgc.test'), 'Branch Admin Workspace'],
         ];
 
-        foreach ($accounts as $email => $expectedHeading) {
+        $this->post(route('login.attempt'), [
+            'email' => 'superadmin@rgc.or.tz',
+            'password' => 'ChangeMe123!',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Manage users');
+
+        $this->post(route('logout'))->assertRedirect(route('home'));
+        $this->assertGuest();
+
+        foreach ($accounts as [$account, $expectedHeading]) {
             $this->post(route('login.attempt'), [
-                'email' => $email,
+                'email' => $account->email,
                 'password' => 'ChangeMe123!',
             ])->assertRedirect(route('dashboard'));
 
@@ -66,5 +83,34 @@ class LoginHardeningTest extends TestCase
             $this->post(route('logout'))->assertRedirect(route('home'));
             $this->assertGuest();
         }
+    }
+
+    private function darHeadquartersContext(): array
+    {
+        $region = Region::query()->where('name', 'Dar es Salaam')->firstOrFail();
+        $district = District::query()->where('region_id', $region->id)->where('name', 'Temeke')->firstOrFail();
+        $branch = Branch::query()->where('name', 'Toangoma')->firstOrFail();
+
+        return [$region, $district, $branch];
+    }
+
+    private function makeUser(string $role, Region $region, District $district, Branch $branch, string $email): User
+    {
+        $user = User::query()->create([
+            'name' => ucwords(str_replace(['@rgc.test', '.'], ['', ' '], $email)),
+            'email' => $email,
+            'password' => 'ChangeMe123!',
+            'role' => $role,
+            'status' => 'active',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'branch_id' => $branch->id,
+            'church_id' => $branch->id,
+            'email_verified_at' => now(),
+        ]);
+
+        $user->syncRoles([$role]);
+
+        return $user;
     }
 }

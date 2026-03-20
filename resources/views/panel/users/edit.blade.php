@@ -9,7 +9,7 @@
             <div>
                 <span class="section-kicker">{{ __('Super Admin') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Edit user account') }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('You can update role, branch scope, and password from here.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Promote a member into leadership, reassign their governance scope, or return them to normal member access from here.') }}</p>
             </div>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.index') }}">{{ __('Back to users') }}</a>
         </div>

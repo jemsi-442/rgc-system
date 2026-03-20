@@ -17,9 +17,7 @@ class AuthController extends Controller
 {
     public function showLogin(): View
     {
-        return view('auth.login', [
-            'demoCredentials' => $this->demoCredentials(),
-        ]);
+        return view('auth.login');
     }
 
     public function login(Request $request): RedirectResponse
@@ -105,39 +103,6 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
     }
 
-    private function demoCredentials(): array
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            return [];
-        }
-
-        return [
-            [
-                'role' => __('Super Admin'),
-                'email' => 'superadmin@rgc.or.tz',
-                'password' => 'ChangeMe123!',
-                'scope' => __('National workspace with full platform authority.'),
-            ],
-            [
-                'role' => __('Regional Admin'),
-                'email' => 'regionaladmin@rgc.or.tz',
-                'password' => 'ChangeMe123!',
-                'scope' => __('Regional dashboard for Dar es Salaam governance.'),
-            ],
-            [
-                'role' => __('District Admin'),
-                'email' => 'districtadmin@rgc.or.tz',
-                'password' => 'ChangeMe123!',
-                'scope' => __('District dashboard for Temeke branches.'),
-            ],
-            [
-                'role' => __('Branch Admin'),
-                'email' => 'branchadmin@rgc.or.tz',
-                'password' => 'ChangeMe123!',
-                'scope' => __('Single-branch dashboard for local operations.'),
-            ],
-        ];
-    }
 
     private function resolveSupportedLocale(?string ...$candidates): string
     {

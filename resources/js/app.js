@@ -248,6 +248,61 @@ if (announcementLightbox) {
   });
 }
 
+
+const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));
+
+if (passwordInputs.length > 0) {
+  const isSwahili = document.documentElement.lang?.toLowerCase().startsWith('sw');
+  const showLabel = isSwahili ? 'Onesha' : 'Show';
+  const hideLabel = isSwahili ? 'Ficha' : 'Hide';
+
+  passwordInputs.forEach((input, index) => {
+    if (input.dataset.passwordToggleReady === 'true') {
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'password-toggle-wrap';
+
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'password-toggle-button';
+    button.dataset.passwordToggle = 'true';
+    button.setAttribute('aria-controls', input.id || `password-field-${index}`);
+
+    if (!input.id) {
+      input.id = `password-field-${index}`;
+    }
+
+    const syncButton = () => {
+      const showing = input.type === 'text';
+      button.textContent = showing ? hideLabel : showLabel;
+      button.setAttribute('aria-label', showing ? hideLabel : showLabel);
+      button.setAttribute('aria-pressed', showing ? 'true' : 'false');
+    };
+
+    syncButton();
+
+    button.addEventListener('click', () => {
+      input.type = input.type === 'password' ? 'text' : 'password';
+      syncButton();
+      input.focus({ preventScroll: true });
+      const length = input.value.length;
+      try {
+        input.setSelectionRange(length, length);
+      } catch (error) {
+        // Some input types may not support explicit selection control.
+      }
+    });
+
+    wrapper.appendChild(button);
+    input.dataset.passwordToggleReady = 'true';
+  });
+}
+
 const shareButtons = Array.from(document.querySelectorAll('[data-share-button]'));
 
 if (shareButtons.length > 0) {

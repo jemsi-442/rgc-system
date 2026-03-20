@@ -8,7 +8,7 @@
         <div>
             <span class="section-kicker">{{ __('User Governance') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('All user accounts') }}</h1>
-            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create, activate, deactivate, reset passwords, and remove any user account except deleting or deactivating the current super admin account.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create users, promote them into regional, district, or branch leadership, return them to normal member access, reset passwords, and deactivate accounts when needed.') }}</p>
         </div>
         <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add User') }}</a>
     </div>
