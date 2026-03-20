@@ -6,30 +6,8 @@
     <title>Weka Nenosiri Jipya - RGC</title>
     <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c4b5fd',
-                            400: '#a78bfa',
-                            500: '#c00000',
-                            600: '#a40000',
-                            700: '#7f0000',
-                            800: '#5e0000',
-                            900: '#3f0000',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         body { font-family: 'Poppins', sans-serif; }
         .btn-primary {

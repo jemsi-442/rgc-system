@@ -59,29 +59,8 @@
     <title>404 - Ukurasa Haujapatikana</title>
     <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#fff8df',
-                            100: '#ffe9a8',
-                            500: '#c00000',
-                            600: '#8f1111',
-                            700: '#6f0d0d',
-                        },
-                        secondary: {
-                            500: '#ffd700',
-                            600: '#d4aa00',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         * { font-family: 'Poppins', sans-serif; }
     </style>
