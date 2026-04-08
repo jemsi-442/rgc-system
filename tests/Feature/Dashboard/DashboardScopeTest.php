@@ -5,6 +5,8 @@ namespace Tests\Feature\Dashboard;
 use App\Models\Announcement;
 use App\Models\Branch;
 use App\Models\District;
+use App\Models\Expense;
+use App\Models\Offering;
 use App\Models\OfferingPayment;
 use App\Models\Region;
 use App\Models\User;
@@ -61,7 +63,7 @@ class DashboardScopeTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Member Workspace')
-            ->assertSee('My branch notices')
+            ->assertSee("Notices for {$hqBranch->name}")
             ->assertSee('Toangoma Notice')
             ->assertDontSee('Same District Other Branch Notice')
             ->assertDontSee('Outside Region Notice');
@@ -79,6 +81,25 @@ class DashboardScopeTest extends TestCase
             ->assertOk()
             ->assertSee('Give now')
             ->assertSee('Ready to give to your branch?');
+    }
+
+    public function test_super_admin_dashboard_summarizes_regions_across_the_platform(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $superAdmin = $this->makeUser('super_admin', $darRegion, $temekeDistrict, $hqBranch, 'super.dashboard.scope@rgc.test');
+        $otherRegion = Region::query()->where('name', '!=', $darRegion->name)->orderBy('name')->firstOrFail();
+
+        $this->actingAs($superAdmin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Super Admin Workspace')
+            ->assertSee('Regions across the platform')
+            ->assertSee($darRegion->name)
+            ->assertSee($otherRegion->name)
+            ->assertSee('active branch')
+            ->assertSee('district');
     }
 
     public function test_branch_admin_dashboard_shows_recent_payment_alerts(): void
@@ -108,6 +129,92 @@ class DashboardScopeTest extends TestCase
             ->assertSee('New collection received')
             ->assertSee('Dashboard payment alert')
             ->assertSee('Receipt emailed');
+    }
+
+    public function test_branch_admin_dashboard_lists_people_from_their_branch_only(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $branchAdmin = $this->makeUser('branch_admin', $darRegion, $temekeDistrict, $hqBranch, 'branch.dashboard.people@rgc.test');
+        $branchMember = $this->makeUser('member', $darRegion, $temekeDistrict, $hqBranch, 'branch.dashboard.member@rgc.test');
+        $sameDistrictOtherBranch = $this->makeBranch('Temeke Roster Branch', $darRegion, $temekeDistrict);
+        $outsideUser = $this->makeUser('member', $darRegion, $temekeDistrict, $sameDistrictOtherBranch, 'branch.dashboard.outside@rgc.test');
+
+        $this->actingAs($branchAdmin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Branch Admin Workspace')
+            ->assertSee("People in {$hqBranch->name}")
+            ->assertSee($branchAdmin->name)
+            ->assertSee($branchMember->name)
+            ->assertSee('Branch Admin')
+            ->assertSee('Member')
+            ->assertSee('Active')
+            ->assertDontSee($outsideUser->name);
+    }
+
+    public function test_accountant_dashboard_focuses_on_branch_finance_instead_of_people_roster(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $accountant = $this->makeUser('accountant', $darRegion, $temekeDistrict, $hqBranch, 'accountant.dashboard@rgc.test');
+
+        Offering::query()->create([
+            'church_id' => $hqBranch->id,
+            'recorded_by' => $accountant->id,
+            'amount' => 85000,
+            'type' => 'offering',
+            'service_name' => 'Sunday Service',
+            'offering_date' => now()->toDateString(),
+        ]);
+
+        Expense::query()->create([
+            'church_id' => $hqBranch->id,
+            'recorded_by' => $accountant->id,
+            'amount' => 15000,
+            'category' => 'Transport',
+            'expense_date' => now()->toDateString(),
+            'description' => 'Fuel reimbursement',
+        ]);
+
+        OfferingPayment::query()->create([
+            'church_id' => $hqBranch->id,
+            'user_id' => $accountant->id,
+            'amount' => 20000,
+            'currency' => 'TZS',
+            'offering_date' => now()->toDateString(),
+            'payer_name' => 'Finance Prompt',
+            'description' => 'Pending finance prompt',
+            'status' => 'pending',
+        ]);
+
+        OfferingPayment::query()->create([
+            'church_id' => $hqBranch->id,
+            'user_id' => $accountant->id,
+            'amount' => 50000,
+            'currency' => 'TZS',
+            'offering_date' => now()->toDateString(),
+            'payer_name' => 'Confirmed Collection',
+            'description' => 'Completed finance collection',
+            'status' => 'completed',
+            'paid_at' => now()->subMinutes(30),
+        ]);
+
+        $this->actingAs($accountant)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Accountant Workspace')
+            ->assertSee("Finance desk for {$hqBranch->name}")
+            ->assertSee('Pending payment requests')
+            ->assertSee('Completed payments')
+            ->assertSee('Offerings recorded')
+            ->assertSee('Expenses recorded')
+            ->assertSee('Offerings')
+            ->assertSee('Expenses')
+            ->assertDontSee('People in')
+            ->assertDontSee('Events');
     }
 
     public function test_branch_admin_can_mark_payment_alert_as_reviewed(): void
@@ -214,7 +321,7 @@ class DashboardScopeTest extends TestCase
         $this->assertNull($payment->reviewed_at);
         $this->assertNull($payment->reviewed_by);
     }
-    public function test_regional_admin_dashboard_only_lists_branches_from_their_region(): void
+    public function test_regional_admin_dashboard_summarizes_districts_without_branch_only_shortcuts(): void
     {
         $this->seed(DatabaseSeeder::class);
 
@@ -234,10 +341,41 @@ class DashboardScopeTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Regional Admin Workspace')
-            ->assertSee('Branches in your region')
-            ->assertSee('Toangoma')
-            ->assertSee('Kigamboni Branch')
+            ->assertSee('Districts in your region')
+            ->assertSee($temekeDistrict->name)
+            ->assertSee($ilalaDistrict->name)
+            ->assertSee('active branch')
+            ->assertDontSee('Send payment prompt')
+            ->assertDontSee('Kigamboni Branch')
             ->assertDontSee($outsideBranch->name);
+    }
+
+    public function test_district_admin_dashboard_lists_only_their_district_branches_without_branch_only_shortcuts(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $districtAdmin = $this->makeUser('district_admin', $darRegion, $temekeDistrict, $hqBranch, 'district.dashboard@rgc.test');
+        $sameDistrictBranch = $this->makeBranch('Temeke South Branch', $darRegion, $temekeDistrict);
+        $outsideDistrict = District::query()
+            ->where('region_id', $darRegion->id)
+            ->where('id', '!=', $temekeDistrict->id)
+            ->orderBy('name')
+            ->firstOrFail();
+        $otherDistrictBranch = $this->makeBranch('Ilala District Branch', $darRegion, $outsideDistrict);
+        [, , $outsideRegionBranch] = $this->makeBranchInAnotherRegion();
+
+        $this->actingAs($districtAdmin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('District Admin Workspace')
+            ->assertSee("Branches in {$temekeDistrict->name}")
+            ->assertSee($hqBranch->name)
+            ->assertSee($sameDistrictBranch->name)
+            ->assertSee('Active')
+            ->assertDontSee('Send payment prompt')
+            ->assertDontSee($otherDistrictBranch->name)
+            ->assertDontSee($outsideRegionBranch->name);
     }
 
     public function test_expired_announcement_is_archived_by_command_and_removed_from_dashboard(): void

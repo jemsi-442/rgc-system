@@ -30,7 +30,24 @@ class UserManagementTest extends TestCase
             ->get(route('admin.users.index'))
             ->assertOk()
             ->assertSee('regional.view@rgc.test')
-            ->assertSee('district.view@rgc.test');
+            ->assertSee('district.view@rgc.test')
+            ->assertSee($branch->name)
+            ->assertSee($district->name)
+            ->assertSee($region->name);
+    }
+
+    public function test_super_admin_create_form_shows_role_guidance(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $this->actingAs($superAdmin, 'web')
+            ->get(route('admin.users.create'))
+            ->assertOk()
+            ->assertSee('Member access')
+            ->assertSee('Use member for regular church users')
+            ->assertSee('every account keeps a home branch');
     }
 
     public function test_super_admin_can_create_a_user_from_web_dashboard(): void

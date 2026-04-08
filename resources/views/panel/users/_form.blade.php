@@ -24,7 +24,7 @@
 
             <div>
                 <label class="field-label" for="role">{{ __('System role') }}</label>
-                <select class="select-rgc" id="role" name="role" required>
+                <select class="select-rgc" id="role" name="role" data-role-select required>
                     @foreach($roleOptions as $roleOption)
                         <option value="{{ $roleOption }}" @selected(old('role', $managedUser?->normalizedRoleName() ?? 'member') === $roleOption)>{{ __(Illuminate\Support\Str::headline($roleOption)) }}</option>
                     @endforeach
@@ -41,6 +41,16 @@
                 </select>
                 <p class="form-hint mt-2">{{ __('Inactive accounts can stay in the system for audit purposes but cannot sign in to web or API access.') }}</p>
             </div>
+        </div>
+
+        <div class="form-callout mt-5" data-role-guidance-panel>
+            <strong data-role-guidance-title>{{ __('Member access') }}</strong>
+            <p class="mt-2 text-sm text-black/70" data-role-guidance-copy>
+                {{ __('Use member for regular church users who should receive branch updates, giving access, and normal sign-in without leadership controls.') }}
+            </p>
+            <p class="mt-3 text-sm text-black/60" data-role-scope-copy>
+                {{ __('The region, district, and branch below still matter because every account keeps a home branch, even when the role is later promoted into district or regional leadership.') }}
+            </p>
         </div>
     </section>
 

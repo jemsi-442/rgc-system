@@ -7,15 +7,15 @@
     <div class="page-banner-content">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
         <h1 class="mt-5">{{ __('Announcements') }}</h1>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official communication across national, regional, district, and branch governance scope.') }}</p>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official church communication for the people and locations visible to your account.') }}</p>
     </div>
 </section>
 
 <section class="card-rgc mt-8">
     <div class="announcement-toolbar">
         <div>
-            <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your scope') : __('Recent activity across your scope') }}</h2>
-            <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have expired and were archived automatically. They stay available here for reference.') : __('Global announcements from Super Admin appear here together with notices inside your approved governance area.') }}</p>
+            <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your view') : __('Recent announcements in your view') }}</h2>
+            <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have expired and were archived automatically. They stay available here for reference.') : __('Church-wide announcements appear here together with the notices shared for the locations connected to your account.') }}</p>
         </div>
         <div class="announcement-toolbar-actions">
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</a>

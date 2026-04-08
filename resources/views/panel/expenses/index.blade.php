@@ -2,8 +2,12 @@
 @section('content')
 <div class="card-rgc">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 class="text-xl font-semibold">{{ __('Expenses') }}</h1>
-        <a class="btn-rgc w-full sm:w-auto" href="{{ route('expenses.create') }}">{{ __('Add') }}</a>
+        <div>
+            <p class="section-kicker">{{ __('Ledger') }}</p>
+            <h1 class="text-xl font-semibold">{{ __('Expenses') }}</h1>
+            <p class="mt-2 text-sm text-black/65">{{ __('Branch spending records are listed here so finance staff can review what was spent, when, and why.') }}</p>
+        </div>
+        <a class="btn-rgc w-full sm:w-auto" href="{{ route('expenses.create') }}">{{ __('Record expense') }}</a>
     </div>
     <div class="table-wrap mt-3">
         <table class="responsive-table w-full text-sm">
@@ -12,16 +16,22 @@
                     <th>{{ __('Date') }}</th>
                     <th>{{ __('Category') }}</th>
                     <th>{{ __('Amount') }}</th>
+                    <th>{{ __('Details') }}</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($expenses as $expense)
+                @forelse($expenses as $expense)
                     <tr class="border-t">
-                        <td>{{ $expense->expense_date }}</td>
+                        <td>{{ optional($expense->expense_date)->format('Y-m-d') ?? $expense->expense_date }}</td>
                         <td>{{ $expense->category }}</td>
-                        <td>{{ number_format($expense->amount, 2) }}</td>
+                        <td>TZS {{ number_format((float) $expense->amount, 2) }}</td>
+                        <td>{{ $expense->description_body ?: __('No extra details') }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr class="border-t">
+                        <td colspan="4" class="py-6 text-center text-black/60">{{ __('No expenses recorded yet.') }}</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>

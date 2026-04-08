@@ -8,7 +8,7 @@
         <div class="space-y-2">
             <p class="section-kicker">{{ __('Member giving') }}</p>
             <h1 class="text-2xl font-semibold">{{ __('Give to your branch securely') }}</h1>
-            <p class="text-sm text-black/70">{{ __('Choose the type of giving, enter the amount and payer phone, then the system will send a payment prompt to the payer device.') }}</p>
+            <p class="text-sm text-black/70">{{ __('Choose the type of giving, enter the amount and payer phone, then the system will send a payment prompt to the payer phone.') }}</p>
         </div>
 
         <div class="branch-preview-breakdown mt-5">
@@ -20,7 +20,7 @@
         <div class="payment-provider-card mt-5">
             <div class="payment-provider-head">
                 <span class="payment-provider-badge">{{ __('Mobile money collection') }}</span>
-                <p class="payment-provider-copy">{{ __('The payer stays in a direct prompt flow from the app instead of being forced through a copied payment link first.') }}</p>
+                <p class="payment-provider-copy">{{ __('The payer can approve the payment straight from the phone prompt without being forced through a copied link first.') }}</p>
             </div>
             <div class="payment-provider-features">
                 <div class="payment-provider-feature">
@@ -50,12 +50,13 @@
         @if(session('payment_reference'))
             <div class="announcement-callout mt-5 space-y-3">
                 <p class="font-semibold text-black">
-                    {{ session('payment_prompt_phone') ? __('Payment prompt sent.') : __('Payment checkout link created.') }}
+                    {{ session('payment_prompt_phone') ? __('Payment prompt sent.') : __('Payment checkout link ready.') }}
                 </p>
                 <p class="text-sm text-black/70">{{ __('Reference') }}: <span class="font-medium text-black">{{ session('payment_reference') }}</span></p>
                 @if(session('payment_prompt_phone'))
                     <p class="text-sm text-black/70">{{ __('Prompt sent to') }}: <span class="font-medium text-black">{{ session('payment_prompt_phone') }}</span></p>
                 @endif
+                <p class="text-sm text-black/70">{{ __('Open the status page below to follow confirmation and receipt availability.') }}</p>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     @if(session('payment_link'))
                         <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
@@ -112,7 +113,7 @@
             </div>
             <div class="announcement-callout">
                 <p class="font-semibold text-black">{{ __('What happens next?') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('The backend will create a payment request, send a prompt to the payer phone, and then wait for secure webhook confirmation before posting the giving to your branch ledger.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('The system creates the payment request, sends the prompt to the payer phone, and then waits for confirmation before posting the giving to your branch record.') }}</p>
             </div>
             <div class="form-actions">
                 <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Send payment prompt') }}</button>

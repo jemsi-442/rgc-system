@@ -41,9 +41,9 @@
     $showBranchTarget = $user->hasSystemRole('regional_admin') && $selectedDeliveryScope === 'branch';
     $showSelectedBranchesTarget = $user->hasSystemRole('super_admin') && $selectedDeliveryScope === 'selected_branches';
 
-    $scopePill = __('Announcement');
-    $scopeLabel = __('Choose the governance audience for this announcement.');
-    $previewText = __('This announcement will go to the active governance scope for your account.');
+    $scopePill = __('Announcement audience');
+    $scopeLabel = __('Choose who should receive this announcement.');
+    $previewText = __('This announcement will follow the audience available to your account.');
 
     if ($user->hasSystemRole('super_admin')) {
         if ($selectedDeliveryScope === 'selected_branches') {
@@ -54,10 +54,10 @@
             $previewText = __('This announcement will go to all users and all branches.');
         }
 
-        $scopePill = __('National / Selected Branches');
-        $scopeLabel = __('Choose whether this update should reach the whole system or only selected branches.');
+        $scopePill = __('Whole church / selected branches');
+        $scopeLabel = __('Choose whether this update should reach the whole church or only selected branches.');
     } elseif ($user->hasSystemRole('regional_admin')) {
-        $scopePill = __('Region / District / Branch');
+        $scopePill = __('Region / district / branch');
         $scopeLabel = __('Choose whether this announcement should reach your whole region, one district, or one branch inside it.');
 
         if ($selectedDeliveryScope === 'branch') {
@@ -68,11 +68,11 @@
             $previewText = __('This announcement will go to your whole region.');
         }
     } elseif ($user->hasSystemRole('district_admin')) {
-        $scopePill = __('District');
+        $scopePill = __('District audience');
         $scopeLabel = __('This announcement will be visible across your district.');
         $previewText = __('This announcement will go to your whole district.');
     } else {
-        $scopePill = __('Branch');
+        $scopePill = __('Branch audience');
         $scopeLabel = __('This announcement will stay inside your branch scope.');
         $previewText = __('This announcement will stay inside your branch only.');
     }
@@ -100,9 +100,9 @@
 
                 @if($user->hasSystemRole('super_admin'))
                     <div class="announcement-expiry-field">
-                        <label class="field-label" for="delivery_scope">{{ __('Delivery Scope') }}</label>
+                        <label class="field-label" for="delivery_scope">{{ __('Audience') }}</label>
                         <select class="input-rgc" id="delivery_scope" name="delivery_scope" data-announcement-scope-select>
-                            <option value="global" @selected($selectedDeliveryScope === 'global')>{{ __('All system users') }}</option>
+                            <option value="global" @selected($selectedDeliveryScope === 'global')>{{ __('Whole church') }}</option>
                             <option value="selected_branches" @selected($selectedDeliveryScope === 'selected_branches')>{{ __('Selected branches only') }}</option>
                         </select>
                         <p class="field-hint">{{ __('Super Admin can reach everyone in the platform or only the branches selected below.') }}</p>
@@ -112,7 +112,7 @@
                     </div>
 
                     <div class="announcement-expiry-field {{ $showSelectedBranchesTarget ? '' : 'hidden' }}" data-announcement-selected-branches-shell>
-                        <label class="field-label" for="selected_branch_ids">{{ __('Branch Targets') }}</label>
+                        <label class="field-label" for="selected_branch_ids">{{ __('Choose branches') }}</label>
                         <select
                             class="input-rgc announcement-branch-multiselect"
                             id="selected_branch_ids"
@@ -137,11 +137,11 @@
                     </div>
                 @elseif($user->hasSystemRole('regional_admin'))
                     <div class="announcement-expiry-field">
-                        <label class="field-label" for="delivery_scope">{{ __('Delivery Scope') }}</label>
+                        <label class="field-label" for="delivery_scope">{{ __('Audience') }}</label>
                         <select class="input-rgc" id="delivery_scope" name="delivery_scope" data-announcement-scope-select>
-                            <option value="region" @selected($selectedDeliveryScope === 'region')>{{ __('Region-wide announcement') }}</option>
-                            <option value="district" @selected($selectedDeliveryScope === 'district')>{{ __('District-only announcement') }}</option>
-                            <option value="branch" @selected($selectedDeliveryScope === 'branch')>{{ __('Branch-only announcement') }}</option>
+                            <option value="region" @selected($selectedDeliveryScope === 'region')>{{ __('Whole region') }}</option>
+                            <option value="district" @selected($selectedDeliveryScope === 'district')>{{ __('One district') }}</option>
+                            <option value="branch" @selected($selectedDeliveryScope === 'branch')>{{ __('One branch') }}</option>
                         </select>
                         <p class="field-hint">{{ __('Regional admins can target the whole region, one district, or one branch inside their region.') }}</p>
                         @error('delivery_scope')
@@ -150,7 +150,7 @@
                     </div>
 
                     <div class="announcement-expiry-field {{ $showDistrictTarget ? '' : 'hidden' }}" data-announcement-district-shell>
-                        <label class="field-label" for="district_id">{{ __('District Target') }}</label>
+                        <label class="field-label" for="district_id">{{ __('Choose district') }}</label>
                         <select class="input-rgc" id="district_id" name="district_id" data-announcement-district-select @disabled(! $showDistrictTarget)>
                             <option value="">{{ __('Select district for scoped delivery') }}</option>
                             @foreach($availableDistricts as $district)
@@ -164,7 +164,7 @@
                     </div>
 
                     <div class="announcement-expiry-field {{ $showBranchTarget ? '' : 'hidden' }}" data-announcement-branch-shell>
-                        <label class="field-label" for="branch_id">{{ __('Branch Target') }}</label>
+                        <label class="field-label" for="branch_id">{{ __('Choose branch') }}</label>
                         <select
                             class="input-rgc"
                             id="branch_id"
@@ -199,7 +199,7 @@
                     data-label-branch="{{ __('This announcement will go to the selected branch only.') }}"
                     data-label-branch-fixed="{{ __('This announcement will stay inside your branch only.') }}"
                 >
-                    <strong>{{ __('Delivery Preview') }}</strong>
+                    <strong>{{ __('Audience preview') }}</strong>
                     <p>{{ $previewText }}</p>
                 </div>
 

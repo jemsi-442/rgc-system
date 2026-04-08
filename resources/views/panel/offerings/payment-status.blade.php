@@ -3,6 +3,13 @@
 @section('title', __('Offering Payment Status') . ' - RGC')
 
 @section('content')
+@php
+    $returnUrl = auth()->check() ? route('giving.index') : route('home');
+    $returnLabel = auth()->check() ? __('Back to my giving') : __('Return to homepage');
+    $failedRecoveryCopy = auth()->check()
+        ? __('If this payment expired or failed, return to your giving page and create a fresh request when you are ready.')
+        : __('If this payment expired or failed, return to the church site and start a new giving request when you are ready.');
+@endphp
 <div class="mx-auto max-w-5xl space-y-6">
     <section class="card-rgc payment-status-shell payment-status-shell--hero {{ $payment->isCompleted() ? 'is-success' : ($payment->isFailed() ? 'is-failed' : 'is-pending') }}">
         <div class="payment-status-header">
@@ -39,31 +46,32 @@
         @elseif($payment->isPending() && ! $payment->checkout_url)
             <div class="announcement-callout mt-6">
                 <p class="font-semibold text-black">{{ __('Payment prompt sent successfully.') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('A payment prompt was sent to :phone. Ask the payer to approve it on the phone, then this page will update after payment confirmation arrives.', ['phone' => $payment->maskedPayerPhone()]) }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('A payment prompt was sent to :phone. Ask the payer to approve it on the phone, then this page will update after confirmation arrives.', ['phone' => $payment->maskedPayerPhone()]) }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('Requested network') }}: {{ $payment->requestedNetworkLabel() }} · {{ __('Last update') }}: {{ optional($payment->updated_at)->translatedFormat('d M Y H:i') }}</p>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
                 </div>
             </div>
         @elseif($payment->isPending() && $payment->checkout_url)
             <div class="announcement-callout mt-6">
                 <p class="font-semibold text-black">{{ __('Complete payment using the checkout link below.') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('After payment, Snippe will notify the system automatically and this page will update to confirmed status.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('After payment, the system will receive confirmation and this page will update to completed status.') }}</p>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
                 </div>
             </div>
         @else
             <div class="announcement-callout mt-6">
                 <p class="font-semibold text-black">{{ __('This payment is not currently active.') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('If this payment was cancelled or expired, create a new payment link from the offerings workspace.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ $failedRecoveryCopy }}</p>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
                 </div>
             </div>
         @endif

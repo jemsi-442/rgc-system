@@ -31,7 +31,7 @@
         <div class="space-y-2">
             <p class="section-kicker">{{ __('Snippe checkout') }}</p>
             <h2 class="text-xl font-semibold">{{ __('Collect by payment prompt') }}</h2>
-            <p class="text-sm text-black/65">{{ __('Enter the payer details, send a mobile money prompt from the backend, and let the webhook confirm the collection before the offering is recorded automatically.') }}</p>
+            <p class="text-sm text-black/65">{{ __('Enter the payer details, send a mobile money prompt from the backend, and let confirmation arrive before the offering is recorded automatically.') }}</p>
         </div>
 
         <div class="payment-provider-card mt-5">
@@ -50,8 +50,8 @@
                 <div class="payment-provider-feature">
                     <span class="payment-provider-mark">MM</span>
                     <div>
-                        <strong>{{ __('Network aware') }}</strong>
-                        <span>{{ __('The form can collect the preferred mobile money network for better operator guidance and reporting.') }}</span>
+                        <strong>{{ __('Network guidance') }}</strong>
+                        <span>{{ __('The form can collect the preferred mobile money network for smoother payer guidance and reporting.') }}</span>
                     </div>
                 </div>
                 <div class="payment-provider-feature">

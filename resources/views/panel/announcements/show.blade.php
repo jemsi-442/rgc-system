@@ -7,7 +7,7 @@
     <div class="page-banner-content">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcement Details') }}</span>
         <h1 class="mt-5">{{ $announcement->title }}</h1>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Read the full announcement, view its image, and manage delivery information from one place.') }}</p>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Read the full announcement, view its image, and confirm who received it from one place.') }}</p>
     </div>
 </section>
 
@@ -86,18 +86,18 @@
     </article>
 
     <aside class="card-rgc announcement-detail-sidebar">
-        <span class="section-kicker">{{ __('Delivery scope') }}</span>
+        <span class="section-kicker">{{ __('Audience details') }}</span>
         <div class="announcement-detail-meta mt-5">
             <div>
                 <strong>{{ __('Published') }}</strong>
                 <p>{{ optional($announcement->created_at)->translatedFormat('d M Y, H:i') }}</p>
             </div>
             <div>
-                <strong>{{ __('Visibility') }}</strong>
+                <strong>{{ __('Audience') }}</strong>
                 <p>{{ $announcement->audienceLabel() }}</p>
             </div>
             <div>
-                <strong>{{ __('Delivery Summary') }}</strong>
+                <strong>{{ __('Audience summary') }}</strong>
                 <p>{{ $announcement->deliverySummary() }}</p>
             </div>
             <div>
@@ -120,7 +120,7 @@
             </div>
             @if($announcement->hasExplicitBranchTargets())
                 <div>
-                    <strong>{{ __('Selected Branch Targets') }}</strong>
+                    <strong>{{ __('Selected branches') }}</strong>
                     <div class="announcement-target-list mt-2">
                         @foreach($announcement->targetBranches as $targetBranch)
                             <span>

@@ -37,12 +37,26 @@
                     <tr class="border-t">
                         <td>
                             <div class="font-semibold">{{ $managedUser->name }}</div>
+                            <div class="mt-1 text-xs text-black/55">
+                                {{ $managedUser->branch?->name ?? __('No branch assigned') }}
+                                @if($managedUser->district?->name)
+                                    · {{ $managedUser->district->name }}
+                                @endif
+                                @if($managedUser->region?->name)
+                                    · {{ $managedUser->region->name }}
+                                @endif
+                            </div>
                             @if($managedUser->id === auth()->id())
                                 <div class="mt-1 text-xs text-black/50">{{ __('Current account') }}</div>
                             @endif
                         </td>
                         <td class="break-all">{{ $managedUser->email }}</td>
-                        <td>{{ __(Illuminate\Support\Str::headline($managedUser->normalizedRoleName() ?? $managedUser->role)) }}</td>
+                        <td>
+                            <div>{{ __(Illuminate\Support\Str::headline($managedUser->normalizedRoleName() ?? $managedUser->role)) }}</div>
+                            @if($managedUser->phone)
+                                <div class="mt-1 text-xs text-black/55">{{ $managedUser->phone }}</div>
+                            @endif
+                        </td>
                         <td>
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $managedUser->isActive() ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700' }}">
                                 {{ $managedUser->isActive() ? __('Active') : __('Inactive') }}

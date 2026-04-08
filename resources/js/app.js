@@ -3,6 +3,8 @@ import './bootstrap';
 const regionSelect = document.querySelector('[data-region-select]');
 const districtSelect = document.querySelector('[data-district-select]');
 const branchSelect = document.querySelector('[data-branch-select]');
+const roleSelect = document.querySelector('[data-role-select]');
+const roleGuidancePanel = document.querySelector('[data-role-guidance-panel]');
 const districtField = document.querySelector('[data-district-field]');
 const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
@@ -27,6 +29,62 @@ const syncRegistrationHierarchyVisibility = ({ showDistrict, showBranch }) => {
   if (branchSelect) {
     branchSelect.disabled = !showBranch;
   }
+};
+
+const roleGuidance = {
+  super_admin: {
+    title: 'Super Admin access',
+    copy: 'Use this only for the few people who oversee the full platform, create branches, manage users, and keep the whole system aligned.',
+    scope: 'Still assign a home branch below so the account has a clear church location, even though the role can work across the full platform.',
+  },
+  regional_admin: {
+    title: 'Regional Admin access',
+    copy: 'Choose this for someone who should monitor districts, branches, and activity across one region without becoming a full platform administrator.',
+    scope: 'Set the home branch inside the same region so reporting, announcements, and leadership scope stay aligned.',
+  },
+  district_admin: {
+    title: 'District Admin access',
+    copy: 'Choose this when the person coordinates several branches inside one district and needs district-wide visibility.',
+    scope: 'Keep the selected branch inside the same district because this account still needs a home church location.',
+  },
+  branch_admin: {
+    title: 'Branch Admin access',
+    copy: 'Use branch admin for the main local coordinator who manages branch users, records, announcements, and day-to-day branch activity.',
+    scope: 'The branch selected below becomes the person’s operational home for records, communication, and branch books.',
+  },
+  bishop: {
+    title: 'Bishop access',
+    copy: 'Use bishop when the person needs branch-facing oversight and communication access without becoming the branch records administrator.',
+    scope: 'Choose the branch they primarily serve so announcements and branch communication stay tied to the right church location.',
+  },
+  pastor: {
+    title: 'Pastor access',
+    copy: 'Use pastor for ministers who need branch communication, notices, and branch-facing workspace access.',
+    scope: 'Choose the branch they serve so the account opens into the correct branch environment.',
+  },
+  accountant: {
+    title: 'Accountant access',
+    copy: 'Use accountant for finance staff who should work with offerings, expenses, payment follow-up, and branch finance activity.',
+    scope: 'Choose the branch whose books they maintain so finance records stay attached to the correct church location.',
+  },
+  member: {
+    title: 'Member access',
+    copy: 'Use member for regular church users who should receive branch updates, giving access, and normal sign-in without leadership controls.',
+    scope: 'The region, district, and branch below still matter because every account keeps a home branch, even when the role is later promoted into district or regional leadership.',
+  },
+};
+
+const syncRoleGuidance = (value) => {
+  if (!roleSelect || !roleGuidancePanel) return;
+
+  const titleNode = roleGuidancePanel.querySelector('[data-role-guidance-title]');
+  const copyNode = roleGuidancePanel.querySelector('[data-role-guidance-copy]');
+  const scopeNode = roleGuidancePanel.querySelector('[data-role-scope-copy]');
+  const guidance = roleGuidance[value] ?? roleGuidance.member;
+
+  if (titleNode) titleNode.textContent = guidance.title;
+  if (copyNode) copyNode.textContent = guidance.copy;
+  if (scopeNode) scopeNode.textContent = guidance.scope;
 };
 
 async function loadDistricts(regionId, selectedDistrictId = '') {
@@ -110,6 +168,14 @@ if (regionSelect && districtSelect) {
         // Keep forms usable even if dependent lookups fail temporarily.
       });
   }
+}
+
+if (roleSelect) {
+  syncRoleGuidance(roleSelect.value);
+
+  roleSelect.addEventListener('change', (event) => {
+    syncRoleGuidance(event.target.value);
+  });
 }
 
 if (menuToggle && mobileMenu) {

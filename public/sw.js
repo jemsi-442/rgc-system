@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rgc-platform-v3';
+const CACHE_NAME = 'rgc-platform-v4';
 const APP_SHELL = [
   '/',
   '/offline.html',
@@ -8,6 +8,17 @@ const APP_SHELL = [
   '/icons/icon-180.png',
   '/images/rgc_logo.png',
 ];
+
+const CACHEABLE_PATHS = new Set(APP_SHELL);
+const STATIC_ASSET_PATTERN = /\.(?:js|css|png|jpg|jpeg|webp|gif|svg|ico|woff2?|ttf|eot|json|webmanifest)$/i;
+
+const isCacheableAssetRequest = (request, url) => {
+  if (request.method !== 'GET') {
+    return false;
+  }
+
+  return CACHEABLE_PATHS.has(url.pathname) || STATIC_ASSET_PATTERN.test(url.pathname);
+};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -43,17 +54,23 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          return response;
-        })
+        .then((response) => response)
         .catch(async () => {
-          const cached = await caches.match(request);
-          return cached || caches.match('/offline.html');
+          if (url.pathname === '/' || url.pathname === '/offline.html') {
+            const cachedHome = await caches.match('/');
+            if (cachedHome) {
+              return cachedHome;
+            }
+          }
+
+          return caches.match('/offline.html');
         }),
     );
 
+    return;
+  }
+
+  if (!isCacheableAssetRequest(request, url)) {
     return;
   }
 

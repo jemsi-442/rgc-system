@@ -400,6 +400,40 @@ class SnippeOfferingPaymentTest extends TestCase
             ->assertSee($branchAdmin->name)
             ->assertSee('Reviewed payment metadata');
     }
+
+    public function test_authenticated_member_pending_payment_status_page_links_back_to_giving(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $region, $district, $branch, 'member.status.pending@rgc.test');
+
+        $payment = OfferingPayment::query()->create([
+            'church_id' => $branch->id,
+            'user_id' => $member->id,
+            'amount' => 12500,
+            'currency' => 'TZS',
+            'offering_date' => now()->toDateString(),
+            'payer_name' => 'Pending Member',
+            'payer_phone' => '255712333333',
+            'description' => 'Pending member payment',
+            'status' => 'pending',
+            'metadata' => [
+                'payment_type' => 'offering',
+                'payment_flow' => 'mobile_prompt',
+                'requested_network' => 'mpesa',
+            ],
+        ]);
+
+        $this->actingAs($member)
+            ->get(route('offerings.payments.public.show', $payment->public_reference))
+            ->assertOk()
+            ->assertSeeText('Requested network')
+            ->assertSeeText('M-Pesa')
+            ->assertSeeText('Back to my giving')
+            ->assertDontSeeText('Return to homepage');
+    }
+
     public function test_completed_payment_status_page_shows_receipt_download_and_pdf_is_accessible(): void
     {
         $this->seed(DatabaseSeeder::class);

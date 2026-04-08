@@ -3,6 +3,17 @@
 @section('title', __('Dashboard') . ' - RGC')
 
 @section('content')
+@php
+    $dashboardUser = auth()->user();
+    $isSuperAdmin = $dashboardUser->hasSystemRole('super_admin');
+    $isAccountant = $dashboardUser->hasSystemRole('accountant');
+    $canCreateBranchPayments = $dashboardUser->hasAnySystemRole(['super_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']);
+    $canOpenBranchBooks = $dashboardUser->hasAnySystemRole(['super_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']);
+    $isRegionalAdmin = $dashboardUser->hasSystemRole('regional_admin');
+    $isDistrictAdmin = $dashboardUser->hasSystemRole('district_admin');
+    $paymentRequestHeading = $canCreateBranchPayments ? __('Recent Payment Requests') : __('Recent payment activity');
+@endphp
+
 <section class="page-banner">
     <div class="page-banner-content">
         <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ __('Governance Dashboard') }}</span>
@@ -57,10 +68,16 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <span class="section-kicker">{{ __('Snippe payments') }}</span>
-            <h2 class="mt-5 text-2xl font-semibold">{{ __('Recent Payment Requests') }}</h2>
-            <p class="mt-2 text-sm text-black/65">{{ __('Monitor direct payment prompts that are still waiting for approval and confirmed collections already posted into offerings.') }}</p>
+            <h2 class="mt-5 text-2xl font-semibold">{{ $paymentRequestHeading }}</h2>
+            <p class="mt-2 text-sm text-black/65">
+                {{ $canCreateBranchPayments
+                    ? __('Monitor direct payment prompts that are still waiting for approval and confirmed collections already posted into offerings.')
+                    : __('Review recent payment activity across the church locations visible to your role.') }}
+            </p>
         </div>
-        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Send payment prompt') }}</a>
+        @if($canCreateBranchPayments)
+            <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Send payment prompt') }}</a>
+        @endif
     </div>
 
     <div class="payment-request-grid mt-6">
@@ -87,8 +104,12 @@
             </article>
         @empty
             <article class="announcement-empty-state">
-                <strong>{{ __('No Snippe payment requests created yet.') }}</strong>
-                <p>{{ __('Create your first payment prompt from the offerings workspace when you want donors to pay through mobile money.') }}</p>
+                <strong>{{ $canCreateBranchPayments ? __('No Snippe payment requests created yet.') : __('No recent payment activity yet.') }}</strong>
+                <p>
+                    {{ $canCreateBranchPayments
+                        ? __('Create your first payment prompt from the offerings workspace when you want donors to pay through mobile money.')
+                        : __('Payment prompts and collections from the branches in your scope will appear here when there is fresh activity.') }}
+                </p>
             </article>
         @endforelse
     </div>
@@ -150,7 +171,7 @@
                         <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
                     @elseif($payment->isPending())
                         <span class="btn-rgc w-full sm:w-auto pointer-events-none opacity-80">{{ __('Prompt sent') }}</span>
-                    @elseif($payment->isCompleted())
+                    @elseif($payment->isCompleted() && $canOpenBranchBooks)
                         <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.index') }}">{{ __('Open offerings') }}</a>
                     @endif
                 </div>
@@ -182,45 +203,100 @@
             @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
             @endif
-            @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin']))
+            @if($canOpenBranchBooks)
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('offerings.index') }}">{{ __('Offerings') }}</a>
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('expenses.index') }}">{{ __('Expenses') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('events.index') }}">{{ __('Events') }}</a>
+                @if(! $isAccountant)
+                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('events.index') }}">{{ __('Events') }}</a>
+                @endif
             @endif
         </div>
     </article>
 
     <article class="card-rgc">
         <span class="section-kicker">{{ __('Current Scope') }}</span>
-        @if(auth()->user()->hasSystemRole('regional_admin'))
-            <h2 class="mt-5 text-2xl font-semibold">{{ __('Branches in your region') }}</h2>
+        @if($isSuperAdmin)
+            <h2 class="mt-5 text-2xl font-semibold">{{ __('Regions across the platform') }}</h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('This overview keeps the full church map close at hand so you can see where districts and active branches are already connected.') }}</p>
             <div class="branch-list mt-5">
-                @forelse($scope as $branch)
+                @forelse($scope as $region)
                     <div class="branch-item">
-                        <p class="font-semibold">{{ $branch->name }}</p>
-                        <p class="mt-1 text-sm text-black/65">{{ $branch->district->name }}</p>
+                        <p class="font-semibold">{{ $region->name }}</p>
+                        <p class="mt-1 text-sm text-black/65">
+                            {{ trans_choice(':count district|:count districts', $region->districts_count, ['count' => $region->districts_count]) }}
+                            ·
+                            {{ trans_choice(':count active branch|:count active branches', $region->active_branches_count, ['count' => $region->active_branches_count]) }}
+                        </p>
                     </div>
                 @empty
-                    <div class="branch-item text-sm text-black/65">{{ __('No branches found in your region.') }}</div>
+                    <div class="branch-item text-sm text-black/65">{{ __('No regions have been configured yet.') }}</div>
                 @endforelse
             </div>
-        @elseif(auth()->user()->hasSystemRole('district_admin'))
-            <h2 class="mt-5 text-2xl font-semibold">{{ __('Branches in your district') }}</h2>
+        @elseif($isRegionalAdmin)
+            <h2 class="mt-5 text-2xl font-semibold">{{ __('Districts in your region') }}</h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('This summary helps you understand district coverage first, then follow branch activity through announcements, users, and payment activity.') }}</p>
+            <div class="branch-list mt-5">
+                @forelse($scope as $district)
+                    <div class="branch-item">
+                        <p class="font-semibold">{{ $district->name }}</p>
+                        <p class="mt-1 text-sm text-black/65">{{ trans_choice(':count active branch|:count active branches', $district->active_branches_count, ['count' => $district->active_branches_count]) }}</p>
+                    </div>
+                @empty
+                    <div class="branch-item text-sm text-black/65">{{ __('No districts found in your region yet.') }}</div>
+                @endforelse
+            </div>
+        @elseif($isDistrictAdmin)
+            <h2 class="mt-5 text-2xl font-semibold">
+                {{ __('Branches in :district', ['district' => $dashboardUser->district?->name ?: __('your district')]) }}
+            </h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('This list shows the church locations currently connected to your district so you can follow announcements, users, and payment activity without leaving your coverage area.') }}</p>
             <div class="branch-list mt-5">
                 @forelse($scope as $branch)
                     <div class="branch-item">
                         <p class="font-semibold">{{ $branch->name }}</p>
+                        <p class="mt-1 text-sm text-black/65">{{ ucfirst($branch->status ?? 'active') }}</p>
                     </div>
                 @empty
                     <div class="branch-item text-sm text-black/65">{{ __('No branches found in your district.') }}</div>
                 @endforelse
             </div>
-        @elseif(auth()->user()->hasAnySystemRole(['branch_admin', 'pastor', 'bishop', 'accountant']))
-            <h2 class="mt-5 text-2xl font-semibold">{{ __('Users in your branch') }}</h2>
+        @elseif($isAccountant)
+            <h2 class="mt-5 text-2xl font-semibold">
+                {{ __('Finance desk for :branch', ['branch' => $dashboardUser->branch?->name ?: __('your branch')]) }}
+            </h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('Keep the branch books close at hand with a quick view of payment follow-up, recorded collections, and recorded expenses.') }}</p>
+            <div class="branch-list mt-5">
+                <div class="branch-item">
+                    <p class="font-semibold">{{ __('Pending payment requests') }}</p>
+                    <p class="mt-1 text-sm text-black/65">{{ __(':count waiting for follow-up', ['count' => $stats['pending_payments']]) }}</p>
+                </div>
+                <div class="branch-item">
+                    <p class="font-semibold">{{ __('Completed payments') }}</p>
+                    <p class="mt-1 text-sm text-black/65">{{ __(':count confirmed in your branch scope', ['count' => $stats['completed_payments']]) }}</p>
+                </div>
+                <div class="branch-item">
+                    <p class="font-semibold">{{ __('Offerings recorded') }}</p>
+                    <p class="mt-1 text-sm text-black/65">{{ __('TZS :amount', ['amount' => number_format($stats['offerings'], 2)]) }}</p>
+                </div>
+                <div class="branch-item">
+                    <p class="font-semibold">{{ __('Expenses recorded') }}</p>
+                    <p class="mt-1 text-sm text-black/65">{{ __('TZS :amount', ['amount' => number_format($stats['expenses'], 2)]) }}</p>
+                </div>
+            </div>
+        @elseif(auth()->user()->hasAnySystemRole(['branch_admin', 'pastor', 'bishop']))
+            <h2 class="mt-5 text-2xl font-semibold">
+                {{ __('People in :branch', ['branch' => $dashboardUser->branch?->name ?: __('your branch')]) }}
+            </h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('This quick roster helps you confirm who is currently attached to your branch before you move into announcements, records, or branch chat.') }}</p>
             <div class="branch-list mt-5">
                 @forelse($scope as $member)
                     <div class="branch-item">
                         <p class="font-semibold">{{ $member->name }}</p>
+                        <p class="mt-1 text-sm text-black/65">
+                            {{ __(str($member->normalizedRoleName() ?: 'member')->replace('_', ' ')->title()->toString()) }}
+                            ·
+                            {{ ucfirst($member->status ?? 'active') }}
+                        </p>
                         <p class="mt-1 text-sm text-black/65 break-all">{{ $member->email }}</p>
                     </div>
                 @empty
@@ -228,7 +304,10 @@
                 @endforelse
             </div>
         @elseif(auth()->user()->hasSystemRole('member'))
-            <h2 class="mt-5 text-2xl font-semibold">{{ __('My branch notices') }}</h2>
+            <h2 class="mt-5 text-2xl font-semibold">
+                {{ __('Notices for :branch', ['branch' => $dashboardUser->branch?->name ?: __('your branch')]) }}
+            </h2>
+            <p class="mt-2 text-sm text-black/65">{{ __('Updates from your branch will appear here together with your recent giving activity so you can keep up without opening several pages.') }}</p>
             <div class="announcement-callout mt-5 space-y-3">
                 <p class="font-semibold text-black">{{ __('Ready to give to your branch?') }}</p>
                 <p class="text-sm text-black/70">{{ __('Open the member giving workspace to create a secure payment link for sadaka, offerings, thanksgiving, and other approved contributions.') }}</p>

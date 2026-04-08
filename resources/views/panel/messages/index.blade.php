@@ -8,7 +8,7 @@
         <div>
             <span class="section-kicker">{{ __('Branch Chat') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('Branch Chat') }}</h1>
-            <p class="mt-2 text-sm text-black/65">{{ __('This branch conversation now updates in near realtime and supports replies, files, and quick mobile messaging.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Use this space for branch coordination, quick updates, replies, and file sharing with the people in your branch.') }}</p>
         </div>
         <div class="chat-branch-chip">
             <span>{{ __('Active branch') }}</span>
@@ -22,7 +22,7 @@
                 <span class="chat-thread-avatar">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($branchName, 0, 1)) }}</span>
                 <div>
                     <strong>{{ $branchName }}</strong>
-                    <p>{{ __('Realtime branch thread') }}</p>
+                    <p>{{ __('Shared branch conversation') }}</p>
                 </div>
             </div>
             <span class="chat-thread-status" data-chat-status>
@@ -152,7 +152,7 @@
             <div class="chat-compose-tools">
                 <div class="chat-compose-actions">
                     <label class="chat-attach-button" for="branch-chat-attachment">{{ __('Attach files') }}</label>
-                    <span class="chat-drop-hint">{{ __('Drop files here or tap to browse') }}</span>
+                    <span class="chat-drop-hint">{{ __('Share images, reports, or quick ministry files here') }}</span>
                 </div>
                 <input
                     class="hidden"
@@ -167,7 +167,7 @@
 
             <div class="chat-dropzone" data-chat-dropzone>
                 <div class="chat-dropzone-inner">
-                    <strong>{{ __('Drag and drop attachments here') }}</strong>
+                    <strong>{{ __('Drop attachments here') }}</strong>
                     <p>{{ __('You can attach up to :count files per message.', ['count' => 5]) }}</p>
                 </div>
             </div>

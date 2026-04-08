@@ -7,7 +7,7 @@
     <div class="page-banner-content">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
         <h1 class="mt-5">{{ __('Edit Announcement') }}</h1>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Update the announcement details, refresh the image if needed, or remove the visual and keep the message only.') }}</p>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Update the message, refresh the image if needed, or adjust who should receive this announcement.') }}</p>
     </div>
 </section>
 

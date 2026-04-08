@@ -56,6 +56,22 @@ class BranchOperationsTest extends TestCase
         ]);
     }
 
+    public function test_branch_chat_page_uses_clear_branch_coordination_copy(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $region, $district, $branch, 'member.chat.page@rgc.test');
+
+        $this->actingAs($member)
+            ->get(route('messages.index'))
+            ->assertOk()
+            ->assertSee('Branch Chat')
+            ->assertSee('Use this space for branch coordination, quick updates, replies, and file sharing with the people in your branch.')
+            ->assertSee('Shared branch conversation')
+            ->assertSee('Share images, reports, or quick ministry files here');
+    }
+
     public function test_member_can_upload_a_branch_chat_attachment_and_attachment_access_is_branch_scoped(): void
     {
         Storage::fake('public');
@@ -252,6 +268,39 @@ class BranchOperationsTest extends TestCase
             'amount' => 12000,
             'description' => 'Transport: Regional coordination visit',
         ]);
+    }
+
+    public function test_expense_pages_show_saved_category_and_details_clearly(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $branchAdmin = $this->makeUser('branch_admin', $region, $district, $branch, 'branch.expense.pages@rgc.test');
+
+        $this->actingAs($branchAdmin)
+            ->post(route('expenses.store'), [
+                'expense_date' => '2026-03-18',
+                'amount' => '12000',
+                'category' => 'Transport',
+                'description' => 'Regional coordination visit',
+            ])
+            ->assertRedirect(route('expenses.index'));
+
+        $expense = Expense::query()->latest('id')->firstOrFail();
+
+        $this->actingAs($branchAdmin)
+            ->get(route('expenses.index'))
+            ->assertOk()
+            ->assertSee('Transport')
+            ->assertSee('Regional coordination visit')
+            ->assertDontSee('General');
+
+        $this->actingAs($branchAdmin)
+            ->get(route('expenses.edit', $expense))
+            ->assertOk()
+            ->assertSee('Edit Expense')
+            ->assertSee('Adjust the category, amount, or the note attached to this expense record.')
+            ->assertSee('Regional coordination visit');
     }
 
     public function test_branch_admin_cannot_update_an_offering_from_another_branch(): void
@@ -768,6 +817,24 @@ Main service at 10:00",
             ->get(route('announcements.index'))
             ->assertOk()
             ->assertDontSee('Temeke District Notice');
+    }
+
+    public function test_regional_admin_announcement_create_form_uses_clear_audience_labels(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.notice.form@rgc.test');
+
+        $this->actingAs($regionalAdmin)
+            ->get(route('announcements.create'))
+            ->assertOk()
+            ->assertSee('Choose who should receive this announcement.')
+            ->assertSee('Audience')
+            ->assertSee('Whole region')
+            ->assertSee('One district')
+            ->assertSee('One branch')
+            ->assertSee('Audience preview');
     }
 
     public function test_district_admin_announcement_is_visible_across_their_district(): void

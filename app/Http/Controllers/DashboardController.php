@@ -123,9 +123,26 @@ class DashboardController extends Controller
 
     private function buildScope(User $user, ?int $branchId)
     {
+        if ($user->hasSystemRole('super_admin')) {
+            return Region::query()
+                ->withCount([
+                    'districts',
+                    'branches as active_branches_count' => function (Builder $query): void {
+                        $query->where('status', 'active');
+                    },
+                ])
+                ->orderBy('name')
+                ->limit(20)
+                ->get();
+        }
+
         if ($user->hasSystemRole('regional_admin')) {
-            return Branch::query()
-                ->with('district')
+            return District::query()
+                ->withCount([
+                    'branches as active_branches_count' => function (Builder $query): void {
+                        $query->where('status', 'active');
+                    },
+                ])
                 ->where('region_id', $user->region_id)
                 ->orderBy('name')
                 ->limit(20)

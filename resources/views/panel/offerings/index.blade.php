@@ -6,6 +6,7 @@
             <div>
                 <p class="section-kicker">{{ __('Ledger') }}</p>
                 <h1 class="text-xl font-semibold">{{ __('Offerings') }}</h1>
+                <p class="mt-2 text-sm text-black/65">{{ __('Manual branch records and payment-prompt collections meet here so finance staff can review the full giving picture in one place.') }}</p>
             </div>
             <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Add or collect') }}</a>
         </div>
@@ -56,11 +57,11 @@
     </div>
 
     <div class="card-rgc">
-        <div class="space-y-2">
-            <p class="section-kicker">{{ __('Snippe payments') }}</p>
-            <h2 class="text-xl font-semibold">{{ __('Payment Requests') }}</h2>
-            <p class="text-sm text-black/65">{{ __('Track pending phone prompts, refresh status manually, and confirm whether the webhook has already posted the final offering.') }}</p>
-        </div>
+            <div class="space-y-2">
+                <p class="section-kicker">{{ __('Snippe payments') }}</p>
+                <h2 class="text-xl font-semibold">{{ __('Payment Requests') }}</h2>
+                <p class="text-sm text-black/65">{{ __('Track pending phone prompts, refresh status manually, and confirm whether the collection has already reached the branch ledger.') }}</p>
+            </div>
 
         <div class="mt-5 grid gap-4">
             @forelse($payments as $payment)

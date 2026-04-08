@@ -48,7 +48,31 @@ class Expense extends Model
 
     public function getCategoryAttribute(): string
     {
-        return 'General';
+        [$category] = $this->splitDescriptionParts();
+
+        return $category;
+    }
+
+    public function getDescriptionBodyAttribute(): ?string
+    {
+        [, $details] = $this->splitDescriptionParts();
+
+        return $details;
+    }
+
+    private function splitDescriptionParts(): array
+    {
+        $description = trim((string) $this->attributes['description'] ?? '');
+
+        if ($description === '') {
+            return ['General', null];
+        }
+
+        $parts = explode(': ', $description, 2);
+        $category = trim($parts[0]) !== '' ? trim($parts[0]) : 'General';
+        $details = isset($parts[1]) && trim($parts[1]) !== '' ? trim($parts[1]) : null;
+
+        return [$category, $details];
     }
 
     public function branch(): BelongsTo
