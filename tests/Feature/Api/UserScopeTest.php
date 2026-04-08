@@ -111,11 +111,67 @@ class UserScopeTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_branch_admin_cannot_update_a_higher_ranked_user_in_the_same_branch(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $branchAdmin = $this->makeUser('branch_admin', $region, $district, $branch, 'branch.rank.guard@rgc.test');
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.rank.guard@rgc.test');
+
+        $this->apiAs($branchAdmin)
+            ->putJson('/api/users/' . $regionalAdmin->id, [
+                'name' => 'Compromised Regional Admin',
+                'email' => $regionalAdmin->email,
+                'phone' => '255700000099',
+                'password' => 'ResetAttack123!',
+                'role' => 'member',
+                'region_id' => $region->id,
+                'district_id' => $district->id,
+                'branch_id' => $branch->id,
+            ])
+            ->assertForbidden();
+
+        $regionalAdmin->refresh();
+
+        $this->assertSame('regional_admin', $regionalAdmin->normalizedRoleName());
+        $this->assertNotSame('Compromised Regional Admin', $regionalAdmin->name);
+    }
+
+    public function test_api_user_creation_normalizes_phone_and_respects_requested_status(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $response = $this->apiAs($superAdmin)->postJson('/api/users', [
+            'name' => 'Inactive Regional Leader',
+            'email' => 'inactive.regional@rgc.test',
+            'phone' => '0712345678',
+            'password' => 'ChangeMe123!',
+            'role' => 'regional_admin',
+            'status' => 'inactive',
+            'region_id' => $region->id,
+            'district_id' => $district->id,
+            'branch_id' => $branch->id,
+        ]);
+
+        $response->assertCreated();
+
+        $created = User::query()->where('email', 'inactive.regional@rgc.test')->firstOrFail();
+
+        $this->assertSame('255712345678', $created->phone);
+        $this->assertSame('inactive', $created->status);
+        $this->assertTrue($created->hasSystemRole('regional_admin'));
+    }
+
     private function apiAs(User $user)
     {
         $rawToken = 'token-for-user-' . $user->id;
         $user->forceFill([
             'api_token' => hash('sha256', $rawToken),
+            'api_token_expires_at' => now()->addHour(),
         ])->save();
 
         return $this->withHeader('Authorization', 'Bearer ' . $rawToken)

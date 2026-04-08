@@ -14,6 +14,7 @@ use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -29,17 +30,22 @@ class SnippeOfferingPaymentTest extends TestCase
             'services.snippe.api_key' => 'test-snippe-key',
             'services.snippe.webhook_secret' => 'test-snippe-secret',
             'services.snippe.base_url' => 'https://api.snippe.sh',
+            'services.snippe.payment_flow' => 'mobile_prompt',
         ]);
     }
 
-    public function test_branch_admin_can_create_a_snippe_payment_session_for_offerings(): void
+    public function test_branch_admin_can_create_a_mobile_prompt_payment_for_offerings(): void
     {
         Http::fake([
-            'https://api.snippe.sh/api/v1/sessions' => Http::response([
+            'https://api.snippe.sh/v1/payments' => Http::response([
                 'data' => [
                     'reference' => 'SNP-REMOTE-123',
                     'status' => 'pending',
-                    'checkout_url' => 'https://checkout.snippe.sh/sessions/SNP-REMOTE-123',
+                    'channel' => [
+                        'type' => 'mobile',
+                        'provider' => 'mpesa',
+                    ],
+                    'external_reference' => 'MM-778899',
                     'expires_at' => '2026-03-20T10:00:00Z',
                 ],
             ], 201),
@@ -66,16 +72,19 @@ class SnippeOfferingPaymentTest extends TestCase
         $this->assertSame($branch->id, $payment->church_id);
         $this->assertSame('pending', $payment->status);
         $this->assertSame('pending', $payment->provider_status);
-        $this->assertSame('https://checkout.snippe.sh/sessions/SNP-REMOTE-123', $payment->checkout_url);
+        $this->assertNull($payment->checkout_url);
         $this->assertSame('Neema Joseph', $payment->payer_name);
         $this->assertSame('Thanksgiving offering', $payment->description);
+        $this->assertSame('mobile_prompt', data_get($payment->metadata, 'payment_flow'));
+        $this->assertSame('mpesa', data_get($payment->metadata, 'provider_channel'));
 
         Http::assertSent(function ($request) use ($payment) {
-            return $request->url() === 'https://api.snippe.sh/api/v1/sessions'
+            return $request->url() === 'https://api.snippe.sh/v1/payments'
                 && $request->hasHeader('Authorization', 'Bearer test-snippe-key')
                 && data_get($request->data(), 'reference') === $payment->provider_reference
                 && data_get($request->data(), 'amount') === 25000.0
-                && data_get($request->data(), 'customer_name') === 'Neema Joseph';
+                && data_get($request->data(), 'customer_name') === 'Neema Joseph'
+                && data_get($request->data(), 'channel') === 'mobile';
         });
     }
 
@@ -307,14 +316,17 @@ class SnippeOfferingPaymentTest extends TestCase
         $this->assertSame(0, Offering::query()->count());
     }
 
-    public function test_member_can_open_giving_workspace_and_create_payment_link(): void
+    public function test_member_can_open_giving_workspace_and_send_payment_prompt(): void
     {
         Http::fake([
-            'https://api.snippe.sh/api/v1/sessions' => Http::response([
+            'https://api.snippe.sh/v1/payments' => Http::response([
                 'data' => [
                     'reference' => 'SNP-MEMBER-123',
                     'status' => 'pending',
-                    'checkout_url' => 'https://checkout.snippe.sh/sessions/SNP-MEMBER-123',
+                    'channel' => [
+                        'type' => 'mobile',
+                        'provider' => 'airtel_money',
+                    ],
                     'expires_at' => '2026-03-20T10:00:00Z',
                 ],
             ], 201),
@@ -336,6 +348,7 @@ class SnippeOfferingPaymentTest extends TestCase
                 'payment_type' => 'sadaka',
                 'offering_date' => '2026-03-19',
                 'amount' => '15000',
+                'mobile_network' => 'airtel_money',
                 'payer_name' => 'Member Giving',
                 'payer_phone' => '255712222222',
                 'payer_email' => 'member.giving@rgc.test',
@@ -350,6 +363,12 @@ class SnippeOfferingPaymentTest extends TestCase
         $this->assertSame('pending', $payment->status);
         $this->assertSame('sadaka', data_get($payment->metadata, 'payment_type'));
         $this->assertSame('Evening sadaka', $payment->description);
+        $this->assertSame('airtel_money', data_get($payment->metadata, 'requested_network'));
+        $this->assertNull($payment->checkout_url);
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.snippe.sh/v1/payments'
+            && data_get($request->data(), 'metadata.payment_type') === 'sadaka'
+            && data_get($request->data(), 'channel') === 'mobile');
     }
 
     public function test_offerings_payment_list_shows_review_metadata(): void
@@ -413,15 +432,28 @@ class SnippeOfferingPaymentTest extends TestCase
 
         $this->get(route('offerings.payments.public.show', $payment->public_reference))
             ->assertOk()
+            ->assertHeader('cache-control', 'private, no-store, max-age=0')
+            ->assertHeader('x-robots-tag', 'noindex, nofollow, noarchive')
             ->assertSeeText(__('Download receipt PDF'))
             ->assertSeeText(__('Copy reference'))
             ->assertSeeText(__('Share status page'))
-            ->assertSeeText('Dorcas John')
+            ->assertSeeText('D***** J***')
             ->assertSeeText(__('Special thanksgiving'));
 
         $this->get(route('offerings.payments.public.receipt', $payment->public_reference))
+            ->assertForbidden();
+
+        $signedReceiptUrl = URL::temporarySignedRoute(
+            'offerings.payments.public.receipt',
+            now()->addMinutes(30),
+            ['publicReference' => $payment->public_reference],
+        );
+
+        $this->get($signedReceiptUrl)
             ->assertOk()
-            ->assertHeader('content-disposition');
+            ->assertHeader('content-disposition')
+            ->assertHeader('cache-control', 'private, no-store, max-age=0')
+            ->assertHeader('x-content-type-options', 'nosniff');
     }
 
     private function darHeadquartersContext(): array

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterUserRequest;
-use App\Models\Branch;
-use App\Models\District;
 use App\Models\Region;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -54,8 +52,6 @@ class AuthController extends Controller
     {
         return view('auth.register', [
             'regions' => Region::query()->orderBy('name')->get(),
-            'districts' => District::query()->orderBy('name')->get(),
-            'branches' => Branch::query()->orderBy('name')->get(),
         ]);
     }
 
@@ -67,6 +63,7 @@ class AuthController extends Controller
         $user = User::query()->create([
             'name' => $request->string('name')->toString(),
             'email' => $request->string('email')->toString(),
+            'phone' => $request->string('phone')->toString(),
             'password' => Hash::make($request->string('password')->toString()),
             'role' => 'member',
             'status' => 'active',

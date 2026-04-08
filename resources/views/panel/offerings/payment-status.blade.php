@@ -17,7 +17,7 @@
         <div class="stats-grid mt-6">
             <div class="stat-card"><span>{{ __('Branch') }}</span><strong>{{ $payment->branch?->name }}</strong></div>
             <div class="stat-card"><span>{{ __('Amount') }}</span><strong>TZS {{ number_format((float) $payment->amount, 2) }}</strong></div>
-            <div class="stat-card"><span>{{ __('Payer') }}</span><strong>{{ $payment->payer_name ?: __('Walk-in giver') }}</strong></div>
+            <div class="stat-card"><span>{{ __('Payer') }}</span><strong>{{ $payment->maskedPayerName() }}</strong></div>
             <div class="stat-card"><span>{{ __('Giving type') }}</span><strong>{{ $payment->paymentTypeLabel() }}</strong></div>
         </div>
 
@@ -26,9 +26,9 @@
                 <p class="font-semibold text-black">{{ __('Payment confirmed successfully.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('The offering has already been posted to the branch ledger and is ready for reporting.') }}</p>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.payments.public.receipt', $payment->public_reference) }}">{{ __('Download receipt PDF') }}</a>
+                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
                     @auth
                         <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give again') }}</a>
                     @else
@@ -36,14 +36,24 @@
                     @endauth
                 </div>
             </div>
+        @elseif($payment->isPending() && ! $payment->checkout_url)
+            <div class="announcement-callout mt-6">
+                <p class="font-semibold text-black">{{ __('Payment prompt sent successfully.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('A payment prompt was sent to :phone. Ask the payer to approve it on the phone, then this page will update after payment confirmation arrives.', ['phone' => $payment->maskedPayerPhone()]) }}</p>
+                <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
+                </div>
+            </div>
         @elseif($payment->isPending() && $payment->checkout_url)
             <div class="announcement-callout mt-6">
-                <p class="font-semibold text-black">{{ __('Complete payment using the secure checkout link below.') }}</p>
+                <p class="font-semibold text-black">{{ __('Complete payment using the checkout link below.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('After payment, Snippe will notify the system automatically and this page will update to confirmed status.') }}</p>
                 <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                     <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
                     <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
                     <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
                 </div>
             </div>
@@ -84,6 +94,10 @@
                     <dd>{{ $payment->statusLabel() }}</dd>
                 </div>
                 <div>
+                    <dt>{{ __('Requested network') }}</dt>
+                    <dd>{{ $payment->requestedNetworkLabel() }}</dd>
+                </div>
+                <div>
                     <dt>{{ __('Offering date') }}</dt>
                     <dd>{{ optional($payment->offering_date)->translatedFormat('d M Y') ?? __('Not set') }}</dd>
                 </div>
@@ -97,11 +111,21 @@
                 </div>
                 <div>
                     <dt>{{ __('Payer email') }}</dt>
-                    <dd>{{ $payment->payer_email ?: __('Not provided') }}</dd>
+                    <dd>{{ $payment->maskedPayerEmail() }}</dd>
                 </div>
                 <div>
                     <dt>{{ __('Payer phone') }}</dt>
-                    <dd>{{ $payment->payer_phone ?: __('Not provided') }}</dd>
+                    <dd>{{ $payment->maskedPayerPhone() }}</dd>
+                </div>
+                @if($payment->externalReference())
+                    <div>
+                        <dt>{{ __('Provider external reference') }}</dt>
+                        <dd>{{ $payment->externalReference() }}</dd>
+                    </div>
+                @endif
+                <div>
+                    <dt>{{ __('Provider channel') }}</dt>
+                    <dd>{{ $payment->providerChannelLabel() }}</dd>
                 </div>
             </dl>
         </article>
@@ -115,12 +139,12 @@
 
                 <div class="payment-timeline mt-6">
                     <div class="payment-step is-complete">
-                        <strong>{{ __('Link created') }}</strong>
+                        <strong>{{ __('Request created') }}</strong>
                         <span>{{ optional($payment->created_at)->diffForHumans() }}</span>
                     </div>
                     <div class="payment-step {{ $payment->isPending() ? 'is-current' : ($payment->isCompleted() ? 'is-complete' : '') }}">
                         <strong>{{ __('Waiting for customer payment') }}</strong>
-                        <span>{{ $payment->checkout_url ? __('Checkout link ready') : __('Checkout link unavailable') }}</span>
+                        <span>{{ $payment->checkout_url ? __('Checkout link ready') : __('Phone prompt sent to payer') }}</span>
                     </div>
                     <div class="payment-step {{ $payment->isCompleted() ? 'is-complete' : ($payment->isFailed() ? 'is-failed' : '') }}">
                         <strong>{{ $payment->isCompleted() ? __('Payment confirmed successfully.') : __('Webhook confirmation') }}</strong>
@@ -130,7 +154,7 @@
                             @elseif($payment->isFailed())
                                 {{ __('The payment did not complete successfully.') }}
                             @else
-                                {{ __('Still waiting for secure confirmation from Snippe.') }}
+                                {{ __('Still waiting for payment confirmation from Snippe.') }}
                             @endif
                         </span>
                     </div>

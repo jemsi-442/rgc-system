@@ -41,14 +41,32 @@ class AuthHardeningTest extends TestCase
         $user->forceFill([
             'status' => 'inactive',
             'api_token' => hash('sha256', 'inactive-role-token'),
+            'api_token_expires_at' => now()->addHour(),
         ])->save();
 
         $this->withHeader('Authorization', 'Bearer inactive-role-token')
             ->getJson('/api/me')
             ->assertStatus(403)
             ->assertJson([
-                'message' => 'Your account is inactive. Please contact church leadership.',
-            ]);
+            'message' => 'Your account is inactive. Please contact church leadership.',
+        ]);
+    }
+
+    public function test_api_login_uses_configured_token_expiry_window(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+        config(['auth.api_token_expire_minutes' => 30]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'email' => 'superadmin@rgc.or.tz',
+            'password' => 'ChangeMe123!',
+        ])->assertOk();
+
+        $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $this->assertNotNull($user->api_token_expires_at);
+        $this->assertTrue($user->api_token_expires_at->between(now()->addMinutes(29), now()->addMinutes(31)));
+        $this->assertNotEmpty($response->json('expires_at'));
     }
 
     private function darHeadquartersContext(): array

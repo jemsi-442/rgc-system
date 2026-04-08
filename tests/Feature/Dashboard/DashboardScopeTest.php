@@ -184,6 +184,36 @@ class DashboardScopeTest extends TestCase
             ->assertOk()
             ->assertSee('No payment alerts right now.');
     }
+
+    public function test_regional_admin_cannot_review_payment_outside_their_region(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        [$otherRegion, $otherDistrict, $outsideBranch] = $this->makeBranchInAnotherRegion();
+        $regionalAdmin = $this->makeUser('regional_admin', $darRegion, $temekeDistrict, $hqBranch, 'regional.dashboard.outside.review@rgc.test');
+        $outsideRecorder = $this->makeUser('branch_admin', $otherRegion, $otherDistrict, $outsideBranch, 'outside.dashboard.payment@rgc.test');
+
+        $payment = OfferingPayment::query()->create([
+            'church_id' => $outsideBranch->id,
+            'user_id' => $outsideRecorder->id,
+            'amount' => 15000,
+            'currency' => 'TZS',
+            'offering_date' => now()->toDateString(),
+            'payer_name' => 'Outside Region Payer',
+            'description' => 'Outside region payment alert',
+            'status' => 'completed',
+            'paid_at' => now()->subMinutes(15),
+        ]);
+
+        $this->actingAs($regionalAdmin)
+            ->patch(route('offerings.payments.review', $payment))
+            ->assertForbidden();
+
+        $payment->refresh();
+        $this->assertNull($payment->reviewed_at);
+        $this->assertNull($payment->reviewed_by);
+    }
     public function test_regional_admin_dashboard_only_lists_branches_from_their_region(): void
     {
         $this->seed(DatabaseSeeder::class);

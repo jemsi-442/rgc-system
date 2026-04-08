@@ -151,6 +151,9 @@ class UserManagementController extends Controller
 
         if ($request->filled('password')) {
             $payload['password'] = $request->string('password')->toString();
+            $payload += $user->invalidatedAuthAttributes();
+        } elseif ($status !== 'active') {
+            $payload['api_token'] = null;
         }
 
         $user->update($payload);

@@ -64,12 +64,12 @@
         <article class="branch-preview-stat">
             <span>{{ __('Payment Requests') }}</span>
             <strong>{{ $branch->offering_payments_count }}</strong>
-            <p>{{ __('Snippe payment links created for this branch.') }}</p>
+            <p>{{ __('Payment requests created for this branch.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Pending Payments') }}</span>
             <strong>{{ $branch->pending_payments_count }}</strong>
-            <p>{{ __('Checkout links still waiting for secure confirmation.') }}</p>
+            <p>{{ __('Phone prompts or checkout requests still waiting for secure confirmation.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Completed Payments') }}</span>
@@ -120,7 +120,7 @@
             <div class="branch-show-header">
                 <div>
                     <span class="section-kicker">{{ __('Recent Payment Requests') }}</span>
-                    <p class="mt-2 text-sm text-black/65">{{ __('Hosted checkout links created for this branch, including pending and completed collections.') }}</p>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Payment prompts and fallback checkout requests created for this branch, including pending and completed collections.') }}</p>
                 </div>
             </div>
             @if($recentPayments->isEmpty())
@@ -142,7 +142,7 @@
                             <div class="payment-request-actions">
                                 <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
                                 @if($payment->isCompleted())
-                                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.payments.public.receipt', $payment->public_reference) }}">{{ __('Download receipt PDF') }}</a>
+                                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
                                 @elseif($payment->checkout_url)
                                     <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
                                 @endif

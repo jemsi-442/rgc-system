@@ -19,7 +19,7 @@ class StoreAnnouncementRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:255'],
             'body' => ['nullable', 'string', 'max:5000'],
-            'image' => ['nullable', 'image', 'max:6144'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif', 'max:6144'],
             'remove_image' => ['nullable', 'boolean'],
             'is_pinned' => ['nullable', 'boolean'],
             'expires_at' => ['nullable', 'date', 'after_or_equal:today'],
@@ -74,6 +74,16 @@ class StoreAnnouncementRequest extends FormRequest
 
                     if ($validBranchCount !== $selectedBranches->count()) {
                         $validator->errors()->add('selected_branch_ids', __('One or more selected branches are invalid.'));
+                        return;
+                    }
+
+                    $inactiveBranchCount = Branch::query()
+                        ->whereIn('id', $selectedBranches)
+                        ->where('status', '!=', 'active')
+                        ->count();
+
+                    if ($inactiveBranchCount > 0) {
+                        $validator->errors()->add('selected_branch_ids', __('Selected branches must all be active.'));
                     }
                 }
 
@@ -112,6 +122,11 @@ class StoreAnnouncementRequest extends FormRequest
 
                     if (! $branch || (int) $branch->region_id !== (int) $user->region_id) {
                         $validator->errors()->add('branch_id', __('Selected branch is outside your region scope.'));
+                        return;
+                    }
+
+                    if (($branch->status ?? 'active') !== 'active') {
+                        $validator->errors()->add('branch_id', __('Selected branch is inactive.'));
                         return;
                     }
 

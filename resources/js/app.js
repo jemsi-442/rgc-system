@@ -3,11 +3,31 @@ import './bootstrap';
 const regionSelect = document.querySelector('[data-region-select]');
 const districtSelect = document.querySelector('[data-district-select]');
 const branchSelect = document.querySelector('[data-branch-select]');
+const districtField = document.querySelector('[data-district-field]');
+const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const mobileMenu = document.querySelector('[data-mobile-menu]');
 
 const emptyOption = (select, fallback) => select?.dataset.emptyOptionLabel ?? fallback;
 const selectedOption = (select) => select?.dataset.selectedValue ?? select?.value ?? '';
+
+const syncRegistrationHierarchyVisibility = ({ showDistrict, showBranch }) => {
+  if (districtField) {
+    districtField.classList.toggle('hidden', !showDistrict);
+  }
+
+  if (districtSelect) {
+    districtSelect.disabled = !showDistrict;
+  }
+
+  if (branchField) {
+    branchField.classList.toggle('hidden', !showBranch);
+  }
+
+  if (branchSelect) {
+    branchSelect.disabled = !showBranch;
+  }
+};
 
 async function loadDistricts(regionId, selectedDistrictId = '') {
   if (!districtSelect) return;
@@ -15,6 +35,7 @@ async function loadDistricts(regionId, selectedDistrictId = '') {
   if (branchSelect) {
     branchSelect.innerHTML = `<option value="">${emptyOption(branchSelect, 'Select branch')}</option>`;
   }
+  syncRegistrationHierarchyVisibility({ showDistrict: Boolean(regionId), showBranch: false });
   if (!regionId) return;
 
   const response = await fetch(`/api/districts?region_id=${regionId}`);
@@ -34,6 +55,10 @@ async function loadDistricts(regionId, selectedDistrictId = '') {
 async function loadBranches(districtId, selectedBranchId = '') {
   if (!branchSelect) return;
   branchSelect.innerHTML = `<option value="">${emptyOption(branchSelect, 'Select branch')}</option>`;
+  syncRegistrationHierarchyVisibility({
+    showDistrict: Boolean(selectedOption(regionSelect)),
+    showBranch: Boolean(districtId),
+  });
   if (!districtId) return;
 
   const response = await fetch(`/api/branches?district_id=${districtId}`);
@@ -66,6 +91,11 @@ if (regionSelect && districtSelect) {
   const initialRegionId = selectedOption(regionSelect);
   const initialDistrictId = selectedOption(districtSelect);
   const initialBranchId = selectedOption(branchSelect);
+
+  syncRegistrationHierarchyVisibility({
+    showDistrict: Boolean(initialRegionId),
+    showBranch: Boolean(initialDistrictId),
+  });
 
   if (initialRegionId) {
     loadDistricts(initialRegionId, initialDistrictId)
@@ -245,6 +275,159 @@ if (announcementLightbox) {
     if (event.key === 'Escape' && announcementLightbox.classList.contains('is-open')) {
       closeLightbox();
     }
+  });
+}
+
+const pwaInstallPrompt = document.querySelector('[data-pwa-install-prompt]');
+const pwaInstallButtons = Array.from(document.querySelectorAll('[data-pwa-install-trigger]'));
+
+if (pwaInstallPrompt) {
+  const installAction = pwaInstallPrompt.querySelector('[data-pwa-install-action]');
+  const dismissAction = pwaInstallPrompt.querySelector('[data-pwa-install-dismiss]');
+  const installTitle = pwaInstallPrompt.querySelector('[data-pwa-install-title]');
+  const installMessage = pwaInstallPrompt.querySelector('[data-pwa-install-message]');
+  const primaryInstallButton = pwaInstallButtons[0] ?? null;
+  const installLabel = primaryInstallButton?.dataset.installLabel ?? 'Install App';
+  const installingLabel = primaryInstallButton?.dataset.installingLabel ?? 'Preparing install...';
+  const readyMessage = pwaInstallPrompt.dataset.readyMessage ?? 'Install this app on your device for faster access.';
+  const iosMessage = pwaInstallPrompt.dataset.iosMessage ?? 'Open Share and choose Add to Home Screen.';
+  const promptKey = 'rgc:pwa-install-dismissed';
+  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  let deferredInstallPrompt = null;
+
+  const setInstallCopy = (message, title = installLabel) => {
+    if (installTitle) {
+      installTitle.textContent = title;
+    }
+
+    if (installMessage) {
+      installMessage.textContent = message;
+    }
+  };
+
+  const hideInstallPrompt = () => {
+    pwaInstallPrompt.classList.add('hidden');
+    pwaInstallButtons.forEach((button) => {
+      button.classList.add('hidden');
+    });
+  };
+
+  const syncActionVisibility = (showInstallAction, showDismissAction = true) => {
+    installAction?.classList.toggle('hidden', !showInstallAction);
+    dismissAction?.classList.toggle('hidden', !showDismissAction);
+
+    pwaInstallButtons.forEach((button) => {
+      button.classList.toggle('hidden', !showInstallAction);
+    });
+  };
+
+  const showInstallPrompt = (message, title = installLabel, showInstallAction = true, showDismissAction = true) => {
+    setInstallCopy(message, title);
+    pwaInstallPrompt.classList.remove('hidden');
+    syncActionVisibility(showInstallAction, showDismissAction);
+
+    if (showInstallAction) {
+      pwaInstallButtons.forEach((button) => {
+        button.textContent = button.dataset.installLabel ?? title;
+      });
+    }
+  };
+
+  const markDismissed = () => {
+    window.localStorage.setItem(promptKey, '1');
+  };
+
+  const clearDismissed = () => {
+    window.localStorage.removeItem(promptKey);
+  };
+
+  const registerServiceWorker = async () => {
+    if (!('serviceWorker' in navigator)) {
+      return;
+    }
+
+    try {
+      const register = () => navigator.serviceWorker.register('/sw.js');
+
+      if (document.readyState === 'complete') {
+        await register();
+        return;
+      }
+
+      window.addEventListener('load', () => {
+        register().catch(() => {
+          // Keep install prompt optional if service worker registration fails.
+        });
+      }, { once: true });
+    } catch (_error) {
+      // Keep install prompt optional if service worker registration fails.
+    }
+  };
+
+  registerServiceWorker();
+
+  if (isStandalone) {
+    hideInstallPrompt();
+  } else if (isIos && !window.localStorage.getItem(promptKey)) {
+    showInstallPrompt(iosMessage, installLabel);
+  }
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    clearDismissed();
+    showInstallPrompt(readyMessage, installLabel);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    clearDismissed();
+    hideInstallPrompt();
+  });
+
+  dismissAction?.addEventListener('click', () => {
+    markDismissed();
+    hideInstallPrompt();
+  });
+
+  const triggerInstall = async () => {
+    if (isStandalone) {
+      hideInstallPrompt();
+      return;
+    }
+
+    if (!deferredInstallPrompt) {
+      if (isIos) {
+        showInstallPrompt(iosMessage, installLabel);
+      }
+
+      return;
+    }
+
+    pwaInstallButtons.forEach((button) => {
+      button.textContent = button.dataset.installingLabel ?? installingLabel;
+    });
+
+    await deferredInstallPrompt.prompt();
+    const choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+
+    pwaInstallButtons.forEach((button) => {
+      button.textContent = button.dataset.installLabel ?? installLabel;
+    });
+
+    if (choice.outcome === 'accepted') {
+      hideInstallPrompt();
+      return;
+    }
+
+    showInstallPrompt(readyMessage, installLabel);
+  };
+
+  installAction?.addEventListener('click', triggerInstall);
+  pwaInstallButtons.forEach((button) => {
+    button.addEventListener('click', triggerInstall);
   });
 }
 

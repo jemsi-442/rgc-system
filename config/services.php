@@ -40,6 +40,7 @@ return [
         'api_key' => env('SNIPPE_API_KEY'),
         'webhook_secret' => env('SNIPPE_WEBHOOK_SECRET'),
         'timeout' => env('SNIPPE_TIMEOUT', 15),
+        'payment_flow' => env('SNIPPE_PAYMENT_FLOW', 'mobile_prompt'),
     ],
 
 ];

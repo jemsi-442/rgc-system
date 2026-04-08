@@ -13,6 +13,9 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)
+            ->assertHeader('x-frame-options', 'SAMEORIGIN')
+            ->assertHeader('x-content-type-options', 'nosniff')
+            ->assertHeader('referrer-policy', 'strict-origin-when-cross-origin');
     }
 }

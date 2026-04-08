@@ -16,16 +16,16 @@ class PublicController extends Controller
             ->limit(5)
             ->get();
 
-        $branches = Branch::query()
-            ->with(['region', 'district'])
-            ->orderBy('name')
-            ->paginate(9);
+        $branchCount = Branch::query()
+            ->where('status', 'active')
+            ->count();
 
-        return view('welcome', compact('sliders', 'branches'));
+        return view('welcome', compact('sliders', 'branchCount'));
     }
 
     public function slide(HomeSlider $slider)
     {
+        abort_unless($slider->is_active, 404);
         abort_unless($slider->image_path && Storage::disk('public')->exists($slider->image_path), 404);
 
         $response = Storage::disk('public')->response(
@@ -36,6 +36,7 @@ class PublicController extends Controller
         $response->setPublic();
         $response->setMaxAge(86400);
         $response->headers->set('Cache-Control', 'public, max-age=86400');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         return $response;
     }

@@ -138,6 +138,52 @@ class SystemAssistantManagementTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_regional_admin_cannot_restore_version_for_topic_from_another_region(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $regionalAdmin = $this->makeUser('regional_admin', $darRegion, $temekeDistrict, $hqBranch, 'regional.assistant.restore@rgc.test');
+        $otherRegion = Region::query()->whereKeyNot($regionalAdmin->region_id)->firstOrFail();
+
+        $topic = SystemAssistantTopic::query()->create([
+            'slug' => 'other-region-restore-topic',
+            'locale' => 'en',
+            'region_id' => $otherRegion->id,
+            'title' => 'Other region restore topic',
+            'answer' => 'Locked to another region.',
+            'keywords' => ['other region restore topic'],
+            'suggestions' => [],
+            'roles' => ['regional_admin'],
+            'is_active' => true,
+            'is_system' => false,
+            'sort_order' => 262,
+            'created_by' => $regionalAdmin->id,
+            'updated_by' => $regionalAdmin->id,
+        ]);
+
+        $version = SystemAssistantTopicVersion::query()->create([
+            'topic_id' => $topic->id,
+            'slug' => $topic->slug,
+            'locale' => $topic->locale,
+            'region_id' => $topic->region_id,
+            'title' => $topic->title,
+            'answer' => 'Restore payload from another region.',
+            'keywords' => $topic->keywords,
+            'suggestions' => $topic->suggestions,
+            'roles' => $topic->roles,
+            'is_active' => true,
+            'is_system' => false,
+            'sort_order' => $topic->sort_order,
+            'action' => 'updated',
+            'created_by' => $regionalAdmin->id,
+        ]);
+
+        $this->actingAs($regionalAdmin, 'web')
+            ->post(route('assistant.topics.versions.restore', ['topic' => $topic, 'version' => $version]))
+            ->assertNotFound();
+    }
+
     public function test_super_admin_dashboard_renders_role_aware_assistant_prompts(): void
     {
         $this->seed(DatabaseSeeder::class);
@@ -328,6 +374,7 @@ class SystemAssistantManagementTest extends TestCase
         ]);
 
         $response = $this->actingAs($superAdmin, 'web')
+            ->withHeader('User-Agent', 'SystemAssistantManagementTest/1.0')
             ->postJson(route('assistant.chat'), [
                 'question' => 'I need help with a choir rehearsal event',
             ]);
@@ -350,6 +397,11 @@ class SystemAssistantManagementTest extends TestCase
         $this->assertSame(['super_admin'], $interaction->role_snapshot);
         $this->assertSame('I need help with a choir rehearsal event', $interaction->question);
         $this->assertNotNull($interaction->ip_address);
+        $this->assertNotSame('127.0.0.1', $interaction->ip_address);
+        $this->assertSame(40, strlen((string) $interaction->ip_address));
+        $this->assertNotNull($interaction->user_agent);
+        $this->assertNotSame('SystemAssistantManagementTest/1.0', $interaction->user_agent);
+        $this->assertSame(40, strlen((string) $interaction->user_agent));
     }
 
     public function test_super_admin_can_restore_previous_topic_version(): void

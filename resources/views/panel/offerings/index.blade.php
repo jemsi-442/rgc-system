@@ -10,12 +10,19 @@
             <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Add or collect') }}</a>
         </div>
 
-        @if(session('payment_link'))
+        @if(session('payment_reference'))
             <div class="announcement-callout mt-5 space-y-3">
-                <p class="font-semibold text-black">{{ __('Snippe payment link created.') }}</p>
+                <p class="font-semibold text-black">
+                    {{ session('payment_prompt_phone') ? __('Payment prompt sent.') : __('Payment checkout link created.') }}
+                </p>
                 <p class="text-sm text-black/70">{{ __('Reference') }}: <span class="font-medium text-black">{{ session('payment_reference') }}</span></p>
+                @if(session('payment_prompt_phone'))
+                    <p class="text-sm text-black/70">{{ __('Prompt sent to') }}: <span class="font-medium text-black">{{ session('payment_prompt_phone') }}</span></p>
+                @endif
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @if(session('payment_link'))
+                        <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @endif
                     <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">{{ __('View status page') }}</a>
                 </div>
             </div>
@@ -52,7 +59,7 @@
         <div class="space-y-2">
             <p class="section-kicker">{{ __('Snippe payments') }}</p>
             <h2 class="text-xl font-semibold">{{ __('Payment Requests') }}</h2>
-            <p class="text-sm text-black/65">{{ __('Track pending checkout links, refresh status manually, and confirm whether the webhook has already posted the final offering.') }}</p>
+            <p class="text-sm text-black/65">{{ __('Track pending phone prompts, refresh status manually, and confirm whether the webhook has already posted the final offering.') }}</p>
         </div>
 
         <div class="mt-5 grid gap-4">
@@ -67,6 +74,9 @@
                             <h3 class="mt-2 text-lg font-semibold text-black">TZS {{ number_format((float) $payment->amount, 2) }}</h3>
                             <p class="mt-1 text-sm text-black/65">{{ $payment->description ?: __('Offering payment') }}</p>
                             <p class="mt-2 text-xs text-black/50">{{ __('Payer') }}: {{ $payment->payer_name ?: __('Walk-in giver') }}</p>
+                            @if($payment->isPending() && ! $payment->usesHostedCheckout())
+                                <p class="mt-2 text-xs text-black/55">{{ __('Prompt sent to :phone • Requested network: :network', ['phone' => $payment->maskedPayerPhone(), 'network' => $payment->requestedNetworkLabel()]) }}</p>
+                            @endif
                         </div>
                         <div class="text-sm text-black/55">
                             {{ $payment->created_at?->diffForHumans() }}

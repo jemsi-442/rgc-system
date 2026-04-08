@@ -89,6 +89,10 @@ Role enforcement uses:
 - scoped controller queries
 - request validation on region, district, and branch hierarchy
 
+Related admin documentation:
+- `docs/user-role-lifecycle.md`
+- `docs/railway-deploy.md`
+
 ## Core Data Model
 
 Primary master and governance tables:
@@ -160,6 +164,11 @@ Bearer token protected:
 - `PUT/PATCH /api/users/{id}`
 - `DELETE /api/users/{id}`
 
+API token notes:
+- bearer tokens are single-token-per-user and expire automatically
+- default expiry is `1440` minutes (`AUTH_API_TOKEN_EXPIRE_MINUTES`)
+- password changes, account deactivation, and logout revoke the current API token immediately
+
 ## Branch and Registration Rules
 
 Branch creation requires:
@@ -188,6 +197,8 @@ Admin flow:
 - share the hosted checkout link with the giver
 - let Snippe call the webhook after payment
 - the system creates the final offering record automatically when the payment is confirmed
+- completed receipts are downloaded through short-lived signed links instead of permanent public URLs
+- public status pages mask payer email and phone details and send `no-store` / `noindex` headers
 
 Routes:
 - `POST /offerings/payments`
@@ -333,19 +344,9 @@ Notes:
 
 ### Test Database
 
-Automated tests are configured to run against a dedicated MySQL database:
+Automated tests now default to in-memory SQLite through [`phpunit.xml`](/home/jaykali/rgc-system/phpunit.xml), so the suite can run without a local MySQL service or tracked credentials.
 
-- application database: `rgc_db`
-- automated test database: `rgc_test`
-
-The PHPUnit config already points tests at `rgc_test` through [`phpunit.xml`](/home/jaykali/rgc-system/phpunit.xml).
-Do not point feature tests at `rgc_db`.
-
-If you need to create the test database manually:
-
-```sql
-CREATE DATABASE rgc_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
+For MySQL parity checks in a local environment, override the test database variables at runtime instead of committing them into the repository.
 
 ### Run the Test Suite
 
@@ -365,10 +366,8 @@ The current suite covers:
 - announcements, offerings, and expenses branch scoping
 - Snippe offering payment session creation and webhook confirmation
 - update/delete authorization for announcements, offerings, expenses, and users
-
-Current baseline at the time of this README update:
-- `126` tests passed
-- `607` assertions passed
+- assistant management, feedback ownership, and interaction pruning
+- production ops checks, media cleanup, signed public receipts, and upload validation hardening
 
 ### Manual QA Checklist
 
@@ -381,6 +380,10 @@ Recommended smoke checks after major changes:
 - verify `/api/auth/login` returns a bearer token
 - verify `/api/me` works with that token
 - verify `/api/users` respects role and governance scope
+- create a Snippe payment link and confirm the public status page masks payer contact details
+- confirm the receipt PDF link only works as a signed URL and expires after its short access window
+- verify branch chat rejects more than 5 total attachments in one message
+- verify `svg` files are rejected for announcement and homepage slider images
 
 ## Production Deployment Checklist
 
@@ -464,6 +467,8 @@ After deployment, verify:
 - `/login` and `/register` render
 - `php artisan migrate:status` shows all migrations as ran
 - `php artisan route:list --except-vendor` completes without errors
+- `php artisan ops:health-check` exits successfully
+- `php artisan storage:link` has been run if `FILESYSTEM_DISK=public`
 - `php artisan test` still passes in the deployment pipeline or staging environment
 - queue workers are running
 - the seeded super admin can log in and land on `/dashboard`
@@ -481,6 +486,7 @@ This repository now includes Railway-ready files:
 Recommended Railway layout:
 - one `web` service from this repo
 - one `worker` service from this repo
+- one `scheduler` service from this repo
 - one MySQL service attached to the project
 
 Recommended Railway environment values:
@@ -507,7 +513,15 @@ Railway first-deploy sequence:
 4. Run `bash scripts/railway-release.sh`.
 5. Run `php artisan db:seed --force` on the first deploy only.
 6. Keep the `worker` service running with `bash scripts/railway-worker.sh`.
-7. Confirm `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all point to durable database-backed drivers.
+7. Keep the `scheduler` service running with `bash scripts/railway-scheduler.sh`.
+8. Confirm `SESSION_DRIVER`, `CACHE_STORE`, and `QUEUE_CONNECTION` all point to durable database-backed drivers.
+9. Run `php artisan ops:health-check` and clear any reported failures before going live.
+
+`php artisan ops:health-check` now flags common production mistakes such as `MAIL_MAILER=log`, a missing `public/storage` link when using the `public` disk, invalid token expiry, and missing database-backed runtime tables.
+
+Signed-link note:
+- keep `APP_URL` correct in every environment because public receipt links are signed against that URL
+- if the public domain changes, clear config cache and generate new links from the app
 
 Persistent upload note:
 - Railway containers are ephemeral by default.
@@ -524,11 +538,28 @@ Branch chat realtime note:
 - branch chat now uses Server-Sent Events on `/messages/stream`
 - Railway should handle this normally
 - if you later place another proxy/CDN in front, make sure buffering is disabled for that route
+- branch chat send, feed, and stream routes are rate-limited, so repeated reconnect loops, aggressive polling, or spam posting should be tested carefully behind any extra proxy layer
+
+Upload safety note:
+- public-served slider and announcement images are limited to `jpg`, `jpeg`, `png`, `webp`, and `gif`
+- `svg` is intentionally rejected for these public image surfaces
+- branch chat attachment names are sanitized before storage and attachment metadata uses server-side MIME detection
+
+Maintenance scheduler note:
+- run Laravel scheduler continuously in production so `announcements:archive-expired`, `assistant:prune-interactions`, and `media:prune-orphans` execute automatically
+- if your platform does not provide a scheduler service, trigger `php artisan schedule:run` every minute from cron or an equivalent platform job
+
+Backup and restore note:
+- keep regular database backups outside the app server
+- if you use `FILESYSTEM_DISK=public`, back up the persistent upload volume together with the database
+- test one restore path in staging before relying on backups for production recovery
+- `php artisan ops:backup-checklist` gives a config-aware summary of the database, uploads, secrets, and restore steps that must be covered
 
 ### Notes
 
-- No custom scheduled tasks are required at this time beyond standard queue processing.
-- Keep `rgc_db` for the application and `rgc_test` for automated tests.
+- Keep `rgc_db` for the application runtime, and let automated tests use the isolated SQLite testing config unless you intentionally override it for MySQL parity checks.
+- The app now has scheduled housekeeping commands for expired announcements, assistant interaction pruning, and orphaned public upload cleanup.
+- assistant interaction analytics keep role context plus hashed request fingerprints for authenticated users, but they no longer store raw IP or raw user-agent values from public traffic.
 
 ## Useful Commands
 
@@ -538,6 +569,10 @@ php artisan migrate:status
 php artisan optimize:clear
 composer dump-autoload
 php artisan test
+php artisan ops:health-check
+php artisan ops:backup-checklist
+php artisan assistant:prune-interactions --dry-run
+php artisan media:prune-orphans --dry-run
 ```
 
 ## Current Project Notes
@@ -545,4 +580,19 @@ php artisan test
 - The runtime has been reconciled with the current database naming used by the application.
 - `Branch` uses the `churches` table and `HomeSlider` uses the `slides` table.
 - The active authorization surface is protected by middleware, policies, scoped queries, and regression tests.
-- Full regression baseline after the latest production hardening: `126` tests passed and `607` assertions passed.
+- Public receipts now rely on short-lived signed links instead of permanent open URLs.
+- Public payment status pages mask payer contact details and are marked non-cacheable / non-indexable.
+## Progressive Web App
+
+The platform can be installed on supported phones, tablets, and desktops as a PWA.
+
+- `public/manifest.webmanifest` defines the install metadata, icons, colors, and standalone display mode.
+- `public/sw.js` registers the app shell cache and serves `public/offline.html` as a fallback when navigation fails offline.
+- `resources/views/layouts/app.blade.php` includes the install button and install banner shell.
+- `resources/js/app.js` handles the browser `beforeinstallprompt` flow and iPhone/iPad "Add to Home Screen" guidance.
+
+Deployment notes:
+
+- Use HTTPS in production or browsers will suppress installability.
+- Keep `APP_URL` accurate so manifest, icons, and other public assets resolve correctly.
+- After deploy, open the site once online so the service worker can cache the shell before offline use.

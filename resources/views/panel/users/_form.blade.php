@@ -18,7 +18,8 @@
 
             <div>
                 <label class="field-label" for="phone">{{ __('Phone') }}</label>
-                <input class="input-rgc" id="phone" name="phone" value="{{ old('phone', $managedUser?->phone ?? '') }}">
+                <input class="input-rgc" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" value="{{ old('phone', $managedUser?->phone ?? '') }}" placeholder="{{ __('Start with 06, 07, or 255') }}">
+                <p class="form-hint mt-2">{{ __('Use a Tanzania number. Start with 06, 07, or 255.') }}</p>
             </div>
 
             <div>

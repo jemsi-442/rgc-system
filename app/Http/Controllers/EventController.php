@@ -9,6 +9,8 @@ class EventController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Event::class);
+
         $user = auth()->user();
 
         $events = Event::query()
@@ -21,11 +23,15 @@ class EventController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Event::class);
+
         return view('panel.events.create');
     }
 
     public function store(StoreEventRequest $request)
     {
+        $this->authorize('create', Event::class);
+
         $user = $request->user();
 
         Event::query()->create([

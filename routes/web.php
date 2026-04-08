@@ -27,8 +27,12 @@ Route::post('/assistant/chat', [SystemAssistantController::class, 'reply'])
 Route::post('/assistant/interactions/{interaction}/feedback', [SystemAssistantController::class, 'feedback'])
     ->middleware('throttle:30,1')
     ->name('assistant.feedback');
-Route::get('/giving/{publicReference}', [OfferingPaymentController::class, 'publicShow'])->name('offerings.payments.public.show');
-Route::get('/giving/{publicReference}/receipt', [OfferingPaymentController::class, 'publicReceipt'])->name('offerings.payments.public.receipt');
+Route::get('/giving/{publicReference}', [OfferingPaymentController::class, 'publicShow'])
+    ->middleware('throttle:payment-status')
+    ->name('offerings.payments.public.show');
+Route::get('/giving/{publicReference}/receipt', [OfferingPaymentController::class, 'publicReceipt'])
+    ->middleware(['signed', 'throttle:payment-status'])
+    ->name('offerings.payments.public.receipt');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -55,11 +59,17 @@ Route::middleware('auth')->group(function () {
     Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
 
     Route::get('/messages', [BranchMessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/feed', [BranchMessageController::class, 'feed'])->name('messages.feed');
-    Route::get('/messages/stream', [BranchMessageController::class, 'stream'])->name('messages.stream');
+    Route::get('/messages/feed', [BranchMessageController::class, 'feed'])
+        ->middleware('throttle:branch-chat-feed')
+        ->name('messages.feed');
+    Route::get('/messages/stream', [BranchMessageController::class, 'stream'])
+        ->middleware('throttle:branch-chat-stream')
+        ->name('messages.stream');
     Route::get('/messages/{message}/attachment', [BranchMessageController::class, 'attachment'])->name('messages.attachment');
     Route::get('/messages/{message}/attachments/{index}', [BranchMessageController::class, 'attachmentItem'])->whereNumber('index')->name('messages.attachments.show');
-    Route::post('/messages', [BranchMessageController::class, 'store'])->name('messages.store');
+    Route::post('/messages', [BranchMessageController::class, 'store'])
+        ->middleware('throttle:branch-chat-send')
+        ->name('messages.store');
     Route::patch('/messages/{message}', [BranchMessageController::class, 'update'])->name('messages.update');
     Route::delete('/messages/{message}', [BranchMessageController::class, 'destroy'])->name('messages.destroy');
 
@@ -110,14 +120,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/restore-defaults', [SystemAssistantTopicController::class, 'restoreDefaults'])->name('restore-defaults');
     });
 
-    Route::middleware('role:branch_admin|district_admin|regional_admin|super_admin')->group(function () {
+    Route::middleware('role:branch_admin|pastor|bishop|accountant|super_admin')->group(function () {
         Route::post('/offerings/payments', [OfferingPaymentController::class, 'store'])->name('offerings.payments.store');
-        Route::post('/offerings/payments/{payment}/sync', [OfferingPaymentController::class, 'sync'])->name('offerings.payments.sync');
-        Route::patch('/offerings/payments/{payment}/review', [OfferingPaymentController::class, 'review'])->name('offerings.payments.review');
-        Route::patch('/offerings/payments/review-all', [OfferingPaymentController::class, 'reviewAll'])->name('offerings.payments.review-all');
         Route::resource('offerings', OfferingController::class)->except(['show']);
         Route::resource('expenses', ExpenseController::class)->except(['show']);
         Route::resource('events', EventController::class)->except(['show']);
+    });
+
+    Route::middleware('role:branch_admin|district_admin|regional_admin|pastor|bishop|accountant|super_admin')->group(function () {
+        Route::post('/offerings/payments/{payment}/sync', [OfferingPaymentController::class, 'sync'])->name('offerings.payments.sync');
+        Route::patch('/offerings/payments/{payment}/review', [OfferingPaymentController::class, 'review'])->name('offerings.payments.review');
+        Route::patch('/offerings/payments/review-all', [OfferingPaymentController::class, 'reviewAll'])->name('offerings.payments.review-all');
     });
 
     Route::middleware('role:branch_admin|district_admin|regional_admin|super_admin')->group(function () {

@@ -165,4 +165,76 @@ class HomeSliderManagementTest extends TestCase
         $this->assertDatabaseMissing('slides', ['id' => $slider->id]);
         Storage::disk('public')->assertMissing($path);
     }
+
+    public function test_branch_admin_cannot_access_slider_management_routes(): void
+    {
+        Storage::fake('public');
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $branchAdmin = User::query()->create([
+            'name' => 'Branch Slider Admin',
+            'email' => 'branch.slider.admin@rgc.test',
+            'password' => 'ChangeMe123!',
+            'role' => 'branch_admin',
+            'status' => 'active',
+            'region_id' => $admin->region_id,
+            'district_id' => $admin->district_id,
+            'branch_id' => $admin->branch_id,
+            'church_id' => $admin->church_id,
+            'email_verified_at' => now(),
+        ]);
+        $branchAdmin->syncRoles(['branch_admin']);
+
+        $slider = HomeSlider::query()->create([
+            'title' => 'Protected Slide',
+            'subtitle' => 'Only super admins may manage this.',
+            'image_path' => UploadedFile::fake()->image('protected-slide.jpg')->store('sliders', 'public'),
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->actingAs($branchAdmin)
+            ->get(route('sliders.index'))
+            ->assertForbidden();
+
+        $this->actingAs($branchAdmin)
+            ->post(route('sliders.store'), [
+                'title' => 'Unauthorized Slide',
+                'subtitle' => 'Should not be created',
+                'sort_order' => 3,
+                'is_active' => '1',
+                'image' => UploadedFile::fake()->image('unauthorized.jpg', 1600, 900),
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($branchAdmin)
+            ->delete(route('sliders.destroy', $slider))
+            ->assertForbidden();
+    }
+
+    public function test_super_admin_cannot_upload_svg_as_slider_image(): void
+    {
+        Storage::fake('public');
+        $this->seed(DatabaseSeeder::class);
+
+        $admin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->from(route('sliders.create'))
+            ->post(route('sliders.store'), [
+                'title' => 'SVG Slide Attempt',
+                'subtitle' => 'Should be rejected',
+                'sort_order' => 5,
+                'is_active' => '1',
+                'image' => UploadedFile::fake()->create('hero.svg', 12, 'image/svg+xml'),
+            ])
+            ->assertRedirect(route('sliders.create'))
+            ->assertSessionHasErrors(['image']);
+
+        $this->assertDatabaseMissing('slides', [
+            'title' => 'SVG Slide Attempt',
+        ]);
+    }
 }

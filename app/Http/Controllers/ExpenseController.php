@@ -9,6 +9,8 @@ class ExpenseController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Expense::class);
+
         $expenses = Expense::query()
             ->where('church_id', auth()->user()->effectiveBranchId())
             ->orderByDesc('date')
@@ -19,11 +21,15 @@ class ExpenseController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Expense::class);
+
         return view('panel.expenses.create');
     }
 
     public function store(StoreExpenseRequest $request)
     {
+        $this->authorize('create', Expense::class);
+
         $description = trim($request->input('category') . ($request->filled('description') ? ': ' . $request->input('description') : ''));
 
         Expense::query()->create([

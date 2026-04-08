@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -148,6 +149,7 @@ class AnnouncementController extends Controller
 
         $headers = [
             'Content-Type' => $announcement->image_mime_type ?: 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
         ];
         $filename = $announcement->image_name ?: basename((string) $announcement->image_path);
         $path = Storage::disk('public')->path($announcement->image_path);
@@ -379,9 +381,18 @@ class AnnouncementController extends Controller
 
         return [
             'image_path' => $path,
-            'image_name' => $file->getClientOriginalName(),
-            'image_mime_type' => $file->getClientMimeType(),
+            'image_name' => $this->safeUploadedFilename($file),
+            'image_mime_type' => $file->getMimeType() ?: 'application/octet-stream',
         ];
+    }
+
+    private function safeUploadedFilename(UploadedFile $file): string
+    {
+        $name = trim(basename((string) $file->getClientOriginalName()));
+        $name = preg_replace('/[\r\n\t]+/', ' ', $name) ?? $name;
+        $name = Str::limit($name, 180, '');
+
+        return $name !== '' ? $name : ($file->hashName() ?: 'upload');
     }
 
     private function pdfLogoDataUri(): ?string

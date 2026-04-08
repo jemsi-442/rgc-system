@@ -27,6 +27,12 @@ class ApiTokenAuth
             return response()->json(['message' => __('Unauthorized. Invalid token.')], 401);
         }
 
+        if ($user->apiTokenIsExpired()) {
+            $user->update($user->invalidatedAuthAttributes());
+
+            return response()->json(['message' => __('Unauthorized. Token expired.')], 401);
+        }
+
         if (! $user->isActive()) {
             return response()->json([
                 'message' => __('Your account is inactive. Please contact church leadership.'),

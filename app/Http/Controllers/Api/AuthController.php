@@ -31,20 +31,19 @@ class AuthController extends Controller
         }
 
         $plainToken = Str::random(80);
-        $user->update([
-            'api_token' => hash('sha256', $plainToken),
-        ]);
+        $user->update($user->issueApiToken($plainToken));
 
         return response()->json([
             'token_type' => 'Bearer',
             'access_token' => $plainToken,
+            'expires_at' => optional($user->fresh()->api_token_expires_at)?->toIso8601String(),
             'user' => $user->load(['region:id,name', 'district:id,name', 'branch:id,name,type']),
         ]);
     }
 
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->update(['api_token' => null]);
+        $request->user()->update($request->user()->invalidatedAuthAttributes());
 
         return response()->json(['message' => __('Logged out.')]);
     }

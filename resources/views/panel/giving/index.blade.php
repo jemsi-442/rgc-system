@@ -8,7 +8,7 @@
         <div class="space-y-2">
             <p class="section-kicker">{{ __('Member giving') }}</p>
             <h1 class="text-2xl font-semibold">{{ __('Give to your branch securely') }}</h1>
-            <p class="text-sm text-black/70">{{ __('Choose the type of giving, enter the amount, and the system will generate a secure Snippe checkout link for your branch.') }}</p>
+            <p class="text-sm text-black/70">{{ __('Choose the type of giving, enter the amount and payer phone, then the system will send a payment prompt to the payer device.') }}</p>
         </div>
 
         <div class="branch-preview-breakdown mt-5">
@@ -17,12 +17,49 @@
             <span>{{ __('Region: :region', ['region' => $branch->region->name]) }}</span>
         </div>
 
-        @if(session('payment_link'))
+        <div class="payment-provider-card mt-5">
+            <div class="payment-provider-head">
+                <span class="payment-provider-badge">{{ __('Mobile money collection') }}</span>
+                <p class="payment-provider-copy">{{ __('The payer stays in a direct prompt flow from the app instead of being forced through a copied payment link first.') }}</p>
+            </div>
+            <div class="payment-provider-features">
+                <div class="payment-provider-feature">
+                    <span class="payment-provider-mark">P</span>
+                    <div>
+                        <strong>{{ __('Phone prompt') }}</strong>
+                        <span>{{ __('The payer receives a payment approval prompt on their mobile money line.') }}</span>
+                    </div>
+                </div>
+                <div class="payment-provider-feature">
+                    <span class="payment-provider-mark">MM</span>
+                    <div>
+                        <strong>{{ __('Supported networks') }}</strong>
+                        <span>{{ __('M-Pesa, Airtel Money, Mixx by Yas, and HaloPesa can be prepared through one giving form.') }}</span>
+                    </div>
+                </div>
+                <div class="payment-provider-feature">
+                    <span class="payment-provider-mark">OK</span>
+                    <div>
+                        <strong>{{ __('Auto confirmation') }}</strong>
+                        <span>{{ __('Snippe webhook confirms and posts the giving automatically.') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if(session('payment_reference'))
             <div class="announcement-callout mt-5 space-y-3">
-                <p class="font-semibold text-black">{{ __('Snippe payment link created.') }}</p>
+                <p class="font-semibold text-black">
+                    {{ session('payment_prompt_phone') ? __('Payment prompt sent.') : __('Payment checkout link created.') }}
+                </p>
                 <p class="text-sm text-black/70">{{ __('Reference') }}: <span class="font-medium text-black">{{ session('payment_reference') }}</span></p>
+                @if(session('payment_prompt_phone'))
+                    <p class="text-sm text-black/70">{{ __('Prompt sent to') }}: <span class="font-medium text-black">{{ session('payment_prompt_phone') }}</span></p>
+                @endif
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @if(session('payment_link'))
+                        <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @endif
                     <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">{{ __('View status page') }}</a>
                 </div>
             </div>
@@ -60,23 +97,25 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <label class="field-label" for="giving_payer_phone">{{ __('Phone number') }}</label>
-                    <input class="input-rgc" id="giving_payer_phone" type="text" name="payer_phone" value="{{ old('payer_phone', auth()->user()->phone) }}" placeholder="2557XXXXXXXX">
+                    <input class="input-rgc" id="giving_payer_phone" type="text" name="payer_phone" value="{{ old('payer_phone', auth()->user()->phone) }}" placeholder="2557XXXXXXXX" required>
+                    <p class="form-hint mt-2">{{ __('Use the mobile money number that should receive the payment prompt.') }}</p>
                 </div>
                 <div>
                     <label class="field-label" for="giving_payer_email">{{ __('Email address') }}</label>
                     <input class="input-rgc" id="giving_payer_email" type="email" name="payer_email" value="{{ old('payer_email', auth()->user()->email) }}">
                 </div>
             </div>
+            @include('panel.offerings.partials.mobile-network-options', ['selectedNetwork' => old('mobile_network')])
             <div>
                 <label class="field-label" for="giving_description">{{ __('Description') }}</label>
                 <textarea class="textarea-rgc min-h-28" id="giving_description" name="description" placeholder="{{ __('Sunday giving, thanksgiving, special contribution, or any branch-specific note.') }}">{{ old('description') }}</textarea>
             </div>
             <div class="announcement-callout">
                 <p class="font-semibold text-black">{{ __('What happens next?') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('A secure checkout link will open for you. Once Snippe confirms the payment, the giving will be posted automatically to your branch ledger.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('The backend will create a payment request, send a prompt to the payer phone, and then wait for secure webhook confirmation before posting the giving to your branch ledger.') }}</p>
             </div>
             <div class="form-actions">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Create payment link') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Send payment prompt') }}</button>
             </div>
         </form>
     </section>
@@ -105,7 +144,7 @@
             <div class="space-y-2">
                 <p class="section-kicker">{{ __('My recent giving') }}</p>
                 <h2 class="text-xl font-semibold">{{ __('Payment history') }}</h2>
-                <p class="text-sm text-black/65">{{ __('Track the status of the checkout links you have already created.') }}</p>
+                <p class="text-sm text-black/65">{{ __('Track the status of the payment prompts you have already created.') }}</p>
             </div>
 
             <div class="mt-5 grid gap-4">
@@ -117,21 +156,24 @@
                         </div>
                         <h3>TZS {{ number_format((float) $payment->amount, 2) }}</h3>
                         <p>{{ $payment->paymentTypeLabel() }}{{ $payment->description ? ' • '.$payment->description : '' }}</p>
-                        <div class="payment-request-meta">
-                            <span>{{ optional($payment->created_at)->translatedFormat('d M Y H:i') }}</span>
-                            <span>{{ optional($payment->paid_at ?: $payment->created_at)->diffForHumans() }}</span>
-                        </div>
-                        <div class="payment-request-actions">
-                            <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
-                            <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                            <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
-                            @if($payment->isCompleted())
-                                <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.payments.public.receipt', $payment->public_reference) }}">{{ __('Download receipt PDF') }}</a>
-                            @elseif($payment->checkout_url)
-                                <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
-                            @endif
-                        </div>
-                    </article>
+                <div class="payment-request-meta">
+                    <span>{{ optional($payment->created_at)->translatedFormat('d M Y H:i') }}</span>
+                    <span>{{ optional($payment->paid_at ?: $payment->created_at)->diffForHumans() }}</span>
+                </div>
+                @if($payment->isPending() && ! $payment->usesHostedCheckout())
+                    <p class="mt-2 text-sm text-black/60">{{ __('Prompt sent to :phone • Requested network: :network', ['phone' => $payment->maskedPayerPhone(), 'network' => $payment->requestedNetworkLabel()]) }}</p>
+                @endif
+                <div class="payment-request-actions">
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                    @if($payment->isCompleted())
+                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
+                        @elseif($payment->checkout_url)
+                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                        @endif
+                    </div>
+                </article>
                 @empty
                     <div class="rounded-3xl border border-dashed border-black/15 bg-white p-6 text-sm text-black/60">
                         {{ __('You have not created any payment requests yet.') }}

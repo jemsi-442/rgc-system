@@ -3,7 +3,8 @@
 @section('title', __('RGC - Redeemed Gospel Church Inc. Tanzania'))
 
 @section('content')
-<section class="hero-grid items-stretch">
+<div class="home-stack">
+<section class="hero-grid items-stretch home-hero">
     <div class="hero-panel">
         <div class="hero-copy">
             <div class="hero-brand-lockup">
@@ -14,10 +15,10 @@
                 </div>
             </div>
 
-            <span class="section-kicker">{{ __('National Church Governance') }}</span>
+            <span class="section-kicker">{{ __('Official Church Platform') }}</span>
             <h1 class="hero-title mt-5">{{ __('Redeemed Gospel Church') }} <em>{{ __('Inc. Tanzania') }}</em></h1>
             <p class="mt-5 text-base leading-7 md:text-lg">
-                {{ __('A unified platform for national oversight, regional coordination, district supervision, branch administration, and member engagement across Tanzania Mainland and Zanzibar.') }}
+                {{ __('An official digital platform for church updates, member access, giving, and shared information across Tanzania Mainland and Zanzibar.') }}
             </p>
 
             <div class="hero-actions mt-8">
@@ -28,15 +29,15 @@
             <div class="hero-metrics">
                 <div class="metric-tile">
                     <strong>31</strong>
-                    <span>{{ __('Canonical Regions') }}</span>
+                    <span>{{ __('Regions Served') }}</span>
                 </div>
                 <div class="metric-tile">
                     <strong>228</strong>
-                    <span>{{ __('District Records') }}</span>
+                    <span>{{ __('District Coverage') }}</span>
                 </div>
                 <div class="metric-tile">
-                    <strong>{{ __('Scoped') }}</strong>
-                    <span>{{ __('Governance Access') }}</span>
+                    <strong>{{ __('One') }}</strong>
+                    <span>{{ __('Church Platform') }}</span>
                 </div>
             </div>
         </div>
@@ -70,29 +71,29 @@
             <div class="flex min-h-[22rem] flex-col justify-end p-6 text-rgc-white">
                 <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Homepage Slider') }}</span>
                 <h2 class="mt-5 font-[family-name:var(--font-display)] text-4xl leading-none">{{ __('National visibility for every branch.') }}</h2>
-                <p class="mt-4 max-w-md text-sm text-white/80">{{ __('Upload homepage slides from the Super Admin dashboard to highlight church programs, leadership communication, and national campaigns.') }}</p>
+                <p class="mt-4 max-w-md text-sm text-white/80">{{ __('Homepage slides can be used to highlight church programs, ministry updates, and national campaigns.') }}</p>
             </div>
         @endif
     </div>
 </section>
 
-<section class="mt-8 info-grid cols-3">
+<section class="info-grid cols-3 home-band home-band--light">
     <article class="card-rgc-strong">
         <span class="section-kicker">{{ __('About Church') }}</span>
-        <h3 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ __('A governance platform built for accountability.') }}</h3>
+        <h3 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ __('A digital church platform built for connection.') }}</h3>
         <p class="mt-4 text-sm leading-7 text-black/70">
-            {{ __('RGC coordinates ministry administration with clear authority lines, protected branch data, and dependable reporting for leaders serving at national, regional, district, and branch level.') }}
+            {{ __('RGC brings together church communication, member access, giving, and shared records in one clear and friendly experience.') }}
         </p>
     </article>
 
     <article class="card-rgc">
-        <span class="section-kicker">{{ __('Leadership') }}</span>
-        <h3 class="mt-5 text-xl font-semibold">{{ __('Structured national oversight') }}</h3>
+        <span class="section-kicker">{{ __('Church Life') }}</span>
+        <h3 class="mt-5 text-xl font-semibold">{{ __('Simple access to key church services') }}</h3>
         <ul class="mt-4 space-y-3 text-sm text-black/72">
-            <li>{{ __('Super Admin for national governance and branch establishment') }}</li>
-            <li>{{ __('Regional and district admins with strict area scope') }}</li>
-            <li>{{ __('Branch admins and officers for local operations') }}</li>
-            <li>{{ __('Members connected through announcements and branch chat') }}</li>
+            <li>{{ __('Church updates and ministry communication in one place') }}</li>
+            <li>{{ __('Guided registration using your church location') }}</li>
+            <li>{{ __('Giving and member participation tools') }}</li>
+            <li>{{ __('Announcements and branch conversations for daily connection') }}</li>
         </ul>
     </article>
 
@@ -100,42 +101,40 @@
         <span class="section-kicker">{{ __('What Members See') }}</span>
         <h3 class="mt-5 text-xl font-semibold">{{ __('Simple, branch-focused participation') }}</h3>
         <p class="mt-4 text-sm leading-7 text-black/72">
-            {{ __('Registration follows the Tanzania hierarchy: region, district, and branch. Members then access branch-scoped announcements, conversation, and profile information without cross-branch leakage.') }}
+            {{ __('Registration follows the Tanzania church location flow: region, district, and branch. After joining, members can follow updates, conversation, and giving for their church location.') }}
         </p>
     </article>
 </section>
 
-<section class="mt-8 tablet-stack two">
+<section class="tablet-stack two home-band home-band--warm">
     <article class="card-rgc-strong">
-        <span class="section-kicker">{{ __('Governance Map') }}</span>
-        <h3 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ __('Role hierarchy with no privilege escalation.') }}</h3>
-        <div class="mt-6 grid gap-3 text-sm">
-            <div class="branch-item"><strong>{{ __('Super Admin') }}</strong><br><span class="text-black/65">{{ __('National setup, branch creation, statistics, and top-level user governance.') }}</span></div>
-            <div class="branch-item"><strong>{{ __('Regional Admin') }}</strong><br><span class="text-black/65">{{ __('District and branch visibility within a single region.') }}</span></div>
-            <div class="branch-item"><strong>{{ __('District Admin') }}</strong><br><span class="text-black/65">{{ __('Branch-level coordination and district operations.') }}</span></div>
-            <div class="branch-item"><strong>{{ __('Branch Admin and Officers') }}</strong><br><span class="text-black/65">{{ __('Announcements, offerings, expenses, events, and local member management.') }}</span></div>
-        </div>
+        <span class="section-kicker">{{ __('Church Platform') }}</span>
+        <h3 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ __('Built to support church service across Tanzania.') }}</h3>
+        <p class="mt-5 max-w-2xl text-sm leading-7 text-black/70">
+            {{ __('The platform supports church communication, records, and member participation while keeping internal system settings inside the application.') }}
+        </p>
     </article>
 
     <article class="card-rgc">
-        <span class="section-kicker">{{ __('Branch Locator') }}</span>
-        <h3 class="mt-5 text-2xl font-semibold">{{ __('Current branch records') }}</h3>
+        <span class="section-kicker">{{ __('Member Registration') }}</span>
+        <h3 class="mt-5 text-2xl font-semibold">{{ __('Branch selection stays inside signup flow') }}</h3>
+        <p class="mt-4 text-sm leading-7 text-black/72">
+            {{ __('Church locations are prepared in the system, then shown step by step after a member chooses the correct region and district during account creation.') }}
+        </p>
         <div class="branch-list mt-5">
-            @forelse($branches as $branch)
-                <div class="branch-item">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-base font-semibold">{{ $branch->name }}</p>
-                            <p class="mt-1 text-sm text-black/65">{{ $branch->district->name }}, {{ $branch->region->name }}</p>
-                        </div>
-                        <span class="rounded-full bg-rgc-yellow px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-black">{{ __(Illuminate\Support\Str::headline($branch->branch_type ?: $branch->type)) }}</span>
-                    </div>
-                </div>
-            @empty
-                <div class="branch-item text-sm text-black/65">{{ __('No branches are visible yet. The headquarters branch will appear here once seeded or created.') }}</div>
-            @endforelse
+            <div class="branch-item">
+                <strong class="block text-base">{{ __('Registered church locations') }}</strong>
+                <p class="mt-2 text-sm text-black/65">{{ __('The platform currently has :count active church locations available during registration.', ['count' => number_format($branchCount)]) }}</p>
+            </div>
+            <div class="branch-item">
+                <strong class="block text-base">{{ __('Guided registration steps') }}</strong>
+                <p class="mt-2 text-sm text-black/65">{{ __('During signup, district choices reveal the branch list below the form only after the correct location is selected.') }}</p>
+            </div>
         </div>
-        <div class="mt-5">{{ $branches->links() }}</div>
+        <div class="mt-6">
+            <a class="btn-rgc-alt" href="{{ route('register') }}">{{ __('Open guided registration') }}</a>
+        </div>
     </article>
 </section>
+</div>
 @endsection

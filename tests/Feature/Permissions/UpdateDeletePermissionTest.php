@@ -157,6 +157,70 @@ class UpdateDeletePermissionTest extends TestCase
         $this->assertSame('member', $member->normalizedRoleName());
     }
 
+    public function test_regional_admin_cannot_record_an_offering_through_branch_books_routes(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.offering.create@rgc.test');
+
+        $this->actingAs($regionalAdmin)
+            ->post(route('offerings.store'), [
+                'offering_date' => '2026-04-08',
+                'amount' => 75000,
+                'description' => 'Regional admin should not write branch books.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('offerings', [
+            'church_id' => $branch->id,
+            'amount' => 75000,
+        ]);
+    }
+
+    public function test_district_admin_cannot_record_an_expense_through_branch_books_routes(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $districtAdmin = $this->makeUser('district_admin', $region, $district, $branch, 'district.expense.create@rgc.test');
+
+        $this->actingAs($districtAdmin)
+            ->post(route('expenses.store'), [
+                'expense_date' => '2026-04-08',
+                'amount' => 21000,
+                'category' => 'Transport',
+                'description' => 'District admin should not write branch expenses.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('expenses', [
+            'church_id' => $branch->id,
+            'amount' => 21000,
+        ]);
+    }
+
+    public function test_regional_admin_cannot_create_branch_events_through_branch_event_routes(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $regionalAdmin = $this->makeUser('regional_admin', $region, $district, $branch, 'regional.event.create@rgc.test');
+
+        $this->actingAs($regionalAdmin)
+            ->post(route('events.store'), [
+                'title' => 'Regional Override Event',
+                'description' => 'This should be blocked from branch-only event routes.',
+                'event_date' => '2026-04-20',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('events', [
+            'church_id' => $branch->id,
+            'title' => 'Regional Override Event',
+        ]);
+    }
+
     public function test_only_super_admin_can_delete_users_via_api(): void
     {
         $this->seed(DatabaseSeeder::class);
@@ -236,6 +300,7 @@ class UpdateDeletePermissionTest extends TestCase
         $rawToken = 'token-for-user-' . $user->id;
         $user->forceFill([
             'api_token' => hash('sha256', $rawToken),
+            'api_token_expires_at' => now()->addHour(),
         ])->save();
 
         return $this->withHeader('Authorization', 'Bearer ' . $rawToken)

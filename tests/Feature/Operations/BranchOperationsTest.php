@@ -85,7 +85,8 @@ class BranchOperationsTest extends TestCase
 
         $this->actingAs($member)
             ->get(route('messages.attachment', $message))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('x-content-type-options', 'nosniff');
 
         $downloadResponse = $this->actingAs($member)
             ->get(route('messages.attachment', ['message' => $message, 'download' => 1]));
@@ -139,6 +140,38 @@ class BranchOperationsTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['name' => 'service-photo.jpg'])
             ->assertJsonFragment(['name' => 'weekly-report.pdf']);
+    }
+
+    public function test_member_cannot_upload_more_than_five_total_branch_chat_attachments(): void
+    {
+        Storage::fake('public');
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $region, $district, $branch, 'member.too-many-attachments@rgc.test');
+
+        $attachments = [
+            UploadedFile::fake()->create('report-1.pdf', 64, 'application/pdf'),
+            UploadedFile::fake()->create('report-2.pdf', 64, 'application/pdf'),
+            UploadedFile::fake()->create('report-3.pdf', 64, 'application/pdf'),
+            UploadedFile::fake()->create('report-4.pdf', 64, 'application/pdf'),
+            UploadedFile::fake()->create('report-5.pdf', 64, 'application/pdf'),
+        ];
+
+        $this->actingAs($member)
+            ->postJson(route('messages.store'), [
+                'message' => 'Too many files',
+                'attachment' => UploadedFile::fake()->image('cover.jpg'),
+                'attachments' => $attachments,
+            ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['attachments']);
+
+        $this->assertDatabaseMissing('branch_messages', [
+            'church_id' => $branch->id,
+            'user_id' => $member->id,
+            'message' => 'Too many files',
+        ]);
     }
 
     public function test_branch_admin_can_create_announcements_scoped_to_their_branch(): void
@@ -640,6 +673,28 @@ Main service at 10:00",
         ]);
     }
 
+    public function test_branch_admin_cannot_upload_svg_as_announcement_image(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $branchAdmin = $this->makeUser('branch_admin', $region, $district, $branch, 'branch.announcements.invalid.svg@rgc.test');
+
+        $this->actingAs($branchAdmin)
+            ->from(route('announcements.create'))
+            ->post(route('announcements.store'), [
+                'title' => 'SVG Image Attempt',
+                'body' => 'SVG should not be accepted on public announcement images.',
+                'image' => UploadedFile::fake()->create('poster.svg', 10, 'image/svg+xml'),
+            ])
+            ->assertRedirect(route('announcements.create'))
+            ->assertSessionHasErrors(['image']);
+
+        $this->assertDatabaseMissing('announcements', [
+            'title' => 'SVG Image Attempt',
+        ]);
+    }
+
 
     public function test_member_can_download_visible_announcement_image_as_attachment(): void
     {
@@ -840,6 +895,32 @@ Main service at 10:00",
             ->get(route('announcements.index'))
             ->assertOk()
             ->assertDontSee('Selected Branches Notice');
+    }
+
+    public function test_super_admin_cannot_target_inactive_selected_branches(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $hqBranch] = $this->darHeadquartersContext();
+        $inactiveBranch = $this->makeBranch('Inactive Selected Branch', $region, $district);
+        $inactiveBranch->forceFill(['status' => 'inactive'])->save();
+
+        $superAdmin = $this->makeUser('super_admin', $region, $district, $hqBranch, 'super.inactive.selected.notice@rgc.test');
+
+        $this->actingAs($superAdmin)
+            ->from(route('announcements.create'))
+            ->post(route('announcements.store'), [
+                'title' => 'Invalid Selected Branch Notice',
+                'body' => 'This should fail because the branch is inactive.',
+                'delivery_scope' => 'selected_branches',
+                'selected_branch_ids' => [$inactiveBranch->id],
+            ])
+            ->assertRedirect(route('announcements.create'))
+            ->assertSessionHasErrors(['selected_branch_ids']);
+
+        $this->assertDatabaseMissing('announcements', [
+            'title' => 'Invalid Selected Branch Notice',
+        ]);
     }
     public function test_member_can_download_visible_announcement_as_pdf(): void
     {

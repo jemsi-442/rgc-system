@@ -21,7 +21,25 @@ class UserPolicy
             return true;
         }
 
-        return $user->canManageBranch((int) ($target->effectiveBranchId() ?? 0));
+        if (! $user->outranks($target)) {
+            return false;
+        }
+
+        $branchId = $target->effectiveBranchId();
+
+        if ($branchId !== null) {
+            return $user->canManageBranch((int) $branchId);
+        }
+
+        if ($target->district_id) {
+            return $user->canManageDistrict((int) $target->district_id);
+        }
+
+        if ($target->region_id) {
+            return $user->canManageRegion((int) $target->region_id);
+        }
+
+        return false;
     }
 
     public function create(User $user): bool

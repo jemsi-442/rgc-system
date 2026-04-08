@@ -7,16 +7,20 @@ use App\Models\Branch;
 use App\Models\BranchMessage;
 use App\Models\Event;
 use App\Models\Expense;
+use App\Models\HomeSlider;
 use App\Models\Offering;
 use App\Models\OfferingPayment;
+use App\Models\SystemAssistantTopic;
 use App\Models\User;
 use App\Policies\AnnouncementPolicy;
 use App\Policies\BranchMessagePolicy;
 use App\Policies\BranchPolicy;
 use App\Policies\EventPolicy;
 use App\Policies\ExpensePolicy;
+use App\Policies\HomeSliderPolicy;
 use App\Policies\OfferingPaymentPolicy;
 use App\Policies\OfferingPolicy;
+use App\Policies\SystemAssistantTopicPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -53,13 +57,32 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip())),
         ]);
 
+        RateLimiter::for('branch-chat-send', fn (Request $request) => [
+            Limit::perMinute(20)->by((string) ($request->user()?->id ?? $request->ip())),
+        ]);
+
+        RateLimiter::for('branch-chat-stream', fn (Request $request) => [
+            Limit::perMinute(6)->by((string) ($request->user()?->id ?? $request->ip())),
+        ]);
+
+        RateLimiter::for('branch-chat-feed', fn (Request $request) => [
+            Limit::perMinute(120)->by((string) ($request->user()?->id ?? $request->ip())),
+        ]);
+
+        RateLimiter::for('payment-status', fn (Request $request) => [
+            Limit::perMinute(30)->by((string) $request->ip()),
+            Limit::perMinute(10)->by((string) $request->ip() . '|' . (string) $request->route('publicReference')),
+        ]);
+
         Gate::policy(Branch::class, BranchPolicy::class);
         Gate::policy(Announcement::class, AnnouncementPolicy::class);
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(Offering::class, OfferingPolicy::class);
         Gate::policy(OfferingPayment::class, OfferingPaymentPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
+        Gate::policy(HomeSlider::class, HomeSliderPolicy::class);
         Gate::policy(BranchMessage::class, BranchMessagePolicy::class);
+        Gate::policy(SystemAssistantTopic::class, SystemAssistantTopicPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
 
         Model::preventLazyLoading(! app()->isProduction());

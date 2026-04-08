@@ -62,10 +62,12 @@ class OfferingPaymentController extends Controller
 
     public function sync(Request $request, OfferingPayment $payment, SnippeClient $snippe): RedirectResponse
     {
-        $this->authorize('view', $payment);
+        $this->authorize('sync', $payment);
 
         try {
-            $response = $snippe->fetchSession($payment->provider_reference);
+            $response = $payment->usesHostedCheckout()
+                ? $snippe->fetchSession($payment->provider_reference)
+                : $snippe->fetchPayment($payment->provider_reference);
         } catch (\Throwable $e) {
             report($e);
 
@@ -73,14 +75,16 @@ class OfferingPaymentController extends Controller
         }
 
         $status = $snippe->extractStatus($response) ?: 'pending';
+        $normalizedStatus = $this->normalizeStatus($status);
 
         $payment->update([
             'provider_status' => $status,
-            'status' => $this->normalizeStatus($status),
+            'status' => $normalizedStatus,
             'provider_payload' => $response,
+            'metadata' => $this->mergeProviderMetadata($payment, $response),
             'expires_at' => $snippe->extractExpiry($response) ? Carbon::parse($snippe->extractExpiry($response)) : $payment->expires_at,
-            'paid_at' => $this->normalizeStatus($status) === 'completed' ? ($payment->paid_at ?: now()) : $payment->paid_at,
-            'failed_at' => $this->normalizeStatus($status) === 'failed' ? now() : $payment->failed_at,
+            'paid_at' => $normalizedStatus === 'completed' ? ($payment->paid_at ?: now()) : $payment->paid_at,
+            'failed_at' => $normalizedStatus === 'failed' ? now() : $payment->failed_at,
         ]);
 
         if ($payment->fresh()->status === 'completed') {
@@ -94,14 +98,18 @@ class OfferingPaymentController extends Controller
         return back()->with('status', __('Payment status refreshed.'));
     }
 
-    public function publicShow(string $publicReference): View
+    public function publicShow(string $publicReference): Response
     {
         $payment = OfferingPayment::query()
             ->with(['branch', 'offering'])
             ->where('public_reference', $publicReference)
             ->firstOrFail();
 
-        return view('panel.offerings.payment-status', compact('payment'));
+        return response()
+            ->view('panel.offerings.payment-status', compact('payment'))
+            ->header('Cache-Control', 'private, no-store, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('X-Robots-Tag', 'noindex, nofollow, noarchive');
     }
 
     public function publicReceipt(string $publicReference): Response
@@ -117,14 +125,18 @@ class OfferingPaymentController extends Controller
             'logoDataUri' => $this->pdfLogoDataUri(),
         ])->setPaper('a4');
 
-        return $pdf->download('offering-receipt-' . $payment->public_reference . '.pdf');
+        $response = $pdf->download('offering-receipt-' . $payment->public_reference . '.pdf');
+        $response->headers->set('Cache-Control', 'private, no-store, max-age=0');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+
+        return $response;
     }
 
     public function review(Request $request, OfferingPayment $payment): RedirectResponse
     {
-        $this->authorize('view', $payment);
-
-        abort_unless($request->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']), 403);
+        $this->authorize('review', $payment);
 
         if (! $payment->reviewed_at) {
             $payment->forceFill([
@@ -138,8 +150,7 @@ class OfferingPaymentController extends Controller
     public function reviewAll(Request $request): RedirectResponse
     {
         $user = $request->user();
-
-        abort_unless($user->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']), 403);
+        $this->authorize('reviewAny', OfferingPayment::class);
 
         $updated = $this->reviewableAlertQuery($user)
             ->update([
@@ -184,6 +195,7 @@ class OfferingPaymentController extends Controller
             'status' => $normalizedStatus,
             'last_webhook_payload' => $event,
             'provider_payload' => $payment->provider_payload ?: $event,
+            'metadata' => $this->mergeProviderMetadata($payment, $event),
             'paid_at' => $normalizedStatus === 'completed' ? ($payment->paid_at ?: now()) : $payment->paid_at,
             'failed_at' => $normalizedStatus === 'failed' ? now() : $payment->failed_at,
         ]);
@@ -229,8 +241,9 @@ class OfferingPaymentController extends Controller
         abort_unless($branchId !== null, 403);
 
         $paymentType = $this->normalizePaymentType($request->input('payment_type'));
+        $paymentFlow = $this->paymentFlow();
 
-        $payment = DB::transaction(function () use ($request, $user, $branchId, $initiatedFrom, $paymentType): OfferingPayment {
+        $payment = DB::transaction(function () use ($request, $user, $branchId, $initiatedFrom, $paymentType, $paymentFlow): OfferingPayment {
             return OfferingPayment::query()->create([
                 'church_id' => $branchId,
                 'user_id' => $user->id,
@@ -244,20 +257,27 @@ class OfferingPaymentController extends Controller
                 'metadata' => [
                     'initiated_from' => $initiatedFrom,
                     'payment_type' => $paymentType,
+                    'payment_flow' => $paymentFlow,
+                    'requested_network' => $request->input('mobile_network'),
                 ],
             ]);
         });
 
         try {
-            $response = $snippe->createSession($payment, [
-                'return_url' => route('offerings.payments.public.show', $payment->public_reference),
-                'cancel_url' => route('offerings.payments.public.show', $payment->public_reference),
-                'webhook_url' => route('payments.snippe.webhook'),
-            ]);
+            $response = $paymentFlow === 'checkout_session'
+                ? $snippe->createSession($payment, [
+                    'return_url' => route('offerings.payments.public.show', $payment->public_reference),
+                    'cancel_url' => route('offerings.payments.public.show', $payment->public_reference),
+                    'webhook_url' => $this->secureWebhookUrl(),
+                ])
+                : $snippe->createPayment($payment, [
+                    'channel' => 'mobile',
+                    'webhook_url' => $this->secureWebhookUrl(),
+                ]);
         } catch (\Throwable $e) {
             $payment->update([
                 'status' => 'failed',
-                'provider_status' => 'session_error',
+                'provider_status' => 'payment_request_error',
                 'provider_payload' => [
                     'message' => $e->getMessage(),
                 ],
@@ -268,21 +288,39 @@ class OfferingPaymentController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['snippe' => __('Unable to start Snippe payment session right now. Please try again.')]);
+                ->withErrors(['snippe' => __('Unable to start the payment request right now. Please try again.')]);
         }
 
+        $providerStatus = $snippe->extractStatus($response) ?: 'pending';
+        $normalizedStatus = $this->normalizeStatus($providerStatus);
+
         $payment->update([
+            'provider_reference' => data_get($response, 'data.reference', $payment->provider_reference),
             'checkout_url' => $snippe->extractCheckoutUrl($response),
-            'provider_status' => $snippe->extractStatus($response) ?: 'pending',
+            'provider_status' => $providerStatus,
+            'status' => $normalizedStatus,
             'provider_payload' => $response,
+            'metadata' => $this->mergeProviderMetadata($payment, $response),
             'expires_at' => $snippe->extractExpiry($response) ? Carbon::parse($snippe->extractExpiry($response)) : null,
+            'paid_at' => $normalizedStatus === 'completed' ? now() : null,
+            'failed_at' => $normalizedStatus === 'failed' ? now() : null,
         ]);
 
-        return redirect()
+        $redirect = redirect()
             ->route($redirectRoute)
-            ->with('status', __('Snippe payment link created.'))
-            ->with('payment_link', $payment->checkout_url)
             ->with('payment_reference', $payment->public_reference);
+
+        if ($paymentFlow === 'checkout_session' && $payment->checkout_url) {
+            return $redirect
+                ->with('status', __('Payment checkout link created successfully.'))
+                ->with('payment_link', $payment->checkout_url);
+        }
+
+        return $redirect
+            ->with('status', __('Payment prompt sent to :phone. Ask the payer to approve it on their phone.', [
+                'phone' => $payment->maskedPayerPhone(),
+            ]))
+            ->with('payment_prompt_phone', $payment->maskedPayerPhone());
     }
 
     protected function paymentTypeOptions(): array
@@ -316,6 +354,49 @@ class OfferingPaymentController extends Controller
         }
 
         return $this->paymentTypeOptions()[$paymentType] ?? __('Offering payment');
+    }
+
+    protected function paymentFlow(): string
+    {
+        return (string) config('services.snippe.payment_flow', 'mobile_prompt') === 'checkout_session'
+            ? 'checkout_session'
+            : 'mobile_prompt';
+    }
+
+    protected function secureWebhookUrl(): ?string
+    {
+        $url = route('payments.snippe.webhook');
+
+        return str_starts_with($url, 'https://') ? $url : null;
+    }
+
+    protected function mergeProviderMetadata(OfferingPayment $payment, array $payload): array
+    {
+        $metadata = array_merge($payment->metadata ?? [], [
+            'payment_type' => $payment->paymentType(),
+            'payment_flow' => $payment->paymentFlow(),
+            'requested_network' => $payment->requestedNetwork(),
+            'provider_channel' => $this->stringOrNull(data_get($payload, 'data.channel.provider')),
+            'provider_channel_type' => $this->stringOrNull(data_get($payload, 'data.channel.type')),
+            'external_reference' => $this->stringOrNull(data_get($payload, 'data.external_reference')),
+            'settlement_gross' => $this->numericOrNull(data_get($payload, 'data.settlement.gross.value')),
+            'settlement_fees' => $this->numericOrNull(data_get($payload, 'data.settlement.fees.value')),
+            'settlement_net' => $this->numericOrNull(data_get($payload, 'data.settlement.net.value')),
+        ]);
+
+        return array_filter($metadata, static fn ($value) => $value !== null && $value !== '');
+    }
+
+    protected function stringOrNull(mixed $value): ?string
+    {
+        $string = is_string($value) ? trim($value) : '';
+
+        return $string !== '' ? $string : null;
+    }
+
+    protected function numericOrNull(mixed $value): float|int|null
+    {
+        return is_numeric($value) ? $value + 0 : null;
     }
 
     protected function sendAdminPaymentNotificationIfNeeded(OfferingPayment $payment): void

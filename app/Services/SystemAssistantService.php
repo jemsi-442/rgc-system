@@ -317,6 +317,8 @@ class SystemAssistantService
             return null;
         }
 
+        $shouldStoreRequestMeta = $user !== null;
+
         return SystemAssistantInteraction::query()->create([
             'user_id' => $user?->id,
             'locale' => app()->getLocale(),
@@ -328,9 +330,35 @@ class SystemAssistantService
             'confidence' => $payload['confidence'],
             'answer' => $payload['answer'],
             'role_snapshot' => $roles,
-            'ip_address' => $request?->ip(),
-            'user_agent' => Str::limit((string) $request?->userAgent(), 500, ''),
+            'ip_address' => $shouldStoreRequestMeta ? $this->anonymizedRequestIp($request) : null,
+            'user_agent' => $shouldStoreRequestMeta ? $this->anonymizedUserAgent($request) : null,
         ]);
+    }
+
+    protected function anonymizedRequestIp(?Request $request): ?string
+    {
+        $ip = trim((string) $request?->ip());
+
+        if ($ip === '') {
+            return null;
+        }
+
+        $key = (string) config('app.key', config('app.name', 'rgc-system'));
+
+        return hash_hmac('sha1', $ip, $key);
+    }
+
+    protected function anonymizedUserAgent(?Request $request): ?string
+    {
+        $userAgent = trim((string) $request?->userAgent());
+
+        if ($userAgent === '') {
+            return null;
+        }
+
+        $key = (string) config('app.key', config('app.name', 'rgc-system'));
+
+        return hash_hmac('sha1', Str::limit($userAgent, 500, ''), $key);
     }
 
     /**

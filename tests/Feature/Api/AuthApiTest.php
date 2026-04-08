@@ -54,6 +54,7 @@ class AuthApiTest extends TestCase
             ->assertJsonStructure([
                 'token_type',
                 'access_token',
+                'expires_at',
                 'user' => ['id', 'email'],
             ])
             ->assertJson([
@@ -65,6 +66,7 @@ class AuthApiTest extends TestCase
 
         $this->assertNotEmpty($token);
         $this->assertSame(hash('sha256', $token), $user->fresh()->getRawOriginal('api_token'));
+        $this->assertNotNull($user->fresh()->api_token_expires_at);
     }
 
     public function test_api_me_returns_the_authenticated_user_for_a_valid_bearer_token(): void
@@ -92,8 +94,38 @@ class AuthApiTest extends TestCase
         $this->withHeader('Accept-Language', 'sw')
             ->getJson('/api/me')
             ->assertStatus(401)
+            ->assertHeader('x-content-type-options', 'nosniff')
             ->assertJson([
                 'message' => 'Hujaruhusiwa. Bearer token haipo.',
+            ]);
+    }
+
+    public function test_api_token_is_revoked_after_web_password_change(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $login = $this->postJson('/api/auth/login', [
+            'email' => 'superadmin@rgc.or.tz',
+            'password' => 'ChangeMe123!',
+        ]);
+
+        $token = $login->json('access_token');
+        $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $this->actingAs($user)
+            ->put(route('account.password.update'), [
+                'current_password' => 'ChangeMe123!',
+                'password' => 'ChangedThroughWeb123!',
+                'password_confirmation' => 'ChangedThroughWeb123!',
+            ])
+            ->assertRedirect(route('account.password.edit'));
+
+        $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->withHeader('Accept', 'application/json')
+            ->getJson('/api/me')
+            ->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthorized. Invalid token.',
             ]);
     }
 
@@ -118,6 +150,7 @@ class AuthApiTest extends TestCase
 
         $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
         $this->assertNull($user->fresh()->getRawOriginal('api_token'));
+        $this->assertNull($user->fresh()->api_token_expires_at);
 
         $this->withHeader('Authorization', 'Bearer ' . $token)
             ->withHeader('Accept', 'application/json')
@@ -126,6 +159,29 @@ class AuthApiTest extends TestCase
             ->assertJson([
                 'message' => 'Unauthorized. Invalid token.',
             ]);
+    }
+
+    public function test_api_rejects_an_expired_token_and_clears_it(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $user->forceFill([
+            'api_token' => hash('sha256', 'expired-api-token'),
+            'api_token_expires_at' => now()->subMinute(),
+        ])->save();
+
+        $this->withHeader('Authorization', 'Bearer expired-api-token')
+            ->withHeader('Accept', 'application/json')
+            ->getJson('/api/me')
+            ->assertStatus(401)
+            ->assertJson([
+                'message' => 'Unauthorized. Token expired.',
+            ]);
+
+        $user->refresh();
+        $this->assertNull($user->getRawOriginal('api_token'));
+        $this->assertNull($user->api_token_expires_at);
     }
 
     public function test_api_logout_message_uses_the_authenticated_user_locale(): void

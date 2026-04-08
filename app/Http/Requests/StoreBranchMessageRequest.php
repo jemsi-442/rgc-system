@@ -39,9 +39,22 @@ class StoreBranchMessageRequest extends FormRequest
             $message = trim((string) $this->input('message', ''));
             $hasLegacyAttachment = $this->hasFile('attachment');
             $hasAttachments = $this->hasFile('attachments');
+            $uploadedFiles = collect();
+
+            if ($hasLegacyAttachment) {
+                $uploadedFiles->push($this->file('attachment'));
+            }
+
+            if ($hasAttachments) {
+                $uploadedFiles = $uploadedFiles->merge(collect($this->file('attachments'))->filter());
+            }
 
             if ($message === '' && ! $hasLegacyAttachment && ! $hasAttachments) {
                 $validator->errors()->add('message', __('Write a message or attach a file.'));
+            }
+
+            if ($uploadedFiles->count() > 5) {
+                $validator->errors()->add('attachments', __('You can upload up to 5 attachments per message.'));
             }
 
             if (! $this->filled('parent_id') || ! $this->user()) {

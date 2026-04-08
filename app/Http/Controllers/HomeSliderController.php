@@ -11,6 +11,8 @@ class HomeSliderController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', HomeSlider::class);
+
         $sliders = HomeSlider::query()
             ->orderBy('sort_order')
             ->orderByDesc('created_at')
@@ -25,6 +27,8 @@ class HomeSliderController extends Controller
 
     public function create()
     {
+        $this->authorize('create', HomeSlider::class);
+
         return view('panel.sliders.create', [
             'slider' => new HomeSlider([
                 'is_active' => true,
@@ -35,6 +39,8 @@ class HomeSliderController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', HomeSlider::class);
+
         $validated = $this->validateSlider($request, true);
         $path = $request->file('image')->store('sliders', 'public');
 
@@ -51,11 +57,15 @@ class HomeSliderController extends Controller
 
     public function edit(HomeSlider $slider)
     {
+        $this->authorize('update', $slider);
+
         return view('panel.sliders.edit', compact('slider'));
     }
 
     public function update(Request $request, HomeSlider $slider): RedirectResponse
     {
+        $this->authorize('update', $slider);
+
         $validated = $this->validateSlider($request, false);
         $oldImagePath = $slider->image_path;
         $newPath = $oldImagePath;
@@ -81,6 +91,8 @@ class HomeSliderController extends Controller
 
     public function updateStatus(Request $request, HomeSlider $slider): RedirectResponse
     {
+        $this->authorize('update', $slider);
+
         $validated = $request->validate([
             'is_active' => ['required', 'boolean'],
         ]);
@@ -94,6 +106,8 @@ class HomeSliderController extends Controller
 
     public function updateSortOrder(Request $request, HomeSlider $slider): RedirectResponse
     {
+        $this->authorize('update', $slider);
+
         $validated = $request->validate([
             'sort_order' => ['required', 'integer', 'min:0', 'max:9999'],
         ]);
@@ -107,6 +121,8 @@ class HomeSliderController extends Controller
 
     public function destroy(HomeSlider $slider): RedirectResponse
     {
+        $this->authorize('delete', $slider);
+
         if ($slider->image_path) {
             Storage::disk('public')->delete($slider->image_path);
         }
@@ -128,7 +144,8 @@ class HomeSliderController extends Controller
             'is_active' => ['nullable', 'boolean'],
             'image' => array_values(array_filter([
                 $requireImage ? 'required' : 'nullable',
-                'image',
+                'file',
+                'mimes:jpg,jpeg,png,webp,gif',
                 'max:4096',
             ])),
         ]);

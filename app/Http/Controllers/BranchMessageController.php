@@ -324,8 +324,8 @@ class BranchMessageController extends Controller
             ->map(function (UploadedFile $file) use ($branchId): array {
                 return [
                     'path' => $file->store('branch-messages/' . $branchId, 'public'),
-                    'name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getClientMimeType(),
+                    'name' => $this->safeUploadedFilename($file),
+                    'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
                     'size' => $file->getSize(),
                 ];
             })
@@ -350,6 +350,7 @@ class BranchMessageController extends Controller
 
         $headers = [
             'Content-Type' => $attachment['mime_type'] ?: 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
         ];
         $filename = $attachment['name'] ?: basename($path);
 
@@ -358,8 +359,30 @@ class BranchMessageController extends Controller
         }
 
         $response = Storage::disk('public')->response($path, $filename, $headers);
-        $response->headers->set('Content-Disposition', 'inline; filename="' . addslashes($filename) . '"');
+        $disposition = $this->allowsInlineAttachment((string) ($attachment['mime_type'] ?? ''))
+            ? 'inline'
+            : 'attachment';
+
+        $response->headers->set('Content-Disposition', $disposition . '; filename="' . addslashes($filename) . '"');
 
         return $response;
+    }
+
+    private function allowsInlineAttachment(string $mimeType): bool
+    {
+        if (Str::startsWith($mimeType, 'image/')) {
+            return true;
+        }
+
+        return in_array($mimeType, ['application/pdf', 'text/plain'], true);
+    }
+
+    private function safeUploadedFilename(UploadedFile $file): string
+    {
+        $name = trim(basename((string) $file->getClientOriginalName()));
+        $name = preg_replace('/[\r\n\t]+/', ' ', $name) ?? $name;
+        $name = Str::limit($name, 180, '');
+
+        return $name !== '' ? $name : ($file->hashName() ?: 'upload');
     }
 }

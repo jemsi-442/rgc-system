@@ -13,16 +13,16 @@
             </div>
         </div>
 
-        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Secure Sign In') }}</span>
-        <h2 class="mt-5">{{ __('Enter the governance platform.') }}</h2>
+        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Sign In') }}</span>
+        <h2 class="mt-5">{{ __('Enter your church workspace.') }}</h2>
         <p class="mt-5 max-w-xl text-sm leading-7 text-white/80">
-            {{ __('Access is role-scoped from national leadership down to branch-level operations. Every session is tied to the user hierarchy already stored in the system.') }}
+            {{ __('Sign in with your registered account to continue with church updates, communication, and giving services.') }}
         </p>
 
         <ul class="auth-list mt-8 text-sm text-white/82">
-            <li><strong class="block text-white">{{ __('National to branch hierarchy') }}</strong> {{ __('Users only see data within approved governance scope.') }}</li>
-            <li><strong class="block text-white">{{ __('Session-protected web access') }}</strong> {{ __('Browser login powers dashboard, announcements, finance, and branch chat.') }}</li>
-            <li><strong class="block text-white">{{ __('Operational continuity') }}</strong> {{ __('Regions, districts, and headquarters records are already structured for RGC Tanzania.') }}</li>
+            <li><strong class="block text-white">{{ __('Use your account') }}</strong> {{ __('Enter with the email and password that were registered for you.') }}</li>
+            <li><strong class="block text-white">{{ __('Continue your journey') }}</strong> {{ __('Open updates, giving, and branch conversation from one place.') }}</li>
+            <li><strong class="block text-white">{{ __('Church location ready') }}</strong> {{ __('Church regions, districts, and branches are already prepared for RGC Tanzania.') }}</li>
         </ul>
     </aside>
 

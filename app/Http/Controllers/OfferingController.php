@@ -10,6 +10,8 @@ class OfferingController extends Controller
 {
     public function index()
     {
+        $this->authorize('viewAny', Offering::class);
+
         $offerings = Offering::query()
             ->where('church_id', auth()->user()->effectiveBranchId())
             ->orderByDesc('date')
@@ -26,11 +28,15 @@ class OfferingController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Offering::class);
+
         return view('panel.offerings.create');
     }
 
     public function store(StoreOfferingRequest $request)
     {
+        $this->authorize('create', Offering::class);
+
         Offering::query()->create([
             'church_id' => $request->user()->effectiveBranchId(),
             'recorded_by' => $request->user()->name,

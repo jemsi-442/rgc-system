@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
 {
@@ -19,9 +20,15 @@ class AccountController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+
+        $user->update([
             'password' => $validated['password'],
+            ...$user->invalidatedAuthAttributes(),
         ]);
+
+        Auth::logoutOtherDevices($validated['password']);
+        $request->session()->regenerate();
 
         return redirect()
             ->route('account.password.edit')

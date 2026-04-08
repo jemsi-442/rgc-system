@@ -18,7 +18,7 @@ class StoreUserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:25'],
+            'phone' => ['nullable', 'string', 'regex:/^255\d{9}$/'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['required', 'string', 'max:60'],
             'status' => ['nullable', 'in:active,inactive'],
@@ -26,6 +26,13 @@ class StoreUserRequest extends FormRequest
             'district_id' => ['required', 'integer', 'exists:districts,id'],
             'branch_id' => ['required', 'integer', 'exists:churches,id'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'phone' => $this->normalizeTanzaniaPhone($this->input('phone')),
+        ]);
     }
 
     public function withValidator($validator): void
@@ -40,7 +47,31 @@ class StoreUserRequest extends FormRequest
 
             if (! $branch || (int) $branch->district_id !== $this->integer('district_id')) {
                 $validator->errors()->add('branch_id', __('Branch must belong to selected district.'));
+                return;
+            }
+
+            if (($branch->status ?? 'active') !== 'active') {
+                $validator->errors()->add('branch_id', __('Selected branch is inactive. Choose an active branch before creating users there.'));
             }
         });
+    }
+
+    private function normalizeTanzaniaPhone(mixed $value): ?string
+    {
+        $phone = preg_replace('/\D+/', '', (string) $value) ?? '';
+
+        if ($phone === '') {
+            return null;
+        }
+
+        if (str_starts_with($phone, '0') && strlen($phone) === 10) {
+            return '255' . substr($phone, 1);
+        }
+
+        if (strlen($phone) === 9 && in_array($phone[0], ['6', '7'], true)) {
+            return '255' . $phone;
+        }
+
+        return $phone;
     }
 }

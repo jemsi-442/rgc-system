@@ -13,6 +13,17 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
+    public const SYSTEM_ROLE_RANK = [
+        'member' => 10,
+        'accountant' => 20,
+        'pastor' => 30,
+        'bishop' => 40,
+        'branch_admin' => 50,
+        'district_admin' => 60,
+        'regional_admin' => 70,
+        'super_admin' => 80,
+    ];
+
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
@@ -24,6 +35,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'api_token',
+        'api_token_expires_at',
         'role',
         'status',
         'locale',
@@ -44,6 +56,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'api_token_expires_at' => 'datetime',
         ];
     }
 
@@ -123,6 +136,61 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return ($this->status ?? 'active') === 'active';
+    }
+
+    public function invalidatedAuthAttributes(): array
+    {
+        return [
+            'api_token' => null,
+            'api_token_expires_at' => null,
+            'remember_token' => Str::random(60),
+        ];
+    }
+
+    public function issueApiToken(string $plainToken): array
+    {
+        $expiresAt = now()->addMinutes((int) config('auth.api_token_expire_minutes', 1440));
+
+        return [
+            'api_token' => hash('sha256', $plainToken),
+            'api_token_expires_at' => $expiresAt,
+        ];
+    }
+
+    public function apiTokenIsExpired(): bool
+    {
+        return $this->api_token_expires_at?->isPast() ?? true;
+    }
+
+    public function roleRank(?string $role = null): int
+    {
+        $normalized = $this->normalizedRoleName($role);
+
+        return self::SYSTEM_ROLE_RANK[$normalized] ?? 0;
+    }
+
+    public function canAssignSystemRole(string $role): bool
+    {
+        $targetRank = $this->roleRank($role);
+
+        if ($targetRank === 0) {
+            return false;
+        }
+
+        if ($this->hasSystemRole('super_admin')) {
+            return true;
+        }
+
+        return $targetRank < $this->roleRank();
+    }
+
+    public function outranks(User $target): bool
+    {
+        if ($this->hasSystemRole('super_admin')) {
+            return $this->id !== $target->id;
+        }
+
+        return $this->roleRank() > $target->roleRank();
     }
 
     public function effectiveBranchId(): ?int

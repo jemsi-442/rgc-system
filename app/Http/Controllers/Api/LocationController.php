@@ -37,6 +37,7 @@ class LocationController extends Controller
 
         $branches = Branch::query()
             ->where('district_id', $districtId)
+            ->where('status', 'active')
             ->orderBy('name')
             ->get();
 

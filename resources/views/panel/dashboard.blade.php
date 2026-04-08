@@ -58,9 +58,9 @@
         <div>
             <span class="section-kicker">{{ __('Snippe payments') }}</span>
             <h2 class="mt-5 text-2xl font-semibold">{{ __('Recent Payment Requests') }}</h2>
-            <p class="mt-2 text-sm text-black/65">{{ __('Monitor checkout links that are still waiting for payment and confirmed collections already posted into offerings.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Monitor direct payment prompts that are still waiting for approval and confirmed collections already posted into offerings.') }}</p>
         </div>
-        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Create payment link') }}</a>
+        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Send payment prompt') }}</a>
     </div>
 
     <div class="payment-request-grid mt-6">
@@ -80,13 +80,15 @@
                     <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
                     @if($payment->checkout_url && $payment->isPending())
                         <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @elseif($payment->isPending())
+                        <span class="btn-rgc w-full sm:w-auto pointer-events-none opacity-80">{{ __('Prompt sent') }}</span>
                     @endif
                 </div>
             </article>
         @empty
             <article class="announcement-empty-state">
                 <strong>{{ __('No Snippe payment requests created yet.') }}</strong>
-                <p>{{ __('Create your first payment link from the offerings workspace when you want donors to pay through Snippe checkout.') }}</p>
+                <p>{{ __('Create your first payment prompt from the offerings workspace when you want donors to pay through mobile money.') }}</p>
             </article>
         @endforelse
     </div>
@@ -146,6 +148,8 @@
                     </form>
                     @if($payment->checkout_url && $payment->isPending())
                         <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                    @elseif($payment->isPending())
+                        <span class="btn-rgc w-full sm:w-auto pointer-events-none opacity-80">{{ __('Prompt sent') }}</span>
                     @elseif($payment->isCompleted())
                         <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.index') }}">{{ __('Open offerings') }}</a>
                     @endif

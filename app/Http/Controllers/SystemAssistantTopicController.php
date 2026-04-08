@@ -14,6 +14,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -44,7 +45,8 @@ class SystemAssistantTopicController extends Controller
     public function index(Request $request): View
     {
         $manager = $request->user();
-        abort_unless($manager && $this->canManageTopics($manager), 403);
+        abort_unless($manager, 403);
+        $this->authorize('viewAny', SystemAssistantTopic::class);
 
         [$search, $locale, $scopeFilter, $topics] = $this->filteredTopics($request, $manager);
         $interactionSearch = trim((string) $request->string('interaction_q'));
@@ -142,7 +144,8 @@ class SystemAssistantTopicController extends Controller
     public function create(Request $request): View
     {
         $manager = $request->user();
-        abort_unless($manager && $this->canManageTopics($manager), 403);
+        abort_unless($manager, 403);
+        $this->authorize('create', SystemAssistantTopic::class);
 
         return view('panel.assistant.create', $this->formData(new SystemAssistantTopic(), $manager));
     }
@@ -150,7 +153,8 @@ class SystemAssistantTopicController extends Controller
     public function store(StoreSystemAssistantTopicRequest $request): RedirectResponse
     {
         $manager = $request->user();
-        abort_unless($manager && $this->canManageTopics($manager), 403);
+        abort_unless($manager, 403);
+        $this->authorize('create', SystemAssistantTopic::class);
 
         $topic = SystemAssistantTopic::query()->create($this->payloadFromRequest($request, auth()->id(), $manager));
         $this->snapshotTopic($topic, 'created');
@@ -164,7 +168,7 @@ class SystemAssistantTopicController extends Controller
     {
         $manager = $request->user();
         abort_unless($manager, 403);
-        $this->ensureCanManageTopic($manager, $topic);
+        $this->authorizeTopicVisibility('view', $manager, $topic);
 
         $versionSearch = trim((string) $request->string('version_q'));
         $versionAction = trim((string) $request->string('version_action'));
@@ -194,7 +198,7 @@ class SystemAssistantTopicController extends Controller
     {
         $manager = $request->user();
         abort_unless($manager, 403);
-        $this->ensureCanManageTopic($manager, $topic);
+        $this->authorizeTopicVisibility('update', $manager, $topic);
 
         $topic->update($this->payloadFromRequest($request, auth()->id(), $manager, $topic));
         $this->snapshotTopic($topic, 'updated');
@@ -208,7 +212,7 @@ class SystemAssistantTopicController extends Controller
     {
         $manager = $request->user();
         abort_unless($manager, 403);
-        $this->ensureCanManageTopic($manager, $topic);
+        $this->authorizeTopicVisibility('delete', $manager, $topic);
 
         $this->snapshotTopic($topic, 'deleted');
         $topic->delete();
@@ -220,7 +224,7 @@ class SystemAssistantTopicController extends Controller
 
     public function restoreDefaults(Request $request): RedirectResponse
     {
-        abort_unless($request->user()?->hasSystemRole('super_admin') ?? false, 403);
+        $this->authorize('restoreDefaults', SystemAssistantTopic::class);
 
         DB::transaction(function (): void {
             foreach (SystemAssistantKnowledge::defaultRows() as $row) {
@@ -258,7 +262,8 @@ class SystemAssistantTopicController extends Controller
     public function export(Request $request)
     {
         $manager = $request->user();
-        abort_unless($manager && $this->canManageTopics($manager), 403);
+        abort_unless($manager, 403);
+        $this->authorize('export', SystemAssistantTopic::class);
 
         [, , , $topics] = $this->filteredTopics($request, $manager, false);
 
@@ -289,7 +294,7 @@ class SystemAssistantTopicController extends Controller
 
     public function import(Request $request): RedirectResponse
     {
-        abort_unless($request->user()?->hasSystemRole('super_admin') ?? false, 403);
+        $this->authorize('import', SystemAssistantTopic::class);
 
         $validated = $request->validate([
             'topics_file' => ['required', 'file', 'mimes:json,txt', 'max:2048'],
@@ -383,7 +388,7 @@ class SystemAssistantTopicController extends Controller
     {
         $manager = $request->user();
         abort_unless($manager, 403);
-        $this->ensureCanManageTopic($manager, $topic);
+        $this->authorizeTopicVisibility('restoreVersion', $manager, $topic);
         abort_unless($version->topic_id === $topic->id, 404);
 
         $hasConflict = SystemAssistantTopic::query()
@@ -543,22 +548,9 @@ class SystemAssistantTopicController extends Controller
         ]);
     }
 
-    private function canManageTopics(User $user): bool
+    private function authorizeTopicVisibility(string $ability, User $user, SystemAssistantTopic $topic): void
     {
-        if ($user->hasSystemRole('super_admin')) {
-            return true;
-        }
-
-        return $user->hasSystemRole('regional_admin') && ! blank($user->region_id);
-    }
-
-    private function ensureCanManageTopic(User $user, SystemAssistantTopic $topic): void
-    {
-        if ($user->hasSystemRole('super_admin')) {
-            return;
-        }
-
-        abort_unless($user->hasSystemRole('regional_admin') && (int) $topic->region_id === (int) $user->region_id, 404);
+        abort_unless(Gate::forUser($user)->allows($ability, $topic), 404);
     }
 
     private function resolvedRegionId(Request $request, User $manager): ?int

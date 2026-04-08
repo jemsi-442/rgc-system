@@ -3,6 +3,8 @@
 namespace Tests\Feature\SystemAssistant;
 
 use App\Models\SystemAssistantInteraction;
+use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -103,5 +105,78 @@ class SystemAssistantTest extends TestCase
             'helpful' => false,
             'feedback_note' => 'Need step by step guidance for church members.',
         ]);
+    }
+
+    public function test_assistant_feedback_cannot_be_submitted_from_another_session(): void
+    {
+        $response = $this->postJson(route('assistant.chat'), [
+            'question' => 'How do I register a new account?',
+        ]);
+
+        $interactionId = $response->json('interaction_id');
+
+        $this->flushSession();
+
+        $this->postJson(route('assistant.feedback', $interactionId), [
+            'helpful' => true,
+        ])->assertForbidden();
+
+        $interaction = SystemAssistantInteraction::query()->findOrFail($interactionId);
+
+        $this->assertNull($interaction->helpful);
+        $this->assertNull($interaction->feedback_submitted_at);
+    }
+
+    public function test_assistant_prune_command_removes_old_anonymous_and_expired_history(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $user = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+
+        $oldAnonymous = SystemAssistantInteraction::query()->create([
+            'user_id' => null,
+            'locale' => 'en',
+            'question' => 'Anonymous old question',
+            'normalized_question' => 'anonymous old question',
+            'matched_slug' => 'system-help',
+            'source' => 'fallback',
+            'confidence' => 0,
+            'answer' => 'Fallback answer',
+            'created_at' => now()->subDays(45),
+            'updated_at' => now()->subDays(45),
+        ]);
+
+        $oldAuthenticated = SystemAssistantInteraction::query()->create([
+            'user_id' => $user->id,
+            'locale' => 'en',
+            'question' => 'Authenticated old question',
+            'normalized_question' => 'authenticated old question',
+            'matched_slug' => 'system-help',
+            'source' => 'fallback',
+            'confidence' => 0,
+            'answer' => 'Fallback answer',
+            'created_at' => now()->subDays(400),
+            'updated_at' => now()->subDays(400),
+        ]);
+
+        $recentAnonymous = SystemAssistantInteraction::query()->create([
+            'user_id' => null,
+            'locale' => 'en',
+            'question' => 'Anonymous recent question',
+            'normalized_question' => 'anonymous recent question',
+            'matched_slug' => 'system-help',
+            'source' => 'fallback',
+            'confidence' => 0,
+            'answer' => 'Fallback answer',
+            'created_at' => now()->subDays(10),
+            'updated_at' => now()->subDays(10),
+        ]);
+
+        $this->artisan('assistant:prune-interactions', ['--days' => 365, '--guest-days' => 30])
+            ->assertExitCode(0);
+
+        $this->assertDatabaseMissing('system_assistant_interactions', ['id' => $oldAnonymous->id]);
+        $this->assertDatabaseMissing('system_assistant_interactions', ['id' => $oldAuthenticated->id]);
+        $this->assertDatabaseHas('system_assistant_interactions', ['id' => $recentAnonymous->id]);
     }
 }

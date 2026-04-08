@@ -58,6 +58,7 @@ class UserManagementTest extends TestCase
 
         $this->assertTrue($created->hasSystemRole('regional_admin'));
         $this->assertSame($region->id, $created->region_id);
+        $this->assertSame('255712345678', $created->phone);
         $this->assertTrue(Hash::check('NewLeader123!', $created->password));
     }
 
@@ -68,6 +69,7 @@ class UserManagementTest extends TestCase
         [$region, $district, $branch] = $this->darHeadquartersContext();
         $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
         $target = $this->makeUser('district_admin', $region, $district, $branch, 'district.manage@rgc.test');
+        $target->forceFill(['api_token' => hash('sha256', 'stale-api-token')])->save();
 
         $this->actingAs($superAdmin, 'web')
             ->put(route('admin.users.update', $target), [
@@ -87,7 +89,9 @@ class UserManagementTest extends TestCase
 
         $this->assertSame('Updated District Manager', $target->name);
         $this->assertTrue($target->hasSystemRole('regional_admin'));
+        $this->assertSame('255755000000', $target->phone);
         $this->assertTrue(Hash::check('ResetUser123!', $target->password));
+        $this->assertNull($target->getRawOriginal('api_token'));
     }
 
     public function test_super_admin_can_promote_a_member_into_branch_admin_access(): void
@@ -167,6 +171,7 @@ class UserManagementTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $superAdmin = User::query()->where('email', 'superadmin@rgc.or.tz')->firstOrFail();
+        $superAdmin->forceFill(['api_token' => hash('sha256', 'old-self-token')])->save();
 
         $this->actingAs($superAdmin, 'web')
             ->put(route('account.password.update'), [
@@ -178,6 +183,7 @@ class UserManagementTest extends TestCase
 
         $superAdmin->refresh();
         $this->assertTrue(Hash::check('MyNewSecure123!', $superAdmin->password));
+        $this->assertNull($superAdmin->getRawOriginal('api_token'));
     }
 
     private function darHeadquartersContext(): array

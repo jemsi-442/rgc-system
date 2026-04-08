@@ -27,7 +27,9 @@ class HomeSliderTest extends TestCase
         ]);
 
         $this->get(route('slides.show', $slider))
-            ->assertOk();
+            ->assertOk()
+            ->assertHeader('cache-control', 'public, max-age=86400')
+            ->assertHeader('x-content-type-options', 'nosniff');
     }
 
     public function test_public_slide_route_returns_not_found_when_the_file_is_missing(): void
@@ -39,6 +41,24 @@ class HomeSliderTest extends TestCase
             'subtitle' => 'Should not render',
             'image_path' => 'sliders/missing.jpg',
             'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('slides.show', $slider))
+            ->assertNotFound();
+    }
+
+    public function test_public_slide_route_returns_not_found_for_inactive_slide_even_when_file_exists(): void
+    {
+        Storage::fake('public');
+
+        $path = UploadedFile::fake()->image('hidden-hero.jpg')->store('sliders', 'public');
+
+        $slider = HomeSlider::query()->create([
+            'title' => 'Hidden slide',
+            'subtitle' => 'Should not be accessible publicly',
+            'image_path' => $path,
+            'is_active' => false,
             'sort_order' => 1,
         ]);
 
