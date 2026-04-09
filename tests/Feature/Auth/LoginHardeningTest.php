@@ -67,7 +67,9 @@ class LoginHardeningTest extends TestCase
             ->assertOk()
             ->assertSee('Manage users');
 
-        $this->post(route('logout'))->assertRedirect(route('home'));
+        $this->post(route('logout'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status', 'Signed out successfully. Sign in again when you are ready.');
         $this->assertGuest();
 
         foreach ($accounts as [$account, $expectedHeading]) {
@@ -80,9 +82,29 @@ class LoginHardeningTest extends TestCase
                 ->assertOk()
                 ->assertSee($expectedHeading);
 
-            $this->post(route('logout'))->assertRedirect(route('home'));
+            $this->post(route('logout'))
+                ->assertRedirect(route('login'))
+                ->assertSessionHas('status', 'Signed out successfully. Sign in again when you are ready.');
             $this->assertGuest();
         }
+    }
+
+    public function test_stale_login_csrf_token_redirects_back_to_login_with_friendly_message(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        $response = $this->withCookie('XSRF-TOKEN', 'stale-token')
+            ->post(route('login.attempt'), [
+                '_token' => 'stale-token',
+                'email' => 'superadmin@rgc.or.tz',
+                'password' => 'ChangeMe123!',
+            ]);
+
+        $response
+            ->assertRedirect(route('login'))
+            ->assertSessionHasErrors([
+                'email' => 'Your session expired. Please sign in again.',
+            ]);
     }
 
     private function darHeadquartersContext(): array
