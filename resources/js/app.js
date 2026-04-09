@@ -6,6 +6,7 @@ const branchSelect = document.querySelector('[data-branch-select]');
 const roleSelect = document.querySelector('[data-role-select]');
 const roleGuidancePanel = document.querySelector('[data-role-guidance-panel]');
 const csrfRefreshOnRestore = document.querySelector('[data-csrf-refresh-on-restore]');
+const authForms = Array.from(document.querySelectorAll('[data-auth-form]'));
 const districtField = document.querySelector('[data-district-field]');
 const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
@@ -187,6 +188,52 @@ if (csrfRefreshOnRestore) {
     if (restoredFromCache) {
       window.location.reload();
     }
+  });
+}
+
+if (csrfRefreshOnRestore && authForms.length > 0) {
+  const csrfEndpoint = csrfRefreshOnRestore.dataset.csrfRefreshEndpoint;
+  const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
+
+  authForms.forEach((form) => {
+    form.addEventListener('submit', async (event) => {
+      if (form.dataset.csrfReady === 'true' || !csrfEndpoint) {
+        form.dataset.csrfReady = 'false';
+        return;
+      }
+
+      event.preventDefault();
+
+      try {
+        const response = await fetch(csrfEndpoint, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const payload = await response.json();
+          const freshToken = payload?.token;
+          const csrfField = form.querySelector('input[name="_token"]');
+
+          if (freshToken && csrfField) {
+            csrfField.value = freshToken;
+
+            if (csrfMetaTag) {
+              csrfMetaTag.setAttribute('content', freshToken);
+            }
+          }
+        }
+      } catch (_error) {
+        // If the refresh request fails temporarily, continue with the current token.
+      }
+
+      form.dataset.csrfReady = 'true';
+      form.requestSubmit();
+    });
   });
 }
 

@@ -3,7 +3,7 @@
 @section('title', __('Register') . ' - RGC')
 
 @section('content')
-<div class="auth-grid" data-csrf-refresh-on-restore>
+<div class="auth-grid" data-csrf-refresh-on-restore data-csrf-refresh-endpoint="{{ route('csrf.refresh') }}">
     <aside class="auth-aside">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Member Onboarding') }}</span>
         <h2 class="mt-5">{{ __('Join through your church location.') }}</h2>
@@ -24,7 +24,7 @@
             <h1 class="mt-5 font-[family-name:var(--font-display)] text-4xl leading-none">{{ __('Create your church account') }}</h1>
             <p class="mt-4 form-hint">{{ __('Each new account is connected to the right church location before access begins.') }}</p>
 
-            <form class="mt-8 grid gap-5 md:grid-cols-2" method="POST" action="{{ route('register.store') }}">
+            <form class="mt-8 grid gap-5 md:grid-cols-2" method="POST" action="{{ route('register.store') }}" data-auth-form>
                 @csrf
 
                 <div class="md:col-span-2">

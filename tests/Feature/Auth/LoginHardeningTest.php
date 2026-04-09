@@ -40,11 +40,23 @@ class LoginHardeningTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertSee('data-csrf-refresh-on-restore', false)
+            ->assertSee(route('csrf.refresh'), false)
             ->assertDontSee('superadmin@rgc.or.tz')
             ->assertDontSee('regionaladmin@rgc.or.tz')
             ->assertDontSee('districtadmin@rgc.or.tz')
             ->assertDontSee('branchadmin@rgc.or.tz')
             ->assertDontSee('Local QA access');
+    }
+
+    public function test_csrf_refresh_endpoint_returns_a_fresh_token(): void
+    {
+        $response = $this->getJson(route('csrf.refresh'));
+
+        $response
+            ->assertOk()
+            ->assertJsonStructure(['token']);
+
+        $this->assertNotEmpty($response->json('token'));
     }
 
     public function test_super_admin_created_role_accounts_can_open_their_expected_dashboards(): void

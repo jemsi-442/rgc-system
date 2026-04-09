@@ -3,7 +3,7 @@
 @section('title', __('Login') . ' - RGC')
 
 @section('content')
-<div class="auth-grid" data-csrf-refresh-on-restore>
+<div class="auth-grid" data-csrf-refresh-on-restore data-csrf-refresh-endpoint="{{ route('csrf.refresh') }}">
     <aside class="auth-aside">
         <div class="auth-brand-lockup">
             <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="auth-brand-logo">
@@ -34,7 +34,7 @@
 
 
 
-            <form class="mt-8 space-y-5" method="POST" action="{{ route('login.attempt') }}">
+            <form class="mt-8 space-y-5" method="POST" action="{{ route('login.attempt') }}" data-auth-form>
                 @csrf
 
                 <div>

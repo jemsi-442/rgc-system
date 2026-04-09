@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\Region;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,15 @@ class AuthController extends Controller
     public function showLogin(): View
     {
         return view('auth.login');
+    }
+
+    public function refreshCsrfToken(Request $request): JsonResponse
+    {
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'token' => $request->session()->token(),
+        ]);
     }
 
     public function login(Request $request): RedirectResponse

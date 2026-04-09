@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/media/slides/{slider}', [PublicController::class, 'slide'])->name('slides.show');
+Route::get('/csrf-token', [AuthController::class, 'refreshCsrfToken'])->name('csrf.refresh');
 Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 Route::post('/assistant/chat', [SystemAssistantController::class, 'reply'])
     ->middleware('throttle:30,1')
