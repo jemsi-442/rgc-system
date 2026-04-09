@@ -5,6 +5,7 @@ const districtSelect = document.querySelector('[data-district-select]');
 const branchSelect = document.querySelector('[data-branch-select]');
 const roleSelect = document.querySelector('[data-role-select]');
 const roleGuidancePanel = document.querySelector('[data-role-guidance-panel]');
+const csrfRefreshOnRestore = document.querySelector('[data-csrf-refresh-on-restore]');
 const districtField = document.querySelector('[data-district-field]');
 const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
@@ -175,6 +176,17 @@ if (roleSelect) {
 
   roleSelect.addEventListener('change', (event) => {
     syncRoleGuidance(event.target.value);
+  });
+}
+
+if (csrfRefreshOnRestore) {
+  window.addEventListener('pageshow', (event) => {
+    const navigationEntry = window.performance?.getEntriesByType?.('navigation')?.[0];
+    const restoredFromCache = event.persisted || navigationEntry?.type === 'back_forward';
+
+    if (restoredFromCache) {
+      window.location.reload();
+    }
   });
 }
 

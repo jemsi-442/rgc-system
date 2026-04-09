@@ -3,7 +3,7 @@
 @section('title', __('Login') . ' - RGC')
 
 @section('content')
-<div class="auth-grid">
+<div class="auth-grid" data-csrf-refresh-on-restore>
     <aside class="auth-aside">
         <div class="auth-brand-lockup">
             <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="auth-brand-logo">

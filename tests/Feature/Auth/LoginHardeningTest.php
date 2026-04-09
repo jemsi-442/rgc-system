@@ -39,6 +39,7 @@ class LoginHardeningTest extends TestCase
 
         $this->get(route('login'))
             ->assertOk()
+            ->assertSee('data-csrf-refresh-on-restore', false)
             ->assertDontSee('superadmin@rgc.or.tz')
             ->assertDontSee('regionaladmin@rgc.or.tz')
             ->assertDontSee('districtadmin@rgc.or.tz')

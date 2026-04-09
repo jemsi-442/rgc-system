@@ -3,7 +3,7 @@
 @section('title', __('Register') . ' - RGC')
 
 @section('content')
-<div class="auth-grid">
+<div class="auth-grid" data-csrf-refresh-on-restore>
     <aside class="auth-aside">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Member Onboarding') }}</span>
         <h2 class="mt-5">{{ __('Join through your church location.') }}</h2>
