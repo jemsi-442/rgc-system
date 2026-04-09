@@ -251,6 +251,7 @@
     let replyingTo = null;
     let eventSource = null;
     let fallbackInterval = null;
+    let reconnectTimeout = null;
 
     if (!thread || !list || !form || !textarea || !fileInput) {
         return;
@@ -872,6 +873,7 @@
     const fetchLatestMessages = async (options = {}) => {
         try {
             const response = await fetch(feedUrl, {
+                cache: 'no-store',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json',
@@ -895,8 +897,30 @@
         }
 
         fallbackInterval = window.setInterval(() => {
-            fetchLatestMessages();
-        }, 12000);
+            if (document.visibilityState !== 'hidden') {
+                fetchLatestMessages();
+            }
+        }, 3500);
+    };
+
+    const stopFallbackRefresh = () => {
+        if (!fallbackInterval) {
+            return;
+        }
+
+        window.clearInterval(fallbackInterval);
+        fallbackInterval = null;
+    };
+
+    const scheduleRealtimeReconnect = () => {
+        if (reconnectTimeout) {
+            return;
+        }
+
+        reconnectTimeout = window.setTimeout(() => {
+            reconnectTimeout = null;
+            connectRealtimeStream();
+        }, 2500);
     };
 
     const connectRealtimeStream = () => {
@@ -907,11 +931,23 @@
             return;
         }
 
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+
         eventSource = new EventSource(streamUrl);
+
+        eventSource.onopen = () => {
+            clearFeedback();
+            setStatusTone('live');
+            stopFallbackRefresh();
+        };
 
         eventSource.addEventListener('snapshot', (event) => {
             clearFeedback();
             setStatusTone('live');
+            stopFallbackRefresh();
 
             try {
                 const data = JSON.parse(event.data ?? '[]');
@@ -922,8 +958,16 @@
         });
 
         eventSource.onerror = () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+
             setStatusTone('warning');
             showFeedback(streamLostLabel, 'info');
+            fetchLatestMessages();
+            startFallbackRefresh();
+            scheduleRealtimeReconnect();
         };
     };
 
@@ -1002,6 +1046,12 @@
 
     ['click', 'keydown', 'touchstart'].forEach((eventName) => {
         window.addEventListener(eventName, unlockAudio, { once: true, passive: true });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            fetchLatestMessages();
+        }
     });
 
     thread.addEventListener('scroll', () => {

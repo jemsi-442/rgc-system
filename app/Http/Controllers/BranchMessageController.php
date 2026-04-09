@@ -203,6 +203,20 @@ class BranchMessageController extends Controller
     private function messageCollection(User $user): Collection
     {
         return BranchMessage::query()
+            ->select([
+                'id',
+                'church_id',
+                'user_id',
+                'parent_id',
+                'message',
+                'attachment_path',
+                'attachment_name',
+                'attachment_mime_type',
+                'attachment_size',
+                'attachments',
+                'created_at',
+                'updated_at',
+            ])
             ->with(['user:id,name', 'parent.user:id,name'])
             ->where('church_id', $user->effectiveBranchId())
             ->latest()
