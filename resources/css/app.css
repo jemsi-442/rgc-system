@@ -2025,39 +2025,61 @@ body::before {
   gap: 0.55rem;
 }
 
-.chat-message-delete {
+.chat-message-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
   border-radius: 9999px;
-  border: 1px solid rgba(192, 0, 0, 0.18);
+  border: 1px solid rgba(23, 23, 23, 0.08);
   background: rgba(255, 255, 255, 0.88);
-  padding: 0.36rem 0.74rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--rgc-red-deep);
+  color: rgba(23, 23, 23, 0.68);
+  transition: transform 140ms ease, background 140ms ease, color 140ms ease, box-shadow 140ms ease;
 }
 
-.chat-message-delete:hover {
-  background: rgba(255, 240, 240, 0.98);
+.chat-message-action svg {
+  width: 0.98rem;
+  height: 0.98rem;
+}
+
+.chat-message-action:hover {
   transform: translateY(-1px);
 }
 
-.chat-message-delete:disabled {
+.chat-message-action:disabled {
   cursor: wait;
   opacity: 0.7;
   transform: none;
 }
 
-.chat-bubble.is-mine .chat-message-delete {
+.chat-message-action--reply:hover {
+  background: rgba(255, 248, 223, 0.98);
+  color: var(--rgc-red-deep);
+}
+
+.chat-message-action--edit:hover {
+  background: rgba(248, 248, 248, 0.98);
+  color: rgba(23, 23, 23, 0.86);
+}
+
+.chat-message-action--delete {
+  color: var(--rgc-red-deep);
+}
+
+.chat-message-action--delete:hover {
+  background: rgba(255, 240, 240, 0.98);
+  color: var(--rgc-red-deep);
+}
+
+.chat-bubble.is-mine .chat-message-action {
   border-color: rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.12);
   color: var(--color-rgc-white);
 }
 
-.chat-bubble.is-mine .chat-message-delete:hover {
+.chat-bubble.is-mine .chat-message-action:hover {
   background: rgba(255, 255, 255, 0.18);
 }
 
@@ -2080,36 +2102,6 @@ body::before {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
-}
-
-.chat-message-edit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid rgba(23, 23, 23, 0.1);
-  background: rgba(255, 255, 255, 0.88);
-  padding: 0.36rem 0.74rem;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(23, 23, 23, 0.76);
-}
-
-.chat-message-edit:hover {
-  background: rgba(255, 248, 223, 0.96);
-  transform: translateY(-1px);
-}
-
-.chat-bubble.is-mine .chat-message-edit {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-rgc-white);
-}
-
-.chat-bubble.is-mine .chat-message-edit:hover {
-  background: rgba(255, 255, 255, 0.18);
 }
 
 .chat-edited-label {
@@ -2168,11 +2160,10 @@ body::before {
     width: 100%;
   }
 
-  .chat-message-edit,
-  .chat-message-delete,
+  .chat-message-action,
   .chat-edit-cancel,
   .chat-edit-actions .btn-rgc {
-    flex: 1 1 0;
+    flex: 0 0 auto;
   }
 }
 
@@ -2276,8 +2267,7 @@ body::before {
   margin-bottom: 0;
 }
 
-.chat-reply-cancel,
-.chat-message-reply {
+.chat-reply-cancel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2292,20 +2282,9 @@ body::before {
   color: rgba(23, 23, 23, 0.74);
 }
 
-.chat-reply-cancel:hover,
-.chat-message-reply:hover {
+.chat-reply-cancel:hover {
   background: rgba(255, 248, 223, 0.98);
   transform: translateY(-1px);
-}
-
-.chat-bubble.is-mine .chat-message-reply {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-rgc-white);
-}
-
-.chat-bubble.is-mine .chat-message-reply:hover {
-  background: rgba(255, 255, 255, 0.18);
 }
 
 .chat-compose-actions {
@@ -2396,7 +2375,6 @@ body::before {
   }
 
   .chat-reply-cancel,
-  .chat-message-reply,
   .chat-selected-chip {
     width: 100%;
     justify-content: center;

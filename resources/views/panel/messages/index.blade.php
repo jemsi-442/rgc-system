@@ -547,16 +547,23 @@
 
         return `
             <button
-                class="chat-message-edit"
+                class="chat-message-action chat-message-action--edit"
                 type="button"
                 title="${escapeHtml(editMessageLabel)}"
+                aria-label="${escapeHtml(editMessageLabel)}"
                 data-chat-edit
                 data-message-id="${escapeHtml(item.id ?? '')}"
                 data-edit-url="${escapeHtml(item.edit_url)}"
                 data-message-content="${escapeHtml(item.message ?? '')}"
                 data-default-label="${escapeHtml(editLabel)}"
                 data-loading-label="${escapeHtml(editingLabel)}"
-            >${escapeHtml(editLabel)}</button>
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 20h4l10.4-10.4a2 2 0 0 0 0-2.83l-1.17-1.17a2 2 0 0 0-2.83 0L4 16v4Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    <path d="m13.5 6.5 4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                </svg>
+                <span class="sr-only">${escapeHtml(editLabel)}</span>
+            </button>
         `;
     };
 
@@ -567,13 +574,23 @@
 
         return `
             <button
-                class="chat-message-delete"
+                class="chat-message-action chat-message-action--delete"
                 type="button"
+                title="${escapeHtml(deleteLabel)}"
+                aria-label="${escapeHtml(deleteLabel)}"
                 data-chat-delete
                 data-delete-url="${escapeHtml(item.delete_url)}"
                 data-default-label="${escapeHtml(deleteLabel)}"
                 data-loading-label="${escapeHtml(deletingLabel)}"
-            >${escapeHtml(deleteLabel)}</button>
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 7h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    <path d="M9 7V4.8A.8.8 0 0 1 9.8 4h4.4a.8.8 0 0 1 .8.8V7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    <path d="M7.5 7 8.3 19a1 1 0 0 0 1 .93h5.4a1 1 0 0 0 1-.93L16.5 7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    <path d="M10 11.2v4.8M14 11.2v4.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                </svg>
+                <span class="sr-only">${escapeHtml(deleteLabel)}</span>
+            </button>
         `;
     };
 
@@ -584,11 +601,19 @@
 
         return `
             <button
-                class="chat-message-reply"
+                class="chat-message-action chat-message-action--reply"
                 type="button"
+                title="${escapeHtml(replyLabel)}"
+                aria-label="${escapeHtml(replyLabel)}"
                 data-chat-reply
                 data-message-id="${escapeHtml(item.id)}"
-            >${escapeHtml(replyLabel)}</button>
+            >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 8 4 12l5 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    <path d="M20 18c0-4.42-3.58-8-8-8H4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                </svg>
+                <span class="sr-only">${escapeHtml(replyLabel)}</span>
+            </button>
         `;
     };
 
