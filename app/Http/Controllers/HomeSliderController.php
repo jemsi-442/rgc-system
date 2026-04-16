@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HomeSlider;
+use App\Support\SafeImageUpload;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -42,12 +43,16 @@ class HomeSliderController extends Controller
         $this->authorize('create', HomeSlider::class);
 
         $validated = $this->validateSlider($request, true);
-        $path = $request->file('image')->store('sliders', 'public');
+        $image = SafeImageUpload::storePublicImage(
+            $request->file('image'),
+            'sliders',
+            $request->file('image')->getClientOriginalName()
+        );
 
         HomeSlider::query()->create([
             'title' => $validated['title'],
             'subtitle' => $validated['subtitle'] ?? null,
-            'image_path' => $path,
+            'image_path' => $image['path'],
             'is_active' => (bool) ($validated['is_active'] ?? true),
             'sort_order' => (int) ($validated['sort_order'] ?? ((int) HomeSlider::query()->max('sort_order') + 1)),
         ]);
@@ -71,7 +76,11 @@ class HomeSliderController extends Controller
         $newPath = $oldImagePath;
 
         if ($request->hasFile('image')) {
-            $newPath = $request->file('image')->store('sliders', 'public');
+            $newPath = SafeImageUpload::storePublicImage(
+                $request->file('image'),
+                'sliders',
+                $request->file('image')->getClientOriginalName()
+            )['path'];
         }
 
         $slider->update([

@@ -73,6 +73,7 @@ class BranchMessage extends Model
         }
 
         return [[
+            'disk' => 'public',
             'path' => $this->attachment_path,
             'name' => $this->attachment_name,
             'mime_type' => $this->attachment_mime_type,
@@ -156,6 +157,7 @@ class BranchMessage extends Model
     private function normalizeAttachmentItem(mixed $item): array
     {
         return [
+            'disk' => Arr::get($item, 'disk', 'public'),
             'path' => Arr::get($item, 'path'),
             'name' => Arr::get($item, 'name'),
             'mime_type' => Arr::get($item, 'mime_type'),

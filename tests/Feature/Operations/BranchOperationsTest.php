@@ -123,6 +123,7 @@ class BranchOperationsTest extends TestCase
     public function test_member_can_upload_multiple_branch_chat_attachments(): void
     {
         Storage::fake('public');
+        Storage::fake('local');
         $this->seed(DatabaseSeeder::class);
 
         [$region, $district, $branch] = $this->darHeadquartersContext();
@@ -144,8 +145,10 @@ class BranchOperationsTest extends TestCase
         $this->assertCount(2, $attachmentItems);
         $this->assertSame('service-photo.jpg', $attachmentItems[0]['name']);
         $this->assertSame('weekly-report.pdf', $attachmentItems[1]['name']);
-        Storage::disk('public')->assertExists($attachmentItems[0]['path']);
-        Storage::disk('public')->assertExists($attachmentItems[1]['path']);
+        $this->assertSame('local', $attachmentItems[0]['disk']);
+        $this->assertSame('local', $attachmentItems[1]['disk']);
+        Storage::disk('local')->assertExists($attachmentItems[0]['path']);
+        Storage::disk('local')->assertExists($attachmentItems[1]['path']);
 
         $this->actingAs($member)
             ->get(route('messages.attachments.show', ['message' => $message, 'index' => 1]))
@@ -574,6 +577,7 @@ class BranchOperationsTest extends TestCase
         $this->assertNull($announcement->district_id);
         $this->assertNull($announcement->church_id);
         $this->assertNotNull($announcement->image_path);
+        $this->assertContains($announcement->image_mime_type, ['image/jpeg', 'image/png']);
         Storage::disk('public')->assertExists($announcement->image_path);
 
         $this->actingAs($member)

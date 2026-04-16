@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -100,12 +101,14 @@ class BranchMessageController extends Controller
         $this->authorize('delete', $message);
 
         collect($message->attachmentItems())
-            ->pluck('path')
             ->filter()
-            ->unique()
-            ->each(function (string $path): void {
-                if (Storage::disk('public')->exists($path)) {
-                    Storage::disk('public')->delete($path);
+            ->unique(fn (array $attachment) => $this->attachmentDisk($attachment) . '|' . ($attachment['path'] ?? ''))
+            ->each(function (array $attachment): void {
+                $path = (string) ($attachment['path'] ?? '');
+                $disk = $this->attachmentDisk($attachment);
+
+                if ($path !== '' && Storage::disk($disk)->exists($path)) {
+                    Storage::disk($disk)->delete($path);
                 }
             });
 
@@ -326,7 +329,7 @@ class BranchMessageController extends Controller
 
     /**
      * @param  Collection<int, UploadedFile>  $files
-     * @return array<int, array{path:string,name:string|null,mime_type:string|null,size:int|null}>
+     * @return array<int, array{disk:string,path:string,name:string|null,mime_type:string|null,size:int|null}>
      */
     private function storeAttachments(Collection $files, ?int $branchId): array
     {
@@ -336,10 +339,13 @@ class BranchMessageController extends Controller
 
         return $files
             ->map(function (UploadedFile $file) use ($branchId): array {
+                $mimeType = $this->validatedAttachmentMimeType($file);
+
                 return [
-                    'path' => $file->store('branch-messages/' . $branchId, 'public'),
+                    'disk' => 'local',
+                    'path' => $file->store('branch-messages/' . $branchId, 'local'),
                     'name' => $this->safeUploadedFilename($file),
-                    'mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+                    'mime_type' => $mimeType,
                     'size' => $file->getSize(),
                 ];
             })
@@ -355,24 +361,26 @@ class BranchMessageController extends Controller
     }
 
     /**
-     * @param  array{path:string,name:string|null,mime_type:string|null,size:int|null}  $attachment
+     * @param  array{disk?:string,path:string,name:string|null,mime_type:string|null,size:int|null}  $attachment
      */
     private function streamAttachment(Request $request, array $attachment): Response
     {
         $path = $attachment['path'];
-        abort_unless(filled($path) && Storage::disk('public')->exists($path), 404);
+        $disk = $this->attachmentDisk($attachment);
+        abort_unless(filled($path) && Storage::disk($disk)->exists($path), 404);
 
         $headers = [
             'Content-Type' => $attachment['mime_type'] ?: 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
         ];
         $filename = $attachment['name'] ?: basename($path);
 
         if ($request->boolean('download')) {
-            return Storage::disk('public')->download($path, $filename, $headers);
+            return Storage::disk($disk)->download($path, $filename, $headers);
         }
 
-        $response = Storage::disk('public')->response($path, $filename, $headers);
+        $response = Storage::disk($disk)->response($path, $filename, $headers);
         $disposition = $this->allowsInlineAttachment((string) ($attachment['mime_type'] ?? ''))
             ? 'inline'
             : 'attachment';
@@ -384,11 +392,7 @@ class BranchMessageController extends Controller
 
     private function allowsInlineAttachment(string $mimeType): bool
     {
-        if (Str::startsWith($mimeType, 'image/')) {
-            return true;
-        }
-
-        return in_array($mimeType, ['application/pdf', 'text/plain'], true);
+        return Str::startsWith($mimeType, 'image/');
     }
 
     private function safeUploadedFilename(UploadedFile $file): string
@@ -398,5 +402,55 @@ class BranchMessageController extends Controller
         $name = Str::limit($name, 180, '');
 
         return $name !== '' ? $name : ($file->hashName() ?: 'upload');
+    }
+
+    private function validatedAttachmentMimeType(UploadedFile $file): string
+    {
+        $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+        $allowedMimeTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'text/plain',
+        ];
+
+        if (! in_array($mimeType, $allowedMimeTypes, true)) {
+            throw ValidationException::withMessages([
+                'attachments' => __('This file type is not allowed.'),
+            ]);
+        }
+
+        if (Str::startsWith($mimeType, 'image/')) {
+            $contents = @file_get_contents($file->getRealPath());
+            $image = is_string($contents) ? @imagecreatefromstring($contents) : false;
+
+            if ($image === false) {
+                throw ValidationException::withMessages([
+                    'attachments' => __('This image could not be verified. Please upload another file.'),
+                ]);
+            }
+
+            imagedestroy($image);
+        }
+
+        return $mimeType;
+    }
+
+    /**
+     * @param  array{disk?:string}  $attachment
+     */
+    private function attachmentDisk(array $attachment): string
+    {
+        return in_array($attachment['disk'] ?? 'public', ['local', 'public'], true)
+            ? (string) ($attachment['disk'] ?? 'public')
+            : 'public';
     }
 }

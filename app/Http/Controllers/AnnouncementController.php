@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\Branch;
 use App\Models\District;
 use App\Models\User;
+use App\Support\SafeImageUpload;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -150,6 +151,7 @@ class AnnouncementController extends Controller
         $headers = [
             'Content-Type' => $announcement->image_mime_type ?: 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store, max-age=0',
         ];
         $filename = $announcement->image_name ?: basename((string) $announcement->image_path);
         $path = Storage::disk('public')->path($announcement->image_path);
@@ -357,32 +359,16 @@ class AnnouncementController extends Controller
 
     private function storeUploadedImage(UploadedFile $file, User $user): array
     {
-        if (! $file->isValid()) {
-            throw ValidationException::withMessages([
-                'image' => __('Image upload failed. Please try again with another image.'),
-            ]);
-        }
-
-        try {
-            $path = $file->store('announcements/' . ($user->id ?: 'system'), 'public');
-        } catch (Throwable $exception) {
-            report($exception);
-
-            throw ValidationException::withMessages([
-                'image' => __('Image upload failed. Please try again with another image.'),
-            ]);
-        }
-
-        if (! filled($path)) {
-            throw ValidationException::withMessages([
-                'image' => __('Image upload failed. Please try again with another image.'),
-            ]);
-        }
+        $stored = SafeImageUpload::storePublicImage(
+            $file,
+            'announcements/' . ($user->id ?: 'system'),
+            $this->safeUploadedFilename($file)
+        );
 
         return [
-            'image_path' => $path,
-            'image_name' => $this->safeUploadedFilename($file),
-            'image_mime_type' => $file->getMimeType() ?: 'application/octet-stream',
+            'image_path' => $stored['path'],
+            'image_name' => $stored['name'],
+            'image_mime_type' => $stored['mime_type'],
         ];
     }
 
