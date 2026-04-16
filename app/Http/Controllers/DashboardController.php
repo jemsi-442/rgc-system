@@ -241,6 +241,11 @@ class DashboardController extends Controller
             return [
                 'encouragement' => null,
                 'giving' => [],
+                'charts' => [
+                    'trend' => collect(),
+                    'trend_peak' => 1,
+                    'mix' => collect(),
+                ],
                 'highlight' => null,
                 'upcoming_events' => collect(),
             ];
@@ -287,6 +292,37 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
+        $trendStart = now()->startOfMonth()->subMonths(5);
+        $trend = collect(range(0, 5))
+            ->map(function (int $offset) use ($allMemberPayments, $trendStart): array {
+                $month = (clone $trendStart)->addMonths($offset);
+                $amount = (float) $allMemberPayments
+                    ->filter(fn (OfferingPayment $payment) => $payment->created_at && $payment->created_at->format('Y-m') === $month->format('Y-m'))
+                    ->sum('amount');
+
+                return [
+                    'label' => $month->translatedFormat('M'),
+                    'amount' => $amount,
+                    'display_amount' => number_format($amount, 2),
+                ];
+            });
+
+        $mix = $allMemberPayments
+            ->groupBy(function (OfferingPayment $payment): string {
+                return (string) data_get($payment->metadata, 'payment_type', 'giving');
+            })
+            ->map(function (Collection $payments, string $type): array {
+                return [
+                    'key' => $type,
+                    'label' => __(str($type)->replace('_', ' ')->title()->toString()),
+                    'count' => $payments->count(),
+                    'amount' => (float) $payments->sum('amount'),
+                ];
+            })
+            ->sortByDesc('amount')
+            ->take(4)
+            ->values();
+
         return [
             'encouragement' => $this->memberEncouragement(),
             'giving' => [
@@ -295,6 +331,11 @@ class DashboardController extends Controller
                     ->filter(fn (OfferingPayment $payment) => $payment->created_at && $payment->created_at->gte($monthStart))
                     ->sum('amount'),
                 'last_payment' => $allMemberPayments->first(),
+            ],
+            'charts' => [
+                'trend' => $trend,
+                'trend_peak' => max(1, (int) ceil($trend->max('amount'))),
+                'mix' => $mix,
             ],
             'highlight' => $highlight,
             'upcoming_events' => $upcomingEvents,

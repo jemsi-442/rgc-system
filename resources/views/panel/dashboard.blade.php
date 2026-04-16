@@ -74,6 +74,52 @@
         return $color . ' ' . $start . '% ' . $end . '%';
     })->implode(', ');
     $statusGradient = $statusGradient !== '' ? $statusGradient : 'rgba(23, 23, 23, 0.12) 0% 100%';
+    $memberTrendSeries = collect(data_get($memberDashboard, 'charts.trend', collect()));
+    $memberTrendPeak = max(1, (int) data_get($memberDashboard, 'charts.trend_peak', 1));
+    $memberTrendWidth = 360;
+    $memberTrendHeight = 180;
+    $memberTrendPaddingX = 18;
+    $memberTrendPaddingTop = 16;
+    $memberTrendPaddingBottom = 34;
+    $memberTrendPlotWidth = $memberTrendWidth - ($memberTrendPaddingX * 2);
+    $memberTrendPlotHeight = $memberTrendHeight - ($memberTrendPaddingTop + $memberTrendPaddingBottom);
+    $memberTrendDivisor = max(1, $memberTrendSeries->count() - 1);
+    $memberTrendCoordinates = $memberTrendSeries->values()->map(function (array $month, int $index) use ($memberTrendPaddingX, $memberTrendPaddingTop, $memberTrendPlotWidth, $memberTrendPlotHeight, $memberTrendDivisor, $memberTrendPeak) {
+        $x = $memberTrendPaddingX + (($memberTrendPlotWidth / $memberTrendDivisor) * $index);
+        $y = $memberTrendPaddingTop + $memberTrendPlotHeight - (((float) $month['amount'] / $memberTrendPeak) * $memberTrendPlotHeight);
+
+        return [
+            'x' => round($x, 2),
+            'y' => round($y, 2),
+            'label' => $month['label'],
+            'display_amount' => $month['display_amount'],
+        ];
+    });
+    $memberTrendPoints = $memberTrendCoordinates
+        ->map(fn (array $point) => $point['x'] . ',' . $point['y'])
+        ->implode(' ');
+    $memberTrendAreaPath = $memberTrendCoordinates->isNotEmpty()
+        ? 'M ' . $memberTrendCoordinates->first()['x'] . ' ' . ($memberTrendHeight - $memberTrendPaddingBottom)
+            . ' L ' . $memberTrendCoordinates
+                ->map(fn (array $point) => $point['x'] . ' ' . $point['y'])
+                ->implode(' L ')
+            . ' L ' . $memberTrendCoordinates->last()['x'] . ' ' . ($memberTrendHeight - $memberTrendPaddingBottom)
+            . ' Z'
+        : '';
+    $memberMix = collect(data_get($memberDashboard, 'charts.mix', collect()));
+    $memberMixTotal = max(1, (int) $memberMix->sum('count'));
+    $memberMixPalette = ['#8f1111', '#f0b429', '#171717', '#c86f2d'];
+    $memberMixOffset = 0;
+    $memberMixGradient = $memberMix->values()->map(function (array $item, int $index) use (&$memberMixOffset, $memberMixTotal, $memberMixPalette) {
+        $portion = ((int) $item['count'] / $memberMixTotal) * 100;
+        $start = round($memberMixOffset, 2);
+        $end = round($memberMixOffset + $portion, 2);
+        $memberMixOffset += $portion;
+        $color = $memberMixPalette[$index] ?? '#8f1111';
+
+        return $color . ' ' . $start . '% ' . $end . '%';
+    })->implode(', ');
+    $memberMixGradient = $memberMixGradient !== '' ? $memberMixGradient : 'rgba(23, 23, 23, 0.12) 0% 100%';
 @endphp
 
 <section class="page-banner">
@@ -571,6 +617,74 @@
                     <div class="member-giving-actions mt-5">
                         <a class="btn-rgc w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
                         <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('account.password.edit') }}">{{ __('Account settings') }}</a>
+                    </div>
+                </article>
+            </div>
+
+            <div class="member-insight-grid mt-5">
+                <article class="member-insight-card">
+                    <div class="member-insight-header">
+                        <div>
+                            <span class="section-kicker">{{ __('Giving Journey') }}</span>
+                            <h3>{{ __('Your recent giving rhythm') }}</h3>
+                        </div>
+                        <span class="member-chart-chip">{{ __('Last 6 months') }}</span>
+                    </div>
+
+                    <div class="member-trend-chart mt-5">
+                        <svg viewBox="0 0 {{ $memberTrendWidth }} {{ $memberTrendHeight }}" class="member-trend-chart-svg" role="img" aria-label="{{ __('Member giving trend chart') }}">
+                            <defs>
+                                <linearGradient id="member-giving-fill" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="rgba(255, 215, 0, 0.35)" />
+                                    <stop offset="100%" stop-color="rgba(143, 17, 17, 0.02)" />
+                                </linearGradient>
+                            </defs>
+
+                            <line x1="{{ $memberTrendPaddingX }}" y1="{{ $memberTrendHeight - $memberTrendPaddingBottom }}" x2="{{ $memberTrendWidth - $memberTrendPaddingX }}" y2="{{ $memberTrendHeight - $memberTrendPaddingBottom }}" class="member-trend-chart-axis" />
+
+                            @if($memberTrendAreaPath !== '')
+                                <path d="{{ $memberTrendAreaPath }}" fill="url(#member-giving-fill)" class="member-trend-chart-area" />
+                                <polyline points="{{ $memberTrendPoints }}" fill="none" class="member-trend-chart-path" />
+                            @endif
+
+                            @foreach($memberTrendCoordinates as $point)
+                                <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="4.5" class="member-trend-chart-dot" />
+                                <text x="{{ $point['x'] }}" y="{{ $memberTrendHeight - 12 }}" text-anchor="middle" class="member-trend-chart-label">{{ $point['label'] }}</text>
+                            @endforeach
+                        </svg>
+                    </div>
+                </article>
+
+                <article class="member-insight-card member-insight-card--warm">
+                    <div class="member-insight-header">
+                        <div>
+                            <span class="section-kicker">{{ __('Contribution Mix') }}</span>
+                            <h3>{{ __('How your giving is spread') }}</h3>
+                        </div>
+                        <span class="member-chart-chip">{{ $memberMix->sum('count') }} {{ __('entries') }}</span>
+                    </div>
+
+                    <div class="member-mix-layout mt-5">
+                        <div class="member-mix-donut" style="background: conic-gradient({{ $memberMixGradient }})">
+                            <div class="member-mix-donut-center">
+                                <strong>{{ $memberMix->sum('count') }}</strong>
+                                <span>{{ __('Gifts') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="member-mix-list">
+                            @forelse($memberMix as $mixItem)
+                                <div class="member-mix-item">
+                                    <span class="member-mix-swatch" style="background: {{ $memberMixPalette[$loop->index] ?? '#8f1111' }}"></span>
+                                    <div>
+                                        <strong>{{ $mixItem['label'] }}</strong>
+                                        <span>{{ $mixItem['count'] }} · TZS {{ number_format((float) $mixItem['amount'], 2) }}</span>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-sm text-black/65">{{ __('Your contribution mix will appear here after your first recorded giving activity.') }}</p>
+                            @endforelse
+                        </div>
                     </div>
                 </article>
             </div>

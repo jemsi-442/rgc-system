@@ -130,6 +130,8 @@ class DashboardScopeTest extends TestCase
             ->assertOk()
             ->assertSee('Today’s Encouragement')
             ->assertSee('Giving Snapshot')
+            ->assertSee('Giving Journey')
+            ->assertSee('Contribution Mix')
             ->assertSee('Pinned Branch Focus')
             ->assertSee('Upcoming Moments')
             ->assertSee('Friday Prayer Gathering')
