@@ -1,15 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="form-shell max-w-4xl">
+<div class="form-shell form-shell--executive branch-form-shell branch-form-shell--executive max-w-4xl">
     <div class="form-panel">
         <div class="form-page-header">
             <div>
                 <span class="section-kicker">{{ __('Branch Setup') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Edit Branch') }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('Review location, identity, and contact details carefully before updating this branch record.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Review the branch location, identity, and contact details carefully before saving changes.') }}</p>
             </div>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
+        </div>
+
+        <div class="branch-admin-banner branch-admin-banner--executive mt-6">
+            <div>
+                <strong>{{ __('Current branch') }}</strong>
+                <p>{{ $branch->name }} · {{ $branch->district->name }}, {{ $branch->region->name }}</p>
+            </div>
+            <div>
+                <strong>{{ __('Current standing') }}</strong>
+                <p>{{ __('Type: :type · Status: :status', ['type' => __(Illuminate\Support\Str::headline($branch->branch_type)), 'status' => __(Illuminate\Support\Str::headline($branch->status))]) }}</p>
+            </div>
         </div>
 
         <form class="mt-6 form-stack" method="POST" action="{{ route('branches.update', $branch) }}">
@@ -19,7 +30,7 @@
             <section class="form-section">
                 <div class="form-section-heading">
                     <h2>{{ __('Branch location') }}</h2>
-                    <p>{{ __('Confirm the region and district carefully so the branch remains under the correct authority chain.') }}</p>
+                    <p>{{ __('Confirm the region and district carefully so the branch remains in the correct church location.') }}</p>
                 </div>
 
                 <div class="form-grid-responsive">
@@ -52,7 +63,7 @@
             <section class="form-section">
                 <div class="form-section-heading">
                     <h2>{{ __('Branch identity') }}</h2>
-                    <p>{{ __('Update the visible branch name, type, and operating status with a clear governance trail.') }}</p>
+                    <p>{{ __('Update the visible branch name, type, and operating status carefully so church records stay clear.') }}</p>
                 </div>
 
                 <div class="form-grid-responsive">

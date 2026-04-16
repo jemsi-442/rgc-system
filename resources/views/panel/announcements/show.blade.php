@@ -11,8 +11,8 @@
     </div>
 </section>
 
-<section class="announcement-detail-shell mt-8">
-    <article class="card-rgc announcement-detail-main {{ $announcement->hasPin() ? 'is-pinned' : '' }}">
+<section class="announcement-detail-shell announcement-detail-shell--premium mt-8">
+    <article class="card-rgc announcement-detail-main announcement-detail-main--premium {{ $announcement->hasPin() ? 'is-pinned' : '' }}">
         <div class="announcement-detail-header">
             <div class="announcement-meta-badges">
                 <span class="announcement-audience is-{{ $announcement->audienceVariant() }}">{{ $announcement->audienceLabel() }}</span>
@@ -85,7 +85,7 @@
         </div>
     </article>
 
-    <aside class="card-rgc announcement-detail-sidebar">
+    <aside class="card-rgc announcement-detail-sidebar announcement-detail-sidebar--premium">
         <span class="section-kicker">{{ __('Audience details') }}</span>
         <div class="announcement-detail-meta mt-5">
             <div>

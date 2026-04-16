@@ -63,7 +63,7 @@ class DashboardScopeTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertSee('Member Workspace')
+            ->assertSee('Member Home')
             ->assertSee("Notices for {$hqBranch->name}")
             ->assertSee('Toangoma Notice')
             ->assertDontSee('Same District Other Branch Notice')
@@ -153,8 +153,8 @@ class DashboardScopeTest extends TestCase
         $this->actingAs($superAdmin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Super Admin Workspace')
-            ->assertSee('Regions across the platform')
+            ->assertSee('Super Admin Home')
+            ->assertSee('Regions across the church')
             ->assertSee($darRegion->name)
             ->assertSee($otherRegion->name)
             ->assertSee('active branch')
@@ -203,7 +203,7 @@ class DashboardScopeTest extends TestCase
         $this->actingAs($branchAdmin)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Branch Admin Workspace')
+            ->assertSee('Branch Admin Home')
             ->assertSee("People in {$hqBranch->name}")
             ->assertSee($branchAdmin->name)
             ->assertSee($branchMember->name)

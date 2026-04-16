@@ -47,27 +47,27 @@
 
     <section class="form-section">
         <div class="form-section-heading">
-            <h2>{{ __('Governance scope') }}</h2>
-            <p>{{ __('Decide whether this topic is global or limited to one region. Regional admins are automatically locked to their own region.') }}</p>
+            <h2>{{ __('Church coverage') }}</h2>
+            <p>{{ __('Decide whether this topic should help the whole church or only one region. Regional admins are automatically locked to their own region.') }}</p>
         </div>
 
         @if($isRegionalManager)
             <input type="hidden" name="region_id" value="{{ $manager->region_id }}">
             <div class="announcement-empty-state">
-                <strong>{{ __('Regional scope locked') }}</strong>
+                <strong>{{ __('Regional coverage locked') }}</strong>
                 <p>{{ __('This topic will only serve users in :region.', ['region' => $managedRegion?->name ?? __('your region')]) }}</p>
             </div>
         @else
             <div class="form-grid-responsive">
                 <div class="md:col-span-2">
-                    <label class="field-label" for="region_id">{{ __('Topic scope') }}</label>
+                    <label class="field-label" for="region_id">{{ __('Topic coverage') }}</label>
                     <select class="select-rgc" id="region_id" name="region_id">
-                        <option value="">{{ __('Global') }}</option>
+                        <option value="">{{ __('Whole church') }}</option>
                         @foreach($regionOptions as $regionOption)
                             <option value="{{ $regionOption->id }}" @selected((string) $selectedRegionId === (string) $regionOption->id)>{{ $regionOption->name }}</option>
                         @endforeach
                     </select>
-                    <p class="form-hint mt-2">{{ __('Choose a region if this answer should only guide users from that region. Leave it global for all branches and regions.') }}</p>
+                    <p class="form-hint mt-2">{{ __('Choose a region if this answer should only guide users from that region. Leave it on whole church if it should serve all branches and regions.') }}</p>
                 </div>
             </div>
         @endif

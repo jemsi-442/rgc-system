@@ -3,26 +3,26 @@
 @section('title', __('Users') . ' - RGC')
 
 @section('content')
-<div class="card-rgc">
+<div class="card-rgc admin-console-shell admin-console-shell--users">
     <div class="user-admin-header">
         <div>
-            <span class="section-kicker">{{ __('User Governance') }}</span>
+            <span class="section-kicker">{{ __('Church Accounts') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('All user accounts') }}</h1>
-            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create users, promote them into regional, district, or branch leadership, return them to normal member access, reset passwords, and deactivate accounts when needed.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create church accounts, place people into regional, district, or branch leadership, return them to normal member access, reset passwords, and deactivate accounts when needed.') }}</p>
         </div>
-        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add User') }}</a>
+        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add account') }}</a>
     </div>
 
     <div class="user-admin-summary mt-5">
         <article class="user-admin-summary-card">
             <span>{{ __('Accounts in view') }}</span>
             <strong>{{ number_format($users->total()) }}</strong>
-            <p>{{ __('All records matching the current search and pagination scope.') }}</p>
+            <p>{{ __('All accounts matching the current search and page view.') }}</p>
         </article>
         <article class="user-admin-summary-card">
             <span>{{ __('Current search') }}</span>
             <strong>{{ filled($search) ? __('Filtered') : __('All users') }}</strong>
-            <p>{{ filled($search) ? __('Showing matches for your current search term.') : __('No keyword filter is active right now.') }}</p>
+            <p>{{ filled($search) ? __('Showing the accounts that match your current search.') : __('No search filter is active right now.') }}</p>
         </article>
     </div>
 
@@ -97,7 +97,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="py-6 text-center text-sm text-black/65">{{ __('No users found for the current search.') }}</td>
+                        <td colspan="8" class="py-6 text-center text-sm text-black/65">{{ __('No accounts were found for the current search.') }}</td>
                     </tr>
                 @endforelse
             </tbody>

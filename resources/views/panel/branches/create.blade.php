@@ -2,30 +2,30 @@
 
 @section('content')
 <div class="branch-admin-layout">
-    <div class="form-shell branch-form-shell">
+    <div class="form-shell form-shell--executive branch-form-shell branch-form-shell--executive">
         <div class="form-panel">
             <div class="form-page-header">
                 <div>
                     <span class="section-kicker">{{ __('Branch Setup') }}</span>
                     <h1 class="mt-4 text-2xl font-semibold">{{ __('Create Branch') }}</h1>
-                    <p class="mt-2 text-sm text-black/65">{{ __('Create one branch manually or prepare a clean batch import file that follows the Tanzania region and district hierarchy exactly.') }}</p>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Create one branch manually or prepare a clean batch import file that follows the Tanzania region and district structure correctly.') }}</p>
                 </div>
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
             </div>
 
-            <div class="branch-admin-banner mt-6">
+            <div class="branch-admin-banner branch-admin-banner--executive mt-6">
                 <div>
                     <strong>{{ __('Headquarters safeguard') }}</strong>
                     <p>{{ __('Only one headquarters branch is allowed in the system. Toangoma - Temeke - Dar es Salaam remains the seeded headquarters baseline.') }}</p>
                 </div>
                 <div>
                     <strong>{{ __('Location integrity') }}</strong>
-                    <p>{{ __('Every branch must sit under the correct region and district. Inconsistent combinations are rejected automatically.') }}</p>
+                    <p>{{ __('Every branch must stay under the correct region and district. Inconsistent combinations are rejected automatically.') }}</p>
                 </div>
             </div>
 
             @if($importPreviewToken && !empty($importPreview))
-                <section class="branch-preview-card mt-6">
+                <section class="branch-preview-card branch-preview-card--executive mt-6">
                     <div class="branch-preview-header">
                         <div>
                             <span class="section-kicker">{{ __('Import Preview') }}</span>
@@ -111,7 +111,7 @@
                 <section class="form-section">
                     <div class="form-section-heading">
                         <h2>{{ __('Branch location') }}</h2>
-                        <p>{{ __('Choose the correct region and district first so the branch is stored under the right governance scope.') }}</p>
+                        <p>{{ __('Choose the correct region and district first so the branch is placed in the right church location.') }}</p>
                     </div>
 
                     <div class="form-grid-responsive">
@@ -174,7 +174,7 @@
                 <section class="form-section">
                     <div class="form-section-heading">
                         <h2>{{ __('Branch contact details') }}</h2>
-                        <p>{{ __('Add branch contact information now so leadership, reporting, and future communications stay organised.') }}</p>
+                        <p>{{ __('Add branch contact information now so leadership, reporting, and future communication stay organised.') }}</p>
                     </div>
 
                     <div class="form-grid-responsive">
@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <aside class="card-rgc branch-import-panel">
+    <aside class="card-rgc branch-import-panel branch-import-panel--executive">
         <span class="section-kicker">{{ __('Bulk Import') }}</span>
         <h2 class="mt-4 text-2xl font-semibold">{{ __('Upload branches from CSV or Excel') }}</h2>
         <p class="mt-3 text-sm leading-7 text-black/68">{{ __('Download the official template first. Every row must include region, district, branch_name, and branch_type. Optional columns are address, phone, email, and status.') }}</p>

@@ -11,7 +11,7 @@
     </div>
 </section>
 
-<section class="card-rgc mt-8 max-w-4xl">
+<section class="card-rgc mt-8 max-w-4xl announcement-studio">
     <form method="POST" action="{{ route('announcements.store') }}" enctype="multipart/form-data">
         @csrf
         @include('panel.announcements._form', ['submitLabel' => __('Publish')])

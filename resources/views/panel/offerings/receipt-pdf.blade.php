@@ -45,7 +45,7 @@
                     <div class="kicker">RGC</div>
                     <h1>{{ __('Offering Payment Receipt') }}</h1>
                     <div class="muted">{{ __('Redeemed Gospel Church Inc. Tanzania') }}</div>
-                    <div class="muted">{{ __('Official collection confirmation generated from the national church management platform.') }}</div>
+                    <div class="muted">{{ __('Official church giving confirmation generated from the Redeemed Gospel Church Tanzania system.') }}</div>
                 </td>
                 <td style="text-align:right;" class="muted">
                     <div>{{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}</div>
@@ -91,7 +91,7 @@
     </div>
 
     <div class="footer">
-        {{ __('Generated through the RGC Management Platform.') }}<br>
+        {{ __('Generated through the RGC Tanzania system.') }}<br>
         {{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}
     </div>
 </div>

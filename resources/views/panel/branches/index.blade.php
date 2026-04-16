@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="card-rgc">
+<div class="card-rgc admin-console-shell admin-console-shell--branches">
     <div class="branch-admin-header">
         <div>
             <span class="section-kicker">{{ __('Branch Administration') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('Branches') }}</h1>
-            <p class="mt-1 text-sm text-black/65">{{ __('Manage branches, update records, remove inactive locations, or move into the creation page to use CSV and Excel import with hierarchy validation.') }}</p>
+            <p class="mt-1 text-sm text-black/65">{{ __('Manage church locations, update their details, remove inactive branches, or move into the creation page to import many branches at once.') }}</p>
         </div>
         <div class="branch-admin-actions">
-            <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.create') }}">{{ __('Create or Import Branches') }}</a>
+            <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.create') }}">{{ __('Add or import branches') }}</a>
             <div class="branch-admin-links">
                 <a href="{{ route('branches.template', 'xlsx') }}">{{ __('Blank Template') }}</a>
                 <a href="{{ route('branches.template.sample', 'xlsx') }}">{{ __('Sample Template') }}</a>
@@ -23,7 +23,7 @@
         <article class="branch-admin-summary-card">
             <span>{{ __('Branches in view') }}</span>
             <strong>{{ number_format($branches->total()) }}</strong>
-            <p>{{ __('Records visible in the current branch list and pagination scope.') }}</p>
+            <p>{{ __('Branches visible in the current list and page view.') }}</p>
         </article>
         <article class="branch-admin-summary-card">
             <span>{{ __('Current focus') }}</span>
@@ -37,7 +37,7 @@
             <div>
                 <span class="section-kicker">{{ __('Filter and Export') }}</span>
                 <h2>{{ __('Focus on a region or district') }}</h2>
-                <p>{{ __('Use the same filter for the table and export buttons so you can download only the branches you need.') }}</p>
+                <p>{{ __('Use the same filter for the branch list and export buttons so you can download only the churches you need.') }}</p>
             </div>
             <div class="branch-filter-actions">
                 <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Apply filter') }}</button>

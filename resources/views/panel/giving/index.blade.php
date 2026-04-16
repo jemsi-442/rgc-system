@@ -8,7 +8,7 @@
         <div class="space-y-2">
             <p class="section-kicker">{{ __('Member giving') }}</p>
             <h1 class="text-2xl font-semibold">{{ __('Give to your branch securely') }}</h1>
-            <p class="text-sm text-black/70">{{ __('Choose the type of giving, enter the amount and payer phone, then the system will send a payment prompt to the payer phone.') }}</p>
+            <p class="text-sm text-black/70">{{ __('Choose the kind of giving, enter the amount and phone number, then a payment prompt will be sent to that phone.') }}</p>
         </div>
 
         <div class="branch-preview-breakdown mt-5">
@@ -34,14 +34,14 @@
                     <span class="payment-provider-mark">MM</span>
                     <div>
                         <strong>{{ __('Supported networks') }}</strong>
-                        <span>{{ __('M-Pesa, Airtel Money, Mixx by Yas, and HaloPesa can be prepared through one giving form.') }}</span>
+                        <span>{{ __('M-Pesa, Airtel Money, Mixx by Yas, and HaloPesa can all be served from one giving form.') }}</span>
                     </div>
                 </div>
                 <div class="payment-provider-feature">
                     <span class="payment-provider-mark">OK</span>
                     <div>
-                        <strong>{{ __('Auto confirmation') }}</strong>
-                        <span>{{ __('Snippe webhook confirms and posts the giving automatically.') }}</span>
+                        <strong>{{ __('Automatic confirmation') }}</strong>
+                        <span>{{ __('Once the payment is confirmed, the giving is recorded automatically.') }}</span>
                     </div>
                 </div>
             </div>
@@ -56,7 +56,7 @@
                 @if(session('payment_prompt_phone'))
                     <p class="text-sm text-black/70">{{ __('Prompt sent to') }}: <span class="font-medium text-black">{{ session('payment_prompt_phone') }}</span></p>
                 @endif
-                <p class="text-sm text-black/70">{{ __('Open the status page below to follow confirmation and receipt availability.') }}</p>
+                <p class="text-sm text-black/70">{{ __('Open the status page below to follow confirmation and see when the receipt is ready.') }}</p>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     @if(session('payment_link'))
                         <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
@@ -113,10 +113,10 @@
             </div>
             <div class="announcement-callout">
                 <p class="font-semibold text-black">{{ __('What happens next?') }}</p>
-                <p class="mt-2 text-sm text-black/70">{{ __('The system creates the payment request, sends the prompt to the payer phone, and then waits for confirmation before posting the giving to your branch record.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('A payment request is prepared, the phone prompt is sent, and after confirmation the giving is recorded for your branch.') }}</p>
             </div>
             <div class="form-actions">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Send payment prompt') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Send giving prompt') }}</button>
             </div>
         </form>
     </section>
@@ -144,8 +144,8 @@
         <div class="card-rgc">
             <div class="space-y-2">
                 <p class="section-kicker">{{ __('My recent giving') }}</p>
-                <h2 class="text-xl font-semibold">{{ __('Payment history') }}</h2>
-                <p class="text-sm text-black/65">{{ __('Track the status of the payment prompts you have already created.') }}</p>
+                <h2 class="text-xl font-semibold">{{ __('Giving history') }}</h2>
+                <p class="text-sm text-black/65">{{ __('Follow the status of the giving prompts you have already sent.') }}</p>
             </div>
 
             <div class="mt-5 grid gap-4">
@@ -177,7 +177,7 @@
                 </article>
                 @empty
                     <div class="rounded-3xl border border-dashed border-black/15 bg-white p-6 text-sm text-black/60">
-                        {{ __('You have not created any payment requests yet.') }}
+                        {{ __('You have not sent any giving prompts yet.') }}
                     </div>
                 @endforelse
             </div>

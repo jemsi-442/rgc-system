@@ -1,21 +1,21 @@
 @extends('layouts.app')
 
-@section('title', __('Edit Assistant Topic') . ' - RGC')
+@section('title', __('Edit Assistant Help Topic') . ' - RGC')
 
 @section('content')
-<div class="space-y-8 max-w-5xl">
-    <div class="form-panel">
+<div class="space-y-8 max-w-5xl assistant-console">
+    <div class="form-panel assistant-topic-editor">
         <div class="form-page-header">
             <div>
                 <span class="section-kicker">{{ $topic->is_system ? __('Default topic') : __('Custom topic') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Edit assistant topic') }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('Adjust the answer, matching phrases, or role scope so the assistant responds more accurately to your users.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Adjust the answer, matching phrases, or coverage so the assistant responds more accurately to your users.') }}</p>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <span class="payment-status-badge is-pending">{{ $topic->scopeLabel() }}</span>
                     <span class="payment-status-badge {{ $topic->is_active ? 'is-completed' : 'is-failed' }}">{{ $topic->is_active ? __('Active') : __('Inactive') }}</span>
                 </div>
             </div>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Back to assistant knowledge') }}</a>
+            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Back to assistant topics') }}</a>
         </div>
 
         <form class="mt-6 form-stack" method="POST" action="{{ route('assistant.topics.update', $topic) }}">
@@ -28,12 +28,12 @@
         </form>
     </div>
 
-    <section class="card-rgc">
+    <section class="card-rgc assistant-version-shell assistant-panel-card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <span class="section-kicker">{{ __('Version history') }}</span>
                 <h2 class="mt-4 text-2xl font-semibold">{{ __('Previous versions') }}</h2>
-                <p class="mt-2 text-sm text-black/65">{{ __('Restore an older answer, keyword set, or role scope if a recent edit moved the assistant in the wrong direction.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Restore an older answer, keyword set, or coverage if a recent edit moved the assistant in the wrong direction.') }}</p>
             </div>
             <span class="payment-status-badge is-pending">{{ __('Showing latest :count versions', ['count' => $versions->count()]) }}</span>
         </div>

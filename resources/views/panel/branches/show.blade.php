@@ -1,22 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="branch-show-layout">
-    <div class="card-rgc branch-show-hero">
+<div class="branch-show-layout branch-show-layout--executive">
+    <div class="card-rgc branch-show-hero branch-show-hero--executive">
         <div class="branch-show-header">
             <div>
                 <span class="section-kicker">{{ __('Branch Details') }}</span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ $branch->name }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('Review governance location, branch identity, contact channels, and quick operational signals for this branch.') }}</p>
+                <p class="mt-2 text-sm text-black/65">{{ __('Review the branch location, identity, contact details, and key signs of church life for this branch.') }}</p>
             </div>
             <div class="branch-show-actions">
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" target="_blank" href="{{ route('branches.print', $branch) }}">{{ __('Print Profile') }}</a>
+                <a class="btn-rgc-alt w-full sm:w-auto" target="_blank" href="{{ route('branches.print', $branch) }}">{{ __('Print branch details') }}</a>
                 <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.pdf', $branch) }}">{{ __('Download PDF') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}">{{ __('Export Records XLSX') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}">{{ __('Export Records CSV') }}</a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}">{{ __('Export branch details XLSX') }}</a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}">{{ __('Export branch details CSV') }}</a>
                 @can('update', $branch)
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.edit', $branch) }}">{{ __('Edit Branch') }}</a>
+                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.edit', $branch) }}">{{ __('Edit branch') }}</a>
                 @endcan
             </div>
         </div>
@@ -30,21 +30,21 @@
         </div>
     </div>
 
-    <div class="branch-show-stats mt-5">
+    <div class="branch-show-stats branch-show-stats--executive mt-5">
         <article class="branch-preview-stat">
             <span>{{ __('Users') }}</span>
             <strong>{{ $branch->users_count }}</strong>
-            <p>{{ __('Registered users currently attached to this branch.') }}</p>
+            <p>{{ __('People currently attached to this branch.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Messages') }}</span>
             <strong>{{ $branch->messages_count }}</strong>
-            <p>{{ __('Branch chat messages already linked to this branch.') }}</p>
+            <p>{{ __('Branch chat messages already shared in this branch.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Events') }}</span>
             <strong>{{ $branch->events_count }}</strong>
-            <p>{{ __('Upcoming and historical events currently tied to this branch.') }}</p>
+            <p>{{ __('Upcoming and past events currently tied to this branch.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Offerings total') }}</span>
@@ -59,7 +59,7 @@
         <article class="branch-preview-stat">
             <span>{{ __('Net balance') }}</span>
             <strong>TZS {{ number_format($netBalance, 2) }}</strong>
-            <p>{{ __('Offerings minus expenses based on current records.') }}</p>
+            <p>{{ __('Offerings minus expenses based on what is recorded here.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Payment Requests') }}</span>
@@ -69,26 +69,26 @@
         <article class="branch-preview-stat">
             <span>{{ __('Pending Payments') }}</span>
             <strong>{{ $branch->pending_payments_count }}</strong>
-            <p>{{ __('Phone prompts or checkout requests still waiting for secure confirmation.') }}</p>
+            <p>{{ __('Phone prompts or payment requests still waiting for confirmation.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Completed Payments') }}</span>
             <strong>{{ $branch->completed_payments_count }}</strong>
-            <p>{{ __('Snippe payments already confirmed and posted to the ledger.') }}</p>
+            <p>{{ __('Giving requests already confirmed and recorded.') }}</p>
         </article>
         <article class="branch-preview-stat">
             <span>{{ __('Snippe collected total') }}</span>
             <strong>TZS {{ number_format((float) ($branch->completed_payments_total_amount ?? 0), 2) }}</strong>
-            <p>{{ __('Total value of completed Snippe payment requests for this branch.') }}</p>
+            <p>{{ __('Total value of completed giving requests for this branch.') }}</p>
         </article>
     </div>
 
-    <div class="branch-show-grid mt-5">
-        <section class="card-rgc">
+    <div class="branch-show-grid branch-show-grid--hero mt-5">
+        <section class="card-rgc branch-show-card branch-show-card--filter">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Filtered Records Export') }}</span>
-                    <p class="mt-2 text-sm text-black/65">{{ __('Filter the branch records export by date range. Leave either field blank when you want the export to include older or newer activity automatically.') }}</p>
+                    <span class="section-kicker">{{ __('Filtered Export') }}</span>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Filter the branch export by date range. Leave either field blank when you want the export to include older or newer activity automatically.') }}</p>
                 </div>
             </div>
             <form class="mt-4 grid gap-4 md:grid-cols-2" method="GET">
@@ -107,8 +107,8 @@
                     <input class="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-rgc-red focus:ring-2 focus:ring-rgc-red/15" type="date" name="date_to" value="{{ request('date_to') }}">
                 </label>
                 <div class="flex flex-wrap gap-3 md:col-span-2">
-                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" type="submit">{{ __('Export filtered records XLSX') }}</button>
-                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}" type="submit">{{ __('Export filtered records CSV') }}</button>
+                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" type="submit">{{ __('Export filtered branch details XLSX') }}</button>
+                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}" type="submit">{{ __('Export filtered branch details CSV') }}</button>
                 </div>
             </form>
         </section>
@@ -116,15 +116,15 @@
 
 
     <div class="branch-show-grid mt-5">
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Recent Payment Requests') }}</span>
-                    <p class="mt-2 text-sm text-black/65">{{ __('Payment prompts and fallback checkout requests created for this branch, including pending and completed collections.') }}</p>
+                    <span class="section-kicker">{{ __('Recent Giving Requests') }}</span>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Giving prompts created for this branch, including pending and completed collections.') }}</p>
                 </div>
             </div>
             @if($recentPayments->isEmpty())
-                <p class="mt-4 text-sm text-black/65">{{ __('No Snippe payment requests created for this branch yet.') }}</p>
+                <p class="mt-4 text-sm text-black/65">{{ __('No giving requests have been created for this branch yet.') }}</p>
             @else
                 <div class="payment-request-grid mt-4">
                     @foreach($recentPayments as $payment)
@@ -155,8 +155,8 @@
     </div>
 
     <div class="branch-show-grid mt-5">
-        <section class="card-rgc">
-            <span class="section-kicker">{{ __('Governance Scope') }}</span>
+        <section class="card-rgc branch-show-card">
+            <span class="section-kicker">{{ __('Church Location') }}</span>
             <dl class="branch-detail-list mt-4">
                 <div>
                     <dt>{{ __('Region') }}</dt>
@@ -177,7 +177,7 @@
             </dl>
         </section>
 
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <span class="section-kicker">{{ __('Contact Details') }}</span>
             <dl class="branch-detail-list mt-4">
                 <div>
@@ -201,7 +201,7 @@
     </div>
 
     <div class="branch-show-grid mt-5">
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
                     <span class="section-kicker">{{ __('Recent Offerings') }}</span>
@@ -221,7 +221,7 @@
             @endif
         </section>
 
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
                     <span class="section-kicker">{{ __('Recent Expenses') }}</span>
@@ -243,7 +243,7 @@
     </div>
 
     <div class="branch-show-grid mt-5">
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
                     <span class="section-kicker">{{ __('Recent Events') }}</span>
@@ -263,7 +263,7 @@
             @endif
         </section>
 
-        <section class="card-rgc">
+        <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
                     <span class="section-kicker">{{ __('Recent Users') }}</span>

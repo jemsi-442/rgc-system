@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('Assistant Knowledge') . ' - RGC')
+@section('title', __('Assistant Help Topics') . ' - RGC')
 
 @section('content')
 @php
@@ -8,17 +8,17 @@
     $helpfulWidth = (int) round(($stats['helpful_count'] / $feedbackTotal) * 100);
     $unhelpfulWidth = (int) round(($stats['unhelpful_count'] / $feedbackTotal) * 100);
 @endphp
-<div class="space-y-8">
-    <section class="card-rgc">
+<div class="space-y-8 assistant-console">
+    <section class="card-rgc assistant-console-hero">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
                 <span class="section-kicker">{{ __('System guide') }}</span>
-                <h1 class="mt-4 text-2xl font-semibold">{{ __('Assistant Knowledge') }}</h1>
-                <p class="mt-2 text-sm text-black/65">{{ __('Manage what the offline assistant knows, which roles each topic serves, and how recent questions are flowing through the platform.') }}</p>
+                <h1 class="mt-4 text-2xl font-semibold">{{ __('Assistant Help Topics') }}</h1>
+                <p class="mt-2 text-sm text-black/65">{{ __('Manage the answers the assistant can use, who each topic should help, and how recent questions are moving through the church system.') }}</p>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <span class="payment-status-badge is-pending">{{ $scopeSummary }}</span>
                     @if($manager->hasSystemRole('regional_admin'))
-                        <span class="payment-status-badge is-completed">{{ __('Regional scope') }}</span>
+                        <span class="payment-status-badge is-completed">{{ __('Regional coverage') }}</span>
                     @endif
                 </div>
             </div>
@@ -27,7 +27,7 @@
                 @if($manager->hasSystemRole('super_admin'))
                     <form method="POST" action="{{ route('assistant.topics.restore-defaults') }}">
                         @csrf
-                        <button class="btn-rgc-outline w-full sm:w-auto" type="submit">{{ __('Restore defaults') }}</button>
+                        <button class="btn-rgc-outline w-full sm:w-auto" type="submit">{{ __('Restore starter topics') }}</button>
                     </form>
                 @endif
                 <a class="btn-rgc w-full sm:w-auto" href="{{ route('assistant.topics.create') }}">{{ __('Add topic') }}</a>
@@ -66,13 +66,13 @@
         </div>
     </section>
 
-    <section class="tablet-stack two">
-        <article class="card-rgc assistant-usage-card">
+    <section class="tablet-stack two assistant-insight-grid">
+        <article class="card-rgc assistant-usage-card assistant-panel-card">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <span class="section-kicker">{{ __('Usage trend') }}</span>
                     <h2 class="mt-4 text-2xl font-semibold">{{ __('Assistant usage in the last 7 days') }}</h2>
-                    <p class="mt-2 text-sm text-black/65">{{ __('This gives you a quick read on how often people are depending on the church system assistant each day.') }}</p>
+                    <p class="mt-2 text-sm text-black/65">{{ __('This gives you a quick picture of how often people are asking the church assistant for help each day.') }}</p>
                 </div>
                 <div class="assistant-usage-summary">
                     <span class="payment-status-badge is-pending">{{ __('Peak day') }}: {{ $usagePeak }}</span>
@@ -94,10 +94,10 @@
             </div>
         </article>
 
-        <article class="card-rgc assistant-feedback-mix-card">
+        <article class="card-rgc assistant-feedback-mix-card assistant-panel-card">
             <span class="section-kicker">{{ __('Feedback mix') }}</span>
             <h2 class="mt-4 text-2xl font-semibold">{{ __('Helpful vs needs improvement') }}</h2>
-            <p class="mt-2 text-sm text-black/65">{{ __('Use this split to see whether the assistant is guiding church users clearly or still missing detail.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ __('Use this split to see whether the assistant is guiding church users clearly or still needs better answers.') }}</p>
 
             <div class="assistant-feedback-mix mt-6">
                 <div class="assistant-feedback-mix-row">
@@ -123,12 +123,12 @@
     </section>
 
     @if($manager->hasSystemRole('super_admin'))
-        <section class="card-rgc assistant-import-panel">
+        <section class="card-rgc assistant-import-panel assistant-panel-card">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                     <span class="section-kicker">{{ __('Backup and restore') }}</span>
                     <h2 class="mt-4 text-2xl font-semibold">{{ __('Import assistant topics') }}</h2>
-                    <p class="mt-2 text-sm text-black/65">{{ __('Upload a JSON backup to restore or move assistant knowledge between environments. Existing topics with the same slug and locale will be updated safely.') }}</p>
+                    <p class="mt-2 text-sm text-black/65">{{ __('Upload a JSON backup to restore or move assistant topics between environments. Existing topics with the same slug and language will be updated safely.') }}</p>
                 </div>
                 <form method="POST" action="{{ route('assistant.topics.import') }}" enctype="multipart/form-data" class="assistant-import-form">
                     @csrf
@@ -139,7 +139,7 @@
         </section>
     @endif
 
-    <section class="card-rgc">
+    <section class="card-rgc assistant-topic-library assistant-panel-card">
         <form class="flex flex-col gap-3 lg:flex-row" method="GET" action="{{ route('assistant.topics.index') }}">
             <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search title, slug, or answer') }}">
             <select class="select-rgc" name="locale">
@@ -150,8 +150,8 @@
             </select>
             @if($manager->hasSystemRole('super_admin'))
                 <select class="select-rgc" name="scope">
-                    <option value="">{{ __('All scopes') }}</option>
-                    <option value="global" @selected($scopeFilter === 'global')>{{ __('Global') }}</option>
+                    <option value="">{{ __('All coverage') }}</option>
+                    <option value="global" @selected($scopeFilter === 'global')>{{ __('Whole church') }}</option>
                     @foreach($regionOptions as $regionOption)
                         <option value="{{ $regionOption->id }}" @selected((string) $scopeFilter === (string) $regionOption->id)>{{ $regionOption->name }}</option>
                     @endforeach
@@ -166,7 +166,7 @@
                     <tr>
                         <th>{{ __('Topic') }}</th>
                         <th>{{ __('Locale') }}</th>
-                        <th>{{ __('Scope') }}</th>
+                        <th>{{ __('Coverage') }}</th>
                         <th>{{ __('Roles') }}</th>
                         <th>{{ __('Keywords') }}</th>
                         <th>{{ __('Status') }}</th>
@@ -217,7 +217,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="py-6 text-center text-black/60">{{ __('No assistant topics found for the current filter.') }}</td>
+                            <td colspan="8" class="py-6 text-center text-black/60">{{ __('No assistant topics were found for the current filter.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -227,8 +227,8 @@
         <div class="mt-5">{{ $topics->links() }}</div>
     </section>
 
-    <section class="tablet-stack two">
-        <article class="card-rgc">
+    <section class="tablet-stack two assistant-history-grid">
+        <article class="card-rgc assistant-panel-card">
             <span class="section-kicker">{{ __('Recent assistant questions') }}</span>
             <h2 class="mt-5 text-2xl font-semibold">{{ __('Latest chat history') }}</h2>
             <form class="mt-5 flex flex-col gap-3 lg:flex-row" method="GET" action="{{ route('assistant.topics.index') }}">

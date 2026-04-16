@@ -53,8 +53,8 @@
                     <div class="kicker">RGC</div>
                     <h1>{{ $branch->name }}</h1>
                     <div class="muted">{{ __('Redeemed Gospel Church Inc. Tanzania') }}</div>
-                    <div class="muted">{{ __('Branch Profile Report') }}</div>
-                    <div class="muted">{{ __('Issued through the national church management platform.') }}</div>
+                    <div class="muted">{{ __('Branch details report') }}</div>
+                    <div class="muted">{{ __('Issued through the Redeemed Gospel Church Tanzania system.') }}</div>
                 </td>
                 <td style="text-align:right;" class="muted">
                     <div>{{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}</div>
@@ -94,7 +94,7 @@
     <table class="grid">
         <tr>
             <td class="panel" width="50%">
-                <h2>{{ __('Governance Scope') }}</h2>
+                <h2>{{ __('Church Location') }}</h2>
                 <div class="dl-row"><div class="dt">{{ __('Region') }}</div><div class="dd">{{ $branch->region->name }}</div></div>
                 <div class="dl-row"><div class="dt">{{ __('District') }}</div><div class="dd">{{ $branch->district->name }}</div></div>
                 <div class="dl-row"><div class="dt">{{ __('Branch type') }}</div><div class="dd">{{ __(Illuminate\Support\Str::headline($branch->branch_type)) }}</div></div>
@@ -134,20 +134,20 @@
         </tr>
         <tr>
             <td class="panel" width="50%">
-                <h2>{{ __('Recent Payment Requests') }}</h2>
+                <h2>{{ __('Recent Giving Requests') }}</h2>
                 @forelse($recentPayments as $payment)
                     <div class="list-row">
                         <div class="list-title">{{ $payment->statusLabel() }} • TZS {{ number_format((float) $payment->amount, 2) }}</div>
                         <div class="list-sub">{{ $payment->public_reference }} • {{ $payment->payer_name ?: __('Walk-in giver') }}</div>
                     </div>
                 @empty
-                    <div class="list-sub">{{ __('No Snippe payment requests created for this branch yet.') }}</div>
+                    <div class="list-sub">{{ __('No giving requests have been created for this branch yet.') }}</div>
                 @endforelse
             </td>
             <td class="panel" width="50%">
-                <h2>{{ __('Snippe collected total') }}</h2>
-                <div class="dl-row"><div class="dt">{{ __('Completed payments total') }}</div><div class="dd">TZS {{ number_format((float) ($branch->completed_payments_total_amount ?? 0), 2) }}</div></div>
-                <div class="dl-row"><div class="dt">{{ __('Payment requests total') }}</div><div class="dd">TZS {{ number_format((float) ($branch->payment_requests_total_amount ?? 0), 2) }}</div></div>
+                <h2>{{ __('Giving totals') }}</h2>
+                <div class="dl-row"><div class="dt">{{ __('Completed giving total') }}</div><div class="dd">TZS {{ number_format((float) ($branch->completed_payments_total_amount ?? 0), 2) }}</div></div>
+                <div class="dl-row"><div class="dt">{{ __('Giving requests total') }}</div><div class="dd">TZS {{ number_format((float) ($branch->payment_requests_total_amount ?? 0), 2) }}</div></div>
             </td>
         </tr>
         <tr>
@@ -184,7 +184,7 @@
     </div>
 
     <div class="footer">
-        {{ __('Generated through the RGC Management Platform.') }}<br>
+        {{ __('Generated through the RGC Tanzania system.') }}<br>
         {{ __('Generated on :date', ['date' => now()->translatedFormat('d M Y H:i')]) }}
     </div>
 </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $branch->name }} - {{ __('Branch Profile') }}</title>
+    <title>{{ $branch->name }} - {{ __('Branch Details') }}</title>
     <style>
         body { font-family: DejaVu Sans, sans-serif; margin: 0; background: #f7f3e8; color: #1f1a17; }
         .page { max-width: 960px; margin: 0 auto; padding: 28px; }
@@ -54,7 +54,7 @@
                 <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8f0000;">RGC</div>
                 <h1>{{ $branch->name }}</h1>
                 <p>{{ __('Redeemed Gospel Church Inc. Tanzania') }}</p>
-                <p>{{ __('Branch Profile Report') }}</p>
+                <p>{{ __('Branch details report') }}</p>
             </div>
             <div style="text-align:right;font-size:13px;color:#60554e;">
                 <div>{{ __('Generated on :date', ['date' => now()->format('d M Y H:i')]) }}</div>
@@ -82,7 +82,7 @@
 
         <div class="grid">
             <section class="panel">
-                <h2>{{ __('Governance Scope') }}</h2>
+                <h2>{{ __('Church Location') }}</h2>
                 <dl>
                     <div><dt>{{ __('Region') }}</dt><dd>{{ $branch->region->name }}</dd></div>
                     <div><dt>{{ __('District') }}</dt><dd>{{ $branch->district->name }}</dd></div>

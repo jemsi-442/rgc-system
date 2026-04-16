@@ -7,20 +7,20 @@
     <div class="page-banner-content">
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
         <h1 class="mt-5">{{ __('Announcements') }}</h1>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official church communication for the people and locations visible to your account.') }}</p>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official church updates prepared for the people and places connected to your area of service.') }}</p>
     </div>
 </section>
 
-<section class="card-rgc mt-8">
+<section class="card-rgc mt-8 announcement-newsroom">
     <div class="announcement-toolbar">
         <div>
             <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your view') : __('Recent announcements in your view') }}</h2>
-            <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have expired and were archived automatically. They stay available here for reference.') : __('Church-wide announcements appear here together with the notices shared for the locations connected to your account.') }}</p>
+            <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have already passed, but they remain here for reference.') : __('Church-wide announcements appear here together with the notices shared for the churches connected to your care.') }}</p>
         </div>
         <div class="announcement-toolbar-actions">
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</a>
             @can('create', App\Models\Announcement::class)
-                <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.create') }}">{{ __('New Announcement') }}</a>
+                <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.create') }}">{{ __('Share announcement') }}</a>
             @endcan
         </div>
     </div>
@@ -119,8 +119,8 @@
             </article>
         @empty
             <article class="announcement-empty-state">
-                <strong>{{ __('No announcements available in your scope yet.') }}</strong>
-                <p>{{ __('When leaders publish new updates, they will appear here with their image, delivery scope, and details.') }}</p>
+                <strong>{{ __('No announcements are available here yet.') }}</strong>
+                <p>{{ __('When church leaders share a new update, it will appear here with its image and details.') }}</p>
             </article>
         @endforelse
     </div>

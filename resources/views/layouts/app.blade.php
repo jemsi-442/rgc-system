@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#5e0d0d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RGC Platform">
+    <meta name="apple-mobile-web-app-title" content="RGC Tanzania">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-180.png') }}">
@@ -16,29 +16,45 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="page-shell min-h-screen">
-<header class="site-header text-rgc-white">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+@php
+    $dashboardActive = request()->routeIs('dashboard');
+    $announcementsActive = request()->routeIs('announcements.*');
+    $messagesActive = request()->routeIs('messages.*');
+    $givingActive = request()->routeIs('giving.*') || request()->routeIs('offerings.payments.public.*');
+    $accountActive = request()->routeIs('account.profile.*');
+    $passwordActive = request()->routeIs('account.password.*');
+    $usersActive = request()->routeIs('admin.users.*');
+    $branchesActive = request()->routeIs('branches.*');
+    $slidesActive = request()->routeIs('sliders.*');
+    $assistantTopicsActive = request()->routeIs('assistant.topics.*');
+@endphp
+<header class="site-header text-rgc-white" data-site-header>
+    <div class="site-header-inner mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" class="brand-lockup">
             <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="brand-mark">
             <span>
                 <span class="brand-subtitle">{{ __('Redeemed Gospel Church') }}</span>
-                <span class="brand-title block">{{ __('Inc. Tanzania Platform') }}</span>
+                <span class="brand-title block">{{ __('Inc. Tanzania') }}</span>
             </span>
         </a>
 
         <div class="header-actions">
             <div class="locale-row">
-                <div class="locale-switcher flex items-center gap-2">
+                <div class="locale-switcher" aria-label="{{ __('Language switcher') }}">
+                    <span class="locale-switcher-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18Zm6.93 8h-3.12a14.8 14.8 0 0 0-1.56-5.02A7.04 7.04 0 0 1 18.93 11ZM12 4.9c.84 1.01 1.8 3.03 2.18 6.1H9.82C10.2 7.93 11.16 5.91 12 4.9ZM9.75 5.98A14.8 14.8 0 0 0 8.19 11H5.07a7.04 7.04 0 0 1 4.68-5.02ZM4.9 13h3.29c.16 1.85.7 3.7 1.56 5.02A7.04 7.04 0 0 1 4.9 13Zm7.1 6.1c-.84-1.01-1.8-3.03-2.18-6.1h4.36c-.38 3.07-1.34 5.09-2.18 6.1Zm2.25-1.08c.86-1.32 1.4-3.17 1.56-5.02h3.29a7.04 7.04 0 0 1-4.85 5.02Z" fill="currentColor"/>
+                        </svg>
+                    </span>
                     <form method="POST" action="{{ route('locale.update') }}">
                         @csrf
                         <input type="hidden" name="locale" value="en">
-                        <button class="nav-link {{ app()->getLocale() === 'en' ? 'font-semibold underline underline-offset-4' : '' }}" type="submit">{{ __('English') }}</button>
+                        <button class="locale-chip {{ app()->getLocale() === 'en' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to English') }}">EN</button>
                     </form>
-                    <span class="text-rgc-white/45">|</span>
                     <form method="POST" action="{{ route('locale.update') }}">
                         @csrf
                         <input type="hidden" name="locale" value="sw">
-                        <button class="nav-link {{ app()->getLocale() === 'sw' ? 'font-semibold underline underline-offset-4' : '' }}" type="submit">{{ __('Kiswahili') }}</button>
+                        <button class="locale-chip {{ app()->getLocale() === 'sw' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to Kiswahili') }}">SW</button>
                     </form>
                 </div>
 
@@ -63,27 +79,27 @@
 
             <nav class="top-nav nav-scroll" id="primary-navigation" data-mobile-menu>
                 @auth
-                    <a class="nav-link" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
-                    <a class="nav-link" href="{{ route('announcements.index') }}">{{ __('Announcements') }}</a>
-                    <a class="nav-link" href="{{ route('messages.index') }}">{{ __('Branch Chat') }}</a>
-                    <a class="nav-link" href="{{ route('giving.index') }}">{{ __('Giving') }}</a>
-                    <a class="nav-link" href="{{ route('account.profile.edit') }}">{{ __('My Account') }}</a>
-                    <a class="nav-link" href="{{ route('account.password.edit') }}">{{ __('My Password') }}</a>
+                    <a class="nav-link {{ $dashboardActive ? 'nav-link--active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
+                    <a class="nav-link {{ $announcementsActive ? 'nav-link--active' : '' }}" href="{{ route('announcements.index') }}">{{ __('Announcements') }}</a>
+                    <a class="nav-link {{ $messagesActive ? 'nav-link--active' : '' }}" href="{{ route('messages.index') }}">{{ __('Branch Chat') }}</a>
+                    <a class="nav-link {{ $givingActive ? 'nav-link--active' : '' }}" href="{{ route('giving.index') }}">{{ __('Giving') }}</a>
+                    <a class="nav-link {{ $accountActive ? 'nav-link--active' : '' }}" href="{{ route('account.profile.edit') }}">{{ __('My Account') }}</a>
+                    <a class="nav-link {{ $passwordActive ? 'nav-link--active' : '' }}" href="{{ route('account.password.edit') }}">{{ __('My Password') }}</a>
                     @if(auth()->user()->hasSystemRole('super_admin'))
-                        <a class="nav-link" href="{{ route('admin.users.index') }}">{{ __('Users') }}</a>
-                        <a class="nav-link" href="{{ route('branches.index') }}">{{ __('Branches') }}</a>
-                        <a class="nav-link" href="{{ route('sliders.index') }}">{{ __('Slides') }}</a>
+                        <a class="nav-link {{ $usersActive ? 'nav-link--active' : '' }}" href="{{ route('admin.users.index') }}">{{ __('Users') }}</a>
+                        <a class="nav-link {{ $branchesActive ? 'nav-link--active' : '' }}" href="{{ route('branches.index') }}">{{ __('Branches') }}</a>
+                        <a class="nav-link {{ $slidesActive ? 'nav-link--active' : '' }}" href="{{ route('sliders.index') }}">{{ __('Slides') }}</a>
                     @endif
                     @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
-                        <a class="nav-link" href="{{ route('assistant.topics.index') }}">{{ __('Assistant Knowledge') }}</a>
+                        <a class="nav-link {{ $assistantTopicsActive ? 'nav-link--active' : '' }}" href="{{ route('assistant.topics.index') }}">{{ __('Assistant Topics') }}</a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button class="btn-rgc" type="submit">{{ __('Logout') }}</button>
                     </form>
                 @else
-                    <a class="nav-link" href="{{ route('home') }}">{{ __('Home') }}</a>
-                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                    <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}" href="{{ route('home') }}">{{ __('Home') }}</a>
+                    <a class="nav-link {{ request()->routeIs('login') ? 'nav-link--active' : '' }}" href="{{ route('login') }}">{{ __('Login') }}</a>
                     <a class="btn-rgc" href="{{ route('register') }}">{{ __('Register') }}</a>
                 @endauth
             </nav>
@@ -97,10 +113,10 @@
         data-pwa-install-prompt
         data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
         data-ready-message="{{ __('Install this app on your device for faster access.') }}"
-        data-installed-message="{{ __('RGC Platform is already installed on this device.') }}"
+        data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
     >
         <div class="install-prompt-copy">
-            <strong data-pwa-install-title>{{ __('Install RGC Platform') }}</strong>
+            <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
             <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
         </div>
         <div class="install-prompt-actions">
@@ -125,8 +141,8 @@
                 <div class="site-footer-lockup">
                     <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
                     <div>
-                        <strong>{{ __('RGC Platform') }}</strong>
-                        <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital platform.') }}</p>
+                        <strong>{{ __('RGC Tanzania') }}</strong>
+                        <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
                     </div>
                 </div>
             </div>
@@ -147,14 +163,14 @@
             </div>
 
             <div class="site-footer-meta">
-                <span class="site-footer-label">{{ __('Church platform') }}</span>
+                <span class="site-footer-label">{{ __('Church home') }}</span>
                 <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
                 <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
             </div>
         </div>
 
         <div class="site-footer-bottom">
-            <span>{{ __('RGC Platform') }} © {{ now()->year }}</span>
+            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
             <span>{{ __('Church communication, giving, and member services.') }}</span>
         </div>
     </footer>
@@ -215,7 +231,7 @@
                 </article>
             </div>
 
-            <div class="assistant-hint">{{ __('Answers are based on this platform only.') }}</div>
+            <div class="assistant-hint">{{ __('Answers are based on this church system only.') }}</div>
 
             <div class="assistant-suggestions" data-assistant-suggestions>
                 @foreach ($assistantSuggestions as $assistantSuggestion)

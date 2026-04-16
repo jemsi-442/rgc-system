@@ -9,12 +9,12 @@
             <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="auth-brand-logo">
             <div class="auth-brand-text">
                 <span class="auth-brand-name">{{ __('Redeemed Gospel Church') }}</span>
-                <span class="auth-brand-subtitle">{{ __('Inc. Tanzania Platform') }}</span>
+                <span class="auth-brand-subtitle">{{ __('Inc. Tanzania') }}</span>
             </div>
         </div>
 
         <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Sign In') }}</span>
-        <h2 class="mt-5">{{ __('Enter your church workspace.') }}</h2>
+        <h2 class="mt-5">{{ __('Enter your church home.') }}</h2>
         <p class="mt-5 max-w-xl text-sm leading-7 text-white/80">
             {{ __('Sign in with your registered account to continue with church updates, communication, and giving services.') }}
         </p>
@@ -29,8 +29,8 @@
     <section class="form-shell">
         <div class="form-panel">
             <span class="section-kicker">{{ __('Account Access') }}</span>
-            <h1 class="mt-5 font-[family-name:var(--font-display)] text-4xl leading-none">{{ __('Sign in to your RGC workspace') }}</h1>
-            <p class="mt-4 form-hint">{{ __('Use your registered email and password to enter the platform.') }}</p>
+            <h1 class="mt-5 font-[family-name:var(--font-display)] text-4xl leading-none">{{ __('Sign in to your RGC account') }}</h1>
+            <p class="mt-4 form-hint">{{ __('Use your registered email and password to continue.') }}</p>
 
 
 

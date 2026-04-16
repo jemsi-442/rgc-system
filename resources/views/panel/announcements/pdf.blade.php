@@ -295,7 +295,7 @@
                     @endif
                     <td class="brand-copy">
                         <h1>{{ __('Redeemed Gospel Church Inc. Tanzania') }}</h1>
-                        <p>{{ __('Official announcement export generated from the RGC management platform.') }}</p>
+                        <p>{{ __('Official announcement export generated from the Redeemed Gospel Church Tanzania system.') }}</p>
                         <div class="subline">{{ __('Head Office: Toangoma, Temeke, Dar es Salaam') }}</div>
                     </td>
                     <td class="brand-badge-cell">
@@ -310,7 +310,7 @@
         </div>
 
         <div class="summary-strip">
-            {{ __('Issued through the national church management platform.') }}
+            {{ __('Issued through the Redeemed Gospel Church Tanzania system.') }}
         </div>
 
         <div class="chips">
@@ -393,7 +393,7 @@
                         <strong>{{ __('Online version') }}</strong>
                         @if($qrCodeSvg)
                             <p>{{ __('Scan to open the online announcement') }}</p>
-                            <p>{{ __('Use this QR code to open the live version inside the RGC platform.') }}</p>
+                            <p>{{ __('Use this QR code to open the live version inside the RGC Tanzania system.') }}</p>
                         @else
                             <p>{{ __('Open the online announcement using the link below.') }}</p>
                         @endif

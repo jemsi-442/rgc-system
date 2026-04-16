@@ -73,7 +73,7 @@
         $previewText = __('This announcement will go to your whole district.');
     } else {
         $scopePill = __('Branch audience');
-        $scopeLabel = __('This announcement will stay inside your branch scope.');
+        $scopeLabel = __('This announcement will stay inside your branch.');
         $previewText = __('This announcement will stay inside your branch only.');
     }
 @endphp
@@ -105,7 +105,7 @@
                             <option value="global" @selected($selectedDeliveryScope === 'global')>{{ __('Whole church') }}</option>
                             <option value="selected_branches" @selected($selectedDeliveryScope === 'selected_branches')>{{ __('Selected branches only') }}</option>
                         </select>
-                        <p class="field-hint">{{ __('Super Admin can reach everyone in the platform or only the branches selected below.') }}</p>
+                        <p class="field-hint">{{ __('Super Admin can reach the whole church or only the branches selected below.') }}</p>
                         @error('delivery_scope')
                             <p class="field-error">{{ $message }}</p>
                         @enderror
@@ -152,7 +152,7 @@
                     <div class="announcement-expiry-field {{ $showDistrictTarget ? '' : 'hidden' }}" data-announcement-district-shell>
                         <label class="field-label" for="district_id">{{ __('Choose district') }}</label>
                         <select class="input-rgc" id="district_id" name="district_id" data-announcement-district-select @disabled(! $showDistrictTarget)>
-                            <option value="">{{ __('Select district for scoped delivery') }}</option>
+                            <option value="">{{ __('Select district for this audience') }}</option>
                             @foreach($availableDistricts as $district)
                                 <option value="{{ $district->id }}" @selected((string) $selectedDistrictId === (string) $district->id)>{{ $district->name }}</option>
                             @endforeach
@@ -171,10 +171,10 @@
                             name="branch_id"
                             data-announcement-branch-select
                             data-selected-value="{{ $selectedBranchId }}"
-                            data-empty-option-label="{{ __('Select branch for branch delivery') }}"
+                            data-empty-option-label="{{ __('Select branch for this audience') }}"
                             @disabled(! $showBranchTarget)
                         >
-                            <option value="">{{ __('Select branch for branch delivery') }}</option>
+                            <option value="">{{ __('Select branch for this audience') }}</option>
                         </select>
                         <p class="field-hint">{{ __('Choose a branch only when the announcement should stay within one branch in the selected district.') }}</p>
                         @error('branch_id')
@@ -207,7 +207,7 @@
                     <input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $announcement->is_pinned ?? false))>
                     <span>
                         <strong>{{ __('Pin this announcement') }}</strong>
-                        <small>{{ __('Pinned announcements stay at the top for everyone in scope.') }}</small>
+                        <small>{{ __('Pinned announcements stay at the top for everyone who receives them.') }}</small>
                     </span>
                 </label>
 

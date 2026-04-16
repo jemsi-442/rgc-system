@@ -3,7 +3,7 @@
 @section('title', __('Add User') . ' - RGC')
 
 @section('content')
-<div class="form-shell max-w-5xl">
+<div class="form-shell form-shell--executive max-w-5xl">
     <div class="form-panel">
         <div class="form-page-header">
             <div>

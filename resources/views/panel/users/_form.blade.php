@@ -2,7 +2,7 @@
     <section class="form-section">
         <div class="form-section-heading">
             <h2>{{ __('Account details') }}</h2>
-            <p>{{ __('Set the user identity, access status, and the role they will use across the RGC platform.') }}</p>
+            <p>{{ __('Set the person’s details, account status, and the church role they will use.') }}</p>
         </div>
 
         <div class="form-grid-responsive">
@@ -29,7 +29,7 @@
                         <option value="{{ $roleOption }}" @selected(old('role', $managedUser?->normalizedRoleName() ?? 'member') === $roleOption)>{{ __(Illuminate\Support\Str::headline($roleOption)) }}</option>
                     @endforeach
                 </select>
-                <p class="form-hint mt-2">{{ __('Choose member for normal branch users, or assign regional, district, or branch admin here when the person should lead that governance area.') }}</p>
+                <p class="form-hint mt-2">{{ __('Choose member for normal branch users, or assign regional, district, or branch leadership here when the person should serve in that area.') }}</p>
             </div>
 
             <div>
@@ -43,21 +43,21 @@
             </div>
         </div>
 
-        <div class="form-callout mt-5" data-role-guidance-panel>
-            <strong data-role-guidance-title>{{ __('Member access') }}</strong>
-            <p class="mt-2 text-sm text-black/70" data-role-guidance-copy>
-                {{ __('Use member for regular church users who should receive branch updates, giving access, and normal sign-in without leadership controls.') }}
-            </p>
-            <p class="mt-3 text-sm text-black/60" data-role-scope-copy>
-                {{ __('The region, district, and branch below still matter because every account keeps a home branch, even when the role is later promoted into district or regional leadership.') }}
+        <div class="form-callout form-callout--executive mt-5" data-role-guidance-panel>
+                <strong data-role-guidance-title>{{ __('Member access') }}</strong>
+                <p class="mt-2 text-sm text-black/70" data-role-guidance-copy>
+                    {{ __('Use member for regular church users who should receive branch updates, giving access, and normal sign-in without leadership controls.') }}
+                </p>
+                <p class="mt-3 text-sm text-black/60" data-role-scope-copy>
+                {{ __('The region, district, and branch below still matter because every account keeps a home church, even when the role is later moved into district or regional leadership.') }}
             </p>
         </div>
     </section>
 
     <section class="form-section">
         <div class="form-section-heading">
-            <h2>{{ __('Governance scope') }}</h2>
-            <p>{{ __('Set the exact region, district, and branch that the account will govern. This is what lets Super Admin promote someone into the right leadership scope and later return them to ordinary member access without confusion.') }}</p>
+            <h2>{{ __('Church location') }}</h2>
+            <p>{{ __('Set the exact region, district, and branch connected to this account so church service, leadership, and member care stay in the right place.') }}</p>
         </div>
 
         <div class="form-grid-responsive">
