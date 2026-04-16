@@ -5,6 +5,7 @@ namespace Tests\Feature\Dashboard;
 use App\Models\Announcement;
 use App\Models\Branch;
 use App\Models\District;
+use App\Models\Event;
 use App\Models\Expense;
 use App\Models\Offering;
 use App\Models\OfferingPayment;
@@ -80,7 +81,60 @@ class DashboardScopeTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Give now')
-            ->assertSee('Ready to give to your branch?');
+            ->assertSee('Giving Snapshot');
+    }
+
+    public function test_member_dashboard_shows_personal_snapshot_highlight_and_upcoming_events(): void
+    {
+        $this->seed(DatabaseSeeder::class);
+
+        [$darRegion, $temekeDistrict, $hqBranch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $darRegion, $temekeDistrict, $hqBranch, 'member.dashboard.home@rgc.test');
+
+        OfferingPayment::query()->create([
+            'church_id' => $hqBranch->id,
+            'user_id' => $member->id,
+            'amount' => 25000,
+            'currency' => 'TZS',
+            'offering_date' => now()->toDateString(),
+            'payer_name' => 'Member Home',
+            'description' => 'Home dashboard contribution',
+            'status' => 'completed',
+            'paid_at' => now()->subHour(),
+            'metadata' => ['payment_type' => 'thanksgiving'],
+        ]);
+
+        Announcement::query()->create([
+            'title' => 'Pinned Branch Focus',
+            'body' => 'This is the key update members should notice first.',
+            'region_id' => $darRegion->id,
+            'district_id' => $temekeDistrict->id,
+            'church_id' => $hqBranch->id,
+            'created_by' => $member->id,
+            'is_pinned' => true,
+            'pinned_at' => now(),
+        ]);
+
+        Event::query()->create([
+            'title' => 'Friday Prayer Gathering',
+            'description' => 'Branch prayer and fellowship evening.',
+            'event_date' => now()->addDays(2)->setTime(18, 30),
+            'region_id' => $darRegion->id,
+            'district_id' => $temekeDistrict->id,
+            'church_id' => $hqBranch->id,
+            'created_by' => $member->id,
+        ]);
+
+        $this->actingAs($member)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Today’s Encouragement')
+            ->assertSee('Giving Snapshot')
+            ->assertSee('Pinned Branch Focus')
+            ->assertSee('Upcoming Moments')
+            ->assertSee('Friday Prayer Gathering')
+            ->assertSee('Thanksgiving')
+            ->assertSee('This month');
     }
 
     public function test_super_admin_dashboard_summarizes_regions_across_the_platform(): void

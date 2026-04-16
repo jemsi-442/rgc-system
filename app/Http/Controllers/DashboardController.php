@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\Branch;
 use App\Models\District;
+use App\Models\Event;
 use App\Models\Expense;
 use App\Models\Offering;
 use App\Models\OfferingPayment;
@@ -27,10 +28,11 @@ class DashboardController extends Controller
         $recentPayments = $this->buildRecentPayments($user, $branchId);
         $paymentAlerts = $this->buildPaymentAlerts($user, $branchId);
         $memberPayments = $this->buildMemberPayments($user);
+        $memberDashboard = $this->buildMemberDashboard($user, $branchId, $memberPayments);
         $charts = $this->buildCharts($user, $branchId, $stats);
         $roleLabel = __(str($user->normalizedRoleName() ?? 'member')->replace('_', ' ')->title()->toString());
 
-        return view('panel.dashboard', compact('stats', 'announcements', 'scope', 'recentPayments', 'paymentAlerts', 'memberPayments', 'charts', 'roleLabel'));
+        return view('panel.dashboard', compact('stats', 'announcements', 'scope', 'recentPayments', 'paymentAlerts', 'memberPayments', 'memberDashboard', 'charts', 'roleLabel'));
     }
 
     private function buildStats(User $user, ?int $branchId): array
@@ -233,6 +235,72 @@ class DashboardController extends Controller
             ->get();
     }
 
+    private function buildMemberDashboard(User $user, ?int $branchId, Collection $memberPayments): array
+    {
+        if (! $user->hasSystemRole('member')) {
+            return [
+                'encouragement' => null,
+                'giving' => [],
+                'highlight' => null,
+                'upcoming_events' => collect(),
+            ];
+        }
+
+        $monthStart = now()->startOfMonth();
+        $allMemberPayments = OfferingPayment::query()
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        $highlight = Announcement::query()
+            ->with(['creator', 'region', 'district', 'branch', 'targetBranches'])
+            ->visibleTo($user)
+            ->dashboardVisible()
+            ->orderedForDisplay()
+            ->first();
+
+        $upcomingEvents = Event::query()
+            ->where('event_date', '>=', now()->startOfDay())
+            ->where(function (Builder $query) use ($user, $branchId): void {
+                if ($branchId) {
+                    $query->where('church_id', $branchId);
+                }
+
+                if ($user->district_id) {
+                    $query->orWhere(function (Builder $districtQuery) use ($user): void {
+                        $districtQuery
+                            ->where('district_id', $user->district_id)
+                            ->whereNull('church_id');
+                    });
+                }
+
+                if ($user->region_id) {
+                    $query->orWhere(function (Builder $regionQuery) use ($user): void {
+                        $regionQuery
+                            ->where('region_id', $user->region_id)
+                            ->whereNull('district_id')
+                            ->whereNull('church_id');
+                    });
+                }
+            })
+            ->orderBy('event_date')
+            ->limit(3)
+            ->get();
+
+        return [
+            'encouragement' => $this->memberEncouragement(),
+            'giving' => [
+                'count' => $allMemberPayments->count(),
+                'month_total' => (float) $allMemberPayments
+                    ->filter(fn (OfferingPayment $payment) => $payment->created_at && $payment->created_at->gte($monthStart))
+                    ->sum('amount'),
+                'last_payment' => $allMemberPayments->first(),
+            ],
+            'highlight' => $highlight,
+            'upcoming_events' => $upcomingEvents,
+        ];
+    }
+
     private function buildCharts(User $user, ?int $branchId, array $stats): array
     {
         if (! $user->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant'])) {
@@ -388,5 +456,41 @@ class DashboardController extends Controller
         }
 
         return (float) $query->whereIn('church_id', $branchIds)->sum('amount');
+    }
+
+    private function memberEncouragement(): array
+    {
+        $messages = [
+            0 => [
+                'title' => __('Start the week with purpose'),
+                'body' => __('Stay close to your branch updates, upcoming gatherings, and giving plans so the week begins with clarity and peace.'),
+            ],
+            1 => [
+                'title' => __('Keep your branch connection active'),
+                'body' => __('Open the latest notices, check upcoming moments, and stay ready to support what your church family is doing this week.'),
+            ],
+            2 => [
+                'title' => __('Walk with your branch day by day'),
+                'body' => __('A simple check-in here keeps you close to church communication, encouragement, and practical ways to stay involved.'),
+            ],
+            3 => [
+                'title' => __('Stay encouraged and prepared'),
+                'body' => __('Use this space to follow branch life, keep up with church moments, and respond quickly when something important is happening.'),
+            ],
+            4 => [
+                'title' => __('Finish the week with awareness'),
+                'body' => __('Before the weekend gathers pace, take a moment to review notices, events, and any giving plans you want to complete.'),
+            ],
+            5 => [
+                'title' => __('Weekend branch moments are near'),
+                'body' => __('This is a good time to check service updates, branch events, and the things your church family is preparing together.'),
+            ],
+            6 => [
+                'title' => __('Welcome to today’s church home'),
+                'body' => __('Stay close to the life of your branch today through updates, upcoming gatherings, and the giving tools prepared for members.'),
+            ],
+        ];
+
+        return $messages[now()->dayOfWeek] ?? $messages[0];
     }
 }

@@ -16,6 +16,12 @@
     $bannerCopy = $isSuperAdmin
         ? __('See the full church platform at a glance, keep an eye on growth, and move into the tools that shape branches, users, and public presentation.')
         : __('This dashboard is automatically scoped to your role so your numbers, updates, and shortcuts stay aligned with the region, district, or branch you are approved to serve.');
+    $overviewHeading = auth()->user()->hasSystemRole('member')
+        ? __('A calm view of your branch life')
+        : __('Your important numbers, arranged for quick decisions');
+    $overviewCopy = auth()->user()->hasSystemRole('member')
+        ? __('Start here when you want a quick sense of what is active around you before you move into giving, branch chat, or notices.')
+        : __('This overview keeps the strongest signals close first so you can act without scanning the whole dashboard every time you return.');
 
     $activitySeries = collect($charts['activity'] ?? []);
     $activityPeak = max(1, (int) ($charts['activity_peak'] ?? 1));
@@ -77,6 +83,14 @@
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">
             {{ $bannerCopy }}
         </p>
+        <div class="dashboard-quick-nav mt-6">
+            <a href="#dashboard-overview">{{ __('Overview') }}</a>
+            @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']))
+                <a href="#dashboard-activity">{{ __('Activity') }}</a>
+            @endif
+            <a href="#dashboard-actions">{{ __('Actions') }}</a>
+            <a href="#dashboard-notices">{{ __('Updates') }}</a>
+        </div>
     </div>
 </section>
 
@@ -120,47 +134,55 @@
 </section>
 @endif
 
-<section class="panel-grid cols-4 mt-8">
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Users In Scope') }}</span>
-        <strong>{{ $stats['users'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Branches In Scope') }}</span>
-        <strong>{{ $stats['branches'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Regions Visible') }}</span>
-        <strong>{{ $stats['regions'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Districts Visible') }}</span>
-        <strong>{{ $stats['districts'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Offerings') }}</span>
-        <strong>{{ number_format($stats['offerings'], 2) }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Expenses') }}</span>
-        <strong>{{ number_format($stats['expenses'], 2) }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Payment Requests') }}</span>
-        <strong>{{ $stats['payment_requests'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Pending Payments') }}</span>
-        <strong>{{ $stats['pending_payments'] }}</strong>
-    </article>
-    <article class="stat-card">
-        <span class="stat-label">{{ __('Completed Payments') }}</span>
-        <strong>{{ $stats['completed_payments'] }}</strong>
-    </article>
+<section id="dashboard-overview" class="dashboard-overview-shell mt-8">
+    <div class="dashboard-overview-copy">
+        <span class="section-kicker">{{ __('Overview') }}</span>
+        <h2>{{ $overviewHeading }}</h2>
+        <p>{{ $overviewCopy }}</p>
+    </div>
+
+    <div class="panel-grid cols-4 dashboard-stat-grid">
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Users In Scope') }}</span>
+            <strong>{{ $stats['users'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Branches In Scope') }}</span>
+            <strong>{{ $stats['branches'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Regions Visible') }}</span>
+            <strong>{{ $stats['regions'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Districts Visible') }}</span>
+            <strong>{{ $stats['districts'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Offerings') }}</span>
+            <strong>{{ number_format($stats['offerings'], 2) }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Expenses') }}</span>
+            <strong>{{ number_format($stats['expenses'], 2) }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Payment Requests') }}</span>
+            <strong>{{ $stats['payment_requests'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Pending Payments') }}</span>
+            <strong>{{ $stats['pending_payments'] }}</strong>
+        </article>
+        <article class="stat-card">
+            <span class="stat-label">{{ __('Completed Payments') }}</span>
+            <strong>{{ $stats['completed_payments'] }}</strong>
+        </article>
+    </div>
 </section>
 
 @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']))
-<section class="tablet-stack two mt-8">
+<section id="dashboard-activity" class="tablet-stack two mt-8">
     <article class="card-rgc dashboard-visual-card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -365,7 +387,7 @@
 </section>
 @endif
 
-<section class="tablet-stack two mt-8">
+<section id="dashboard-actions" class="tablet-stack two mt-8">
     <article class="card-rgc-strong">
         <span class="section-kicker">{{ __('Operational Shortcuts') }}</span>
         <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">
@@ -492,14 +514,113 @@
             <h2 class="mt-5 text-2xl font-semibold">
                 {{ __('Notices for :branch', ['branch' => $dashboardUser->branch?->name ?: __('your branch')]) }}
             </h2>
-            <p class="mt-2 text-sm text-black/65">{{ __('Updates from your branch will appear here together with your recent giving activity so you can keep up without opening several pages.') }}</p>
-            <div class="announcement-callout mt-5 space-y-3">
-                <p class="font-semibold text-black">{{ __('Ready to give to your branch?') }}</p>
-                <p class="text-sm text-black/70">{{ __('Open the member giving workspace to create a secure payment link for sadaka, offerings, thanksgiving, and other approved contributions.') }}</p>
-                <div class="flex flex-col gap-3 sm:flex-row">
+            <p class="mt-2 text-sm text-black/65">{{ __('Your branch home now keeps together encouragement, giving activity, key updates, and the next church moments to watch.') }}</p>
+
+            <section class="member-home-hero mt-5">
+                <div class="member-home-hero-copy">
+                    <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ __('Church Home') }}</span>
+                    <h3>{{ $memberDashboard['encouragement']['title'] ?? __('Stay close to your branch') }}</h3>
+                    <p>{{ $memberDashboard['encouragement']['body'] ?? __('Keep up with the life of your branch through notices, events, and member giving.') }}</p>
+
+                    <div class="member-home-chips">
+                        <span>{{ trans_choice(':count notice|:count notices', $scope->count(), ['count' => $scope->count()]) }}</span>
+                        <span>{{ trans_choice(':count upcoming moment|:count upcoming moments', $memberDashboard['upcoming_events']->count(), ['count' => $memberDashboard['upcoming_events']->count()]) }}</span>
+                        <span>{{ __('Branch chat ready') }}</span>
+                    </div>
+                </div>
+
+                <div class="member-home-hero-actions">
                     <a class="btn-rgc w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
+                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('messages.index') }}">{{ __('Open branch chat') }}</a>
+                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('View announcements') }}</a>
+                </div>
+            </section>
+
+            <div class="member-home-grid mt-5">
+                <article class="member-encouragement-card">
+                    <span class="section-kicker">{{ __('Today’s Encouragement') }}</span>
+                    <h3 class="mt-4">{{ $memberDashboard['encouragement']['title'] ?? __('Stay close to your branch') }}</h3>
+                    <p class="mt-3">{{ $memberDashboard['encouragement']['body'] ?? __('Keep up with the life of your branch through notices, events, and member giving.') }}</p>
+                </article>
+
+                <article class="card-rgc member-giving-card">
+                    <div class="member-card-topline">
+                        <span class="section-kicker">{{ __('Giving Snapshot') }}</span>
+                        <span class="member-card-mark">{{ __('Member view') }}</span>
+                    </div>
+                    <div class="member-giving-stats mt-5">
+                        <div class="member-giving-stat">
+                            <span>{{ __('This month') }}</span>
+                            <strong>TZS {{ number_format((float) ($memberDashboard['giving']['month_total'] ?? 0), 2) }}</strong>
+                        </div>
+                        <div class="member-giving-stat">
+                            <span>{{ __('All contributions') }}</span>
+                            <strong>{{ $memberDashboard['giving']['count'] ?? 0 }}</strong>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-sm text-black/65">
+                        @if(($memberDashboard['giving']['last_payment'] ?? null))
+                            {{ __('Last contribution: :type · :when', [
+                                'type' => $memberDashboard['giving']['last_payment']->paymentTypeLabel(),
+                                'when' => optional($memberDashboard['giving']['last_payment']->created_at)->diffForHumans(),
+                            ]) }}
+                        @else
+                            {{ __('Your giving history will begin to appear here after your first contribution.') }}
+                        @endif
+                    </p>
+                    <div class="member-giving-actions mt-5">
+                        <a class="btn-rgc w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
+                        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('account.password.edit') }}">{{ __('Account settings') }}</a>
+                    </div>
+                </article>
+            </div>
+
+            @if($memberDashboard['highlight'])
+                <article class="member-highlight-card mt-5">
+                    <div class="member-highlight-header">
+                        <div>
+                            <span class="section-kicker">{{ __('Pinned Update') }}</span>
+                            <h3 class="mt-4">{{ $memberDashboard['highlight']->title }}</h3>
+                        </div>
+                        <span class="announcement-audience is-{{ $memberDashboard['highlight']->audienceVariant() }}">{{ $memberDashboard['highlight']->audienceLabel() }}</span>
+                    </div>
+                    <p class="mt-3 text-sm text-black/72">{{ str($memberDashboard['highlight']->body)->limit(220) }}</p>
+                    <div class="member-highlight-actions mt-5">
+                        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('announcements.show', $memberDashboard['highlight']) }}">{{ __('Open update') }}</a>
+                    </div>
+                </article>
+            @endif
+
+            <div class="member-upcoming-card mt-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <span class="section-kicker">{{ __('Upcoming Moments') }}</span>
+                        <h3 class="mt-4 text-2xl font-semibold">{{ __('What is coming up next') }}</h3>
+                        <p class="mt-2 text-sm text-black/65">{{ __('These are the nearest church moments connected to your branch, district, or region.') }}</p>
+                    </div>
+                </div>
+
+                <div class="member-upcoming-list mt-5">
+                    @forelse($memberDashboard['upcoming_events'] as $event)
+                        <article class="member-upcoming-item">
+                            <div class="member-upcoming-date">
+                                <strong>{{ $event->event_date->translatedFormat('d') }}</strong>
+                                <span>{{ $event->event_date->translatedFormat('M') }}</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-black">{{ $event->title }}</p>
+                                <p class="mt-1 text-sm text-black/65">{{ $event->event_date->translatedFormat('l, d M Y · H:i') }}</p>
+                                @if(filled($event->description))
+                                    <p class="mt-2 text-sm text-black/68">{{ str($event->description)->limit(120) }}</p>
+                                @endif
+                            </div>
+                        </article>
+                    @empty
+                        <div class="branch-item text-sm text-black/65">{{ __('No upcoming events have been added for your branch scope yet.') }}</div>
+                    @endforelse
                 </div>
             </div>
+
             @if($memberPayments->isNotEmpty())
                 <div class="payment-request-grid mt-5">
                     @foreach($memberPayments as $payment)
@@ -517,7 +638,17 @@
                     @endforeach
                 </div>
             @endif
-            <div class="branch-list mt-5">
+
+            <div class="member-notice-card mt-5">
+                <div class="member-notice-header">
+                    <div>
+                        <span class="section-kicker">{{ __('Noticeboard') }}</span>
+                        <h3>{{ __('Latest branch notices') }}</h3>
+                    </div>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('Open all notices') }}</a>
+                </div>
+
+                <div class="branch-list mt-5">
                 @forelse($scope as $notice)
                     <article class="branch-item dashboard-announcement {{ $notice->hasPin() ? 'is-pinned' : '' }}">
                         <div class="dashboard-announcement-meta">
@@ -560,6 +691,7 @@
                 @empty
                     <div class="branch-item text-sm text-black/65">{{ __('No branch announcements yet.') }}</div>
                 @endforelse
+                </div>
             </div>
         @else
             <h2 class="mt-5 text-2xl font-semibold">{{ __('Governance overview') }}</h2>
@@ -568,7 +700,7 @@
     </article>
 </section>
 
-<section class="mt-8 card-rgc">
+<section id="dashboard-notices" class="mt-8 card-rgc">
     <span class="section-kicker">{{ __('Announcements') }}</span>
     <div class="mt-5 flex flex-wrap items-end justify-between gap-3">
         <div>
