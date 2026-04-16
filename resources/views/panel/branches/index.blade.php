@@ -4,12 +4,12 @@
 <div class="card-rgc admin-console-shell admin-console-shell--branches">
     <div class="branch-admin-header">
         <div>
-            <span class="section-kicker">{{ __('Branch Administration') }}</span>
+            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'church', 'class' => 'section-kicker-icon'])<span>{{ __('Branch Administration') }}</span></span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('Branches') }}</h1>
             <p class="mt-1 text-sm text-black/65">{{ __('Manage church locations, update their details, remove inactive branches, or move into the creation page to import many branches at once.') }}</p>
         </div>
         <div class="branch-admin-actions">
-            <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.create') }}">{{ __('Add or import branches') }}</a>
+            <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.create') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Add or import branches') }}</span></a>
             <div class="branch-admin-links">
                 <a href="{{ route('branches.template', 'xlsx') }}">{{ __('Blank Template') }}</a>
                 <a href="{{ route('branches.template.sample', 'xlsx') }}">{{ __('Sample Template') }}</a>
@@ -40,7 +40,7 @@
                 <p>{{ __('Use the same filter for the branch list and export buttons so you can download only the churches you need.') }}</p>
             </div>
             <div class="branch-filter-actions">
-                <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Apply filter') }}</button>
+                <button class="btn-rgc-alt w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'filter', 'class' => 'button-icon'])<span>{{ __('Apply filter') }}</span></button>
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Reset') }}</a>
             </div>
         </div>
@@ -118,16 +118,16 @@
                         </td>
                         <td>
                             <div class="branch-row-actions">
-                                <a class="btn-rgc-alt btn-rgc-xs" href="{{ route('branches.show', $branch) }}">{{ __('View') }}</a>
+                                <a class="btn-rgc-alt btn-rgc-xs" href="{{ route('branches.show', $branch) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('View') }}</span></a>
                                 @can('update', $branch)
-                                    <a class="btn-rgc-alt btn-rgc-xs" href="{{ route('branches.edit', $branch) }}">{{ __('Edit') }}</a>
+                                    <a class="btn-rgc-alt btn-rgc-xs" href="{{ route('branches.edit', $branch) }}">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Edit') }}</span></a>
                                 @endcan
 
                                 @can('delete', $branch)
                                     <form method="POST" action="{{ route('branches.destroy', $branch) }}" onsubmit="return confirm('{{ __('Delete this branch record?') }}');">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn-rgc-danger btn-rgc-xs" type="submit">{{ __('Delete') }}</button>
+                                        <button class="btn-rgc-danger btn-rgc-xs" type="submit">@include('partials.ui.icon', ['name' => 'trash', 'class' => 'button-icon'])<span>{{ __('Delete') }}</span></button>
                                     </form>
                                 @elseif($branch->is_headquarters)
                                     <span class="branch-locked-pill">{{ __('Headquarters locked') }}</span>

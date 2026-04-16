@@ -7,7 +7,7 @@
     <div class="form-panel assistant-topic-editor">
         <div class="form-page-header">
             <div>
-                <span class="section-kicker">{{ $topic->is_system ? __('Default topic') : __('Custom topic') }}</span>
+                <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'assistant', 'class' => 'section-kicker-icon'])<span>{{ $topic->is_system ? __('Default topic') : __('Custom topic') }}</span></span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Edit assistant topic') }}</h1>
                 <p class="mt-2 text-sm text-black/65">{{ __('Adjust the answer, matching phrases, or coverage so the assistant responds more accurately to your users.') }}</p>
                 <div class="mt-3 flex flex-wrap gap-2">
@@ -15,7 +15,7 @@
                     <span class="payment-status-badge {{ $topic->is_active ? 'is-completed' : 'is-failed' }}">{{ $topic->is_active ? __('Active') : __('Inactive') }}</span>
                 </div>
             </div>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Back to assistant topics') }}</a>
+            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">@include('partials.ui.icon', ['name' => 'assistant', 'class' => 'button-icon'])<span>{{ __('Back to assistant topics') }}</span></a>
         </div>
 
         <form class="mt-6 form-stack" method="POST" action="{{ route('assistant.topics.update', $topic) }}">
@@ -23,7 +23,7 @@
             @method('PUT')
             @include('panel.assistant._form', ['topic' => $topic])
             <div class="form-actions pt-2">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Update topic') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Update topic') }}</span></button>
             </div>
         </form>
     </div>
@@ -31,7 +31,7 @@
     <section class="card-rgc assistant-version-shell assistant-panel-card">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <span class="section-kicker">{{ __('Version history') }}</span>
+                <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'section-kicker-icon'])<span>{{ __('Version history') }}</span></span>
                 <h2 class="mt-4 text-2xl font-semibold">{{ __('Previous versions') }}</h2>
                 <p class="mt-2 text-sm text-black/65">{{ __('Restore an older answer, keyword set, or coverage if a recent edit moved the assistant in the wrong direction.') }}</p>
             </div>
@@ -46,7 +46,7 @@
                     <option value="{{ $actionOption }}" @selected($versionAction === $actionOption)>{{ __(\Illuminate\Support\Str::headline(str_replace('_', ' ', $actionOption))) }}</option>
                 @endforeach
             </select>
-            <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Filter history') }}</button>
+            <button class="btn-rgc-alt w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'filter', 'class' => 'button-icon'])<span>{{ __('Filter history') }}</span></button>
         </form>
 
         <div class="assistant-version-list mt-6">
@@ -64,7 +64,7 @@
                         </div>
                         <form method="POST" action="{{ route('assistant.topics.versions.restore', ['topic' => $topic, 'version' => $version]) }}" onsubmit="return confirm('{{ __('Restore this version?') }}');">
                             @csrf
-                            <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Restore this version') }}</button>
+                            <button class="btn-rgc-alt w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Restore this version') }}</span></button>
                         </form>
                     </div>
 

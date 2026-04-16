@@ -1373,6 +1373,45 @@ body::before {
   display: none;
 }
 
+.nav-link,
+.site-footer-link-row a,
+.btn-rgc,
+.btn-rgc-alt,
+.btn-rgc-danger,
+.announcement-delete {
+  gap: 0.5rem;
+}
+
+.nav-link-icon,
+.button-icon,
+.footer-link-icon,
+.section-kicker-icon {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+}
+
+.button-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.footer-link-icon {
+  width: 0.92rem;
+  height: 0.92rem;
+}
+
+.section-kicker--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.section-kicker-icon {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
 .shortcut-grid {
   display: flex;
   flex-wrap: wrap;

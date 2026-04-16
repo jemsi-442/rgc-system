@@ -5,7 +5,7 @@
 @section('content')
 <section class="page-banner">
     <div class="page-banner-content">
-        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
+        <span class="section-kicker section-kicker--icon !border-white/10 !bg-white/10 !text-rgc-yellow">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'section-kicker-icon'])<span>{{ __('Announcements') }}</span></span>
         <h1 class="mt-5">{{ __('New Announcement') }}</h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Send a clear church update with text, image support, and the right audience.') }}</p>
     </div>

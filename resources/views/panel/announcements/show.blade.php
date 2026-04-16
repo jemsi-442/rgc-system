@@ -5,7 +5,7 @@
 @section('content')
 <section class="page-banner">
     <div class="page-banner-content">
-        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcement Details') }}</span>
+        <span class="section-kicker section-kicker--icon !border-white/10 !bg-white/10 !text-rgc-yellow">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'section-kicker-icon'])<span>{{ __('Announcement Details') }}</span></span>
         <h1 class="mt-5">{{ $announcement->title }}</h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Read the full announcement, view its image, and confirm who received it from one place.') }}</p>
     </div>
@@ -29,10 +29,10 @@
                 @endif
             </div>
             <div class="announcement-actions">
-                <a class="btn-rgc-alt" href="{{ route('announcements.index') }}">{{ __('Back to announcements') }}</a>
-                <a class="btn-rgc-alt" href="{{ route('announcements.pdf', $announcement) }}">{{ __('Download PDF') }}</a>
+                <a class="btn-rgc-alt" href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'button-icon'])<span>{{ __('Back to announcements') }}</span></a>
+                <a class="btn-rgc-alt" href="{{ route('announcements.pdf', $announcement) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download PDF') }}</span></a>
                 @if($announcement->hasImage())
-                    <a class="btn-rgc-alt" href="{{ route('announcements.image', ['announcement' => $announcement, 'download' => 1]) }}">{{ __('Download image') }}</a>
+                    <a class="btn-rgc-alt" href="{{ route('announcements.image', ['announcement' => $announcement, 'download' => 1]) }}">@include('partials.ui.icon', ['name' => 'image', 'class' => 'button-icon'])<span>{{ __('Download image') }}</span></a>
                 @endif
                 <button
                     class="btn-rgc-alt"
@@ -43,17 +43,17 @@
                     data-share-success="{{ __('Announcement link copied.') }}"
                     data-share-failure="{{ __('Unable to share this announcement right now.') }}"
                 >
-                    {{ __('Share announcement') }}
+                    @include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'button-icon'])<span>{{ __('Share announcement') }}</span>
                 </button>
                 <span class="announcement-share-status" data-share-status aria-live="polite"></span>
                 @can('update', $announcement)
-                    <a class="btn-rgc-alt" href="{{ route('announcements.edit', $announcement) }}">{{ __('Edit') }}</a>
+                    <a class="btn-rgc-alt" href="{{ route('announcements.edit', $announcement) }}">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Edit') }}</span></a>
                 @endcan
                 @can('delete', $announcement)
                     <form method="POST" action="{{ route('announcements.destroy', $announcement) }}" onsubmit="return confirm('{{ __('Delete this announcement?') }}')">
                         @csrf
                         @method('DELETE')
-                        <button class="announcement-delete" type="submit">{{ __('Delete') }}</button>
+                        <button class="announcement-delete" type="submit">@include('partials.ui.icon', ['name' => 'trash', 'class' => 'button-icon'])<span>{{ __('Delete') }}</span></button>
                     </form>
                 @endcan
             </div>
@@ -76,7 +76,7 @@
         @endif
 
         <div class="announcement-detail-copy">
-            <span class="section-kicker">{{ __('Full announcement') }}</span>
+            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'section-kicker-icon'])<span>{{ __('Full announcement') }}</span></span>
             @if(filled($announcement->body))
                 <div class="announcement-detail-body">{{ $announcement->body }}</div>
             @else
@@ -86,7 +86,7 @@
     </article>
 
     <aside class="card-rgc announcement-detail-sidebar announcement-detail-sidebar--premium">
-        <span class="section-kicker">{{ __('Audience details') }}</span>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'users', 'class' => 'section-kicker-icon'])<span>{{ __('Audience details') }}</span></span>
         <div class="announcement-detail-meta mt-5">
             <div>
                 <strong>{{ __('Published') }}</strong>

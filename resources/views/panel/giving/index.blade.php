@@ -6,7 +6,7 @@
 <div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
     <section class="card-rgc-strong">
         <div class="space-y-2">
-            <p class="section-kicker">{{ __('Member giving') }}</p>
+            <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Member giving') }}</span></p>
             <h1 class="text-2xl font-semibold">{{ __('Give to your branch securely') }}</h1>
             <p class="text-sm text-black/70">{{ __('Choose the kind of giving, enter the amount and phone number, then a payment prompt will be sent to that phone.') }}</p>
         </div>
@@ -59,9 +59,9 @@
                 <p class="text-sm text-black/70">{{ __('Open the status page below to follow confirmation and see when the receipt is ready.') }}</p>
                 <div class="flex flex-col gap-3 sm:flex-row">
                     @if(session('payment_link'))
-                        <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                        <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>{{ __('Open checkout') }}</span></a>
                     @endif
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">{{ __('View status page') }}</a>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('View status page') }}</span></a>
                 </div>
             </div>
         @endif
@@ -78,7 +78,7 @@
             </div>
             <div class="grid gap-3 sm:grid-cols-4">
                 @foreach([5000, 10000, 25000, 50000] as $quickAmount)
-                    <button class="btn-rgc-outline w-full" type="button" data-quick-amount="{{ $quickAmount }}">TZS {{ number_format($quickAmount) }}</button>
+                <button class="btn-rgc-outline w-full" type="button" data-quick-amount="{{ $quickAmount }}">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>TZS {{ number_format($quickAmount) }}</span></button>
                 @endforeach
             </div>
             <div class="grid gap-4 sm:grid-cols-2">
@@ -116,7 +116,7 @@
                 <p class="mt-2 text-sm text-black/70">{{ __('A payment request is prepared, the phone prompt is sent, and after confirmation the giving is recorded for your branch.') }}</p>
             </div>
             <div class="form-actions">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Send giving prompt') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>{{ __('Send giving prompt') }}</span></button>
             </div>
         </form>
     </section>
@@ -143,7 +143,7 @@
 
         <div class="card-rgc">
             <div class="space-y-2">
-                <p class="section-kicker">{{ __('My recent giving') }}</p>
+                <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('My recent giving') }}</span></p>
                 <h2 class="text-xl font-semibold">{{ __('Giving history') }}</h2>
                 <p class="text-sm text-black/65">{{ __('Follow the status of the giving prompts you have already sent.') }}</p>
             </div>
@@ -165,13 +165,13 @@
                     <p class="mt-2 text-sm text-black/60">{{ __('Prompt sent to :phone • Requested network: :network', ['phone' => $payment->maskedPayerPhone(), 'network' => $payment->requestedNetworkLabel()]) }}</p>
                 @endif
                 <div class="payment-request-actions">
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('Status page') }}</span></a>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Copy reference') }}</span></button>
+                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ route('offerings.payments.public.show', $payment->public_reference) }}" data-share-title="{{ __('Offering Payment Status') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'button-icon'])<span>{{ __('Share status page') }}</span></button>
                     @if($payment->isCompleted())
-                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
+                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download receipt PDF') }}</span></a>
                         @elseif($payment->checkout_url)
-                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>{{ __('Open checkout') }}</span></a>
                         @endif
                     </div>
                 </article>

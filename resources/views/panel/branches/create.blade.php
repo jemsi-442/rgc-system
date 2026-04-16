@@ -6,11 +6,11 @@
         <div class="form-panel">
             <div class="form-page-header">
                 <div>
-                    <span class="section-kicker">{{ __('Branch Setup') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'church', 'class' => 'section-kicker-icon'])<span>{{ __('Branch Setup') }}</span></span>
                     <h1 class="mt-4 text-2xl font-semibold">{{ __('Create Branch') }}</h1>
                     <p class="mt-2 text-sm text-black/65">{{ __('Create one branch manually or prepare a clean batch import file that follows the Tanzania region and district structure correctly.') }}</p>
                 </div>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'button-icon'])<span>{{ __('Back to branches') }}</span></a>
             </div>
 
             <div class="branch-admin-banner branch-admin-banner--executive mt-6">
@@ -28,14 +28,14 @@
                 <section class="branch-preview-card branch-preview-card--executive mt-6">
                     <div class="branch-preview-header">
                         <div>
-                            <span class="section-kicker">{{ __('Import Preview') }}</span>
+                            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'section-kicker-icon'])<span>{{ __('Import Preview') }}</span></span>
                             <h2 class="mt-3 text-xl font-semibold">{{ __('Review branches before saving') }}</h2>
                             <p class="mt-2 text-sm text-black/65">{{ __('Nothing has been saved yet. Confirm the rows below only if everything looks right.') }}</p>
                         </div>
                         <form method="POST" action="{{ route('branches.import.confirm') }}" class="branch-preview-confirm">
                             @csrf
                             <input type="hidden" name="import_token" value="{{ $importPreviewToken }}">
-                            <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Confirm and save :count branches', ['count' => count($importPreview)]) }}</button>
+                            <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Confirm and save :count branches', ['count' => count($importPreview)]) }}</span></button>
                         </form>
                     </div>
 
@@ -194,25 +194,25 @@
                 </section>
 
                 <div class="form-actions">
-                    <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Save Branch') }}</button>
+                    <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Save Branch') }}</span></button>
                 </div>
             </form>
         </div>
     </div>
 
     <aside class="card-rgc branch-import-panel branch-import-panel--executive">
-        <span class="section-kicker">{{ __('Bulk Import') }}</span>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'section-kicker-icon'])<span>{{ __('Bulk Import') }}</span></span>
         <h2 class="mt-4 text-2xl font-semibold">{{ __('Upload branches from CSV or Excel') }}</h2>
         <p class="mt-3 text-sm leading-7 text-black/68">{{ __('Download the official template first. Every row must include region, district, branch_name, and branch_type. Optional columns are address, phone, email, and status.') }}</p>
 
         <div class="branch-import-actions mt-5">
-            <a class="btn-rgc" href="{{ route('branches.template', 'xlsx') }}">{{ __('Download blank XLSX template') }}</a>
-            <a class="btn-rgc-alt" href="{{ route('branches.template', 'csv') }}">{{ __('Download blank CSV template') }}</a>
+            <a class="btn-rgc" href="{{ route('branches.template', 'xlsx') }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download blank XLSX template') }}</span></a>
+            <a class="btn-rgc-alt" href="{{ route('branches.template', 'csv') }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download blank CSV template') }}</span></a>
         </div>
 
         <div class="branch-import-actions mt-3">
-            <a class="btn-rgc-alt w-full" href="{{ route('branches.template.sample', 'xlsx') }}">{{ __('Download filled sample XLSX') }}</a>
-            <a class="btn-rgc-alt w-full" href="{{ route('branches.template.sample', 'csv') }}">{{ __('Download filled sample CSV') }}</a>
+            <a class="btn-rgc-alt w-full" href="{{ route('branches.template.sample', 'xlsx') }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download filled sample XLSX') }}</span></a>
+            <a class="btn-rgc-alt w-full" href="{{ route('branches.template.sample', 'csv') }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download filled sample CSV') }}</span></a>
         </div>
 
         <div class="branch-template-card mt-5">

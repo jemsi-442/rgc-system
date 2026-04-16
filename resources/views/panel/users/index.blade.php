@@ -6,11 +6,11 @@
 <div class="card-rgc admin-console-shell admin-console-shell--users">
     <div class="user-admin-header">
         <div>
-            <span class="section-kicker">{{ __('Church Accounts') }}</span>
+            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'users', 'class' => 'section-kicker-icon'])<span>{{ __('Church Accounts') }}</span></span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('All user accounts') }}</h1>
             <p class="mt-2 text-sm text-black/65">{{ __('Super Admin can create church accounts, place people into regional, district, or branch leadership, return them to normal member access, reset passwords, and deactivate accounts when needed.') }}</p>
         </div>
-        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add account') }}</a>
+        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Add account') }}</span></a>
     </div>
 
     <div class="user-admin-summary mt-5">
@@ -30,7 +30,7 @@
         <div class="user-admin-search-field">
             <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search by name, email, role, or status') }}">
         </div>
-        <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Search') }}</button>
+        <button class="btn-rgc-alt w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'search', 'class' => 'button-icon'])<span>{{ __('Search') }}</span></button>
     </form>
 
     <div class="table-wrap mt-5 user-admin-table-wrap">
@@ -84,12 +84,12 @@
                         <td>{{ $managedUser->region?->name ?? '—' }}</td>
                         <td>
                             <div class="user-admin-actions">
-                                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.edit', $managedUser) }}">{{ __('Edit') }}</a>
+                                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.edit', $managedUser) }}">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Edit') }}</span></a>
                                 @if($managedUser->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $managedUser) }}" onsubmit="return confirm('{{ __('Delete this user account?') }}');">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Delete') }}</button>
+                                        <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'trash', 'class' => 'button-icon'])<span>{{ __('Delete') }}</span></button>
                                     </form>
                                 @endif
                             </div>

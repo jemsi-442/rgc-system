@@ -5,18 +5,18 @@
     <div class="card-rgc branch-show-hero branch-show-hero--executive">
         <div class="branch-show-header">
             <div>
-                <span class="section-kicker">{{ __('Branch Details') }}</span>
+                <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'church', 'class' => 'section-kicker-icon'])<span>{{ __('Branch Details') }}</span></span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ $branch->name }}</h1>
                 <p class="mt-2 text-sm text-black/65">{{ __('Review the branch location, identity, contact details, and key signs of church life for this branch.') }}</p>
             </div>
             <div class="branch-show-actions">
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" target="_blank" href="{{ route('branches.print', $branch) }}">{{ __('Print branch details') }}</a>
-                <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.pdf', $branch) }}">{{ __('Download PDF') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}">{{ __('Export branch details XLSX') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}">{{ __('Export branch details CSV') }}</a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'button-icon'])<span>{{ __('Back to branches') }}</span></a>
+                <a class="btn-rgc-alt w-full sm:w-auto" target="_blank" href="{{ route('branches.print', $branch) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Print branch details') }}</span></a>
+                <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.pdf', $branch) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download PDF') }}</span></a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Export branch details XLSX') }}</span></a>
+                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Export branch details CSV') }}</span></a>
                 @can('update', $branch)
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.edit', $branch) }}">{{ __('Edit branch') }}</a>
+                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.edit', $branch) }}">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Edit branch') }}</span></a>
                 @endcan
             </div>
         </div>
@@ -87,13 +87,13 @@
         <section class="card-rgc branch-show-card branch-show-card--filter">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Filtered Export') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'filter', 'class' => 'section-kicker-icon'])<span>{{ __('Filtered Export') }}</span></span>
                     <p class="mt-2 text-sm text-black/65">{{ __('Filter the branch export by date range. Leave either field blank when you want the export to include older or newer activity automatically.') }}</p>
                 </div>
             </div>
             <form class="mt-4 grid gap-4 md:grid-cols-2" method="GET">
                 <div class="md:col-span-2 flex flex-wrap gap-3">
-                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" name="preset" value="this_month" type="submit">{{ __('This month') }}</button>
+                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" name="preset" value="this_month" type="submit">@include('partials.ui.icon', ['name' => 'filter', 'class' => 'button-icon'])<span>{{ __('This month') }}</span></button>
                     <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" name="preset" value="last_30_days" type="submit">{{ __('Last 30 days') }}</button>
                     <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" name="preset" value="this_year" type="submit">{{ __('This year') }}</button>
                     <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" name="preset" value="all_time" type="submit">{{ __('All time') }}</button>
@@ -107,8 +107,8 @@
                     <input class="rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-rgc-red focus:ring-2 focus:ring-rgc-red/15" type="date" name="date_to" value="{{ request('date_to') }}">
                 </label>
                 <div class="flex flex-wrap gap-3 md:col-span-2">
-                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" type="submit">{{ __('Export filtered branch details XLSX') }}</button>
-                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}" type="submit">{{ __('Export filtered branch details CSV') }}</button>
+                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'xlsx']) }}" type="submit">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Export filtered branch details XLSX') }}</span></button>
+                    <button class="btn-rgc-alt w-full sm:w-auto" formaction="{{ route('branches.records.export', ['branch' => $branch, 'format' => 'csv']) }}" type="submit">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Export filtered branch details CSV') }}</span></button>
                 </div>
             </form>
         </section>
@@ -119,7 +119,7 @@
         <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Recent Giving Requests') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Recent Giving Requests') }}</span></span>
                     <p class="mt-2 text-sm text-black/65">{{ __('Giving prompts created for this branch, including pending and completed collections.') }}</p>
                 </div>
             </div>
@@ -140,11 +140,11 @@
                                 <span>{{ optional($payment->paid_at ?: $payment->created_at)->diffForHumans() }}</span>
                             </div>
                             <div class="payment-request-actions">
-                                <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
+                                <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('Status page') }}</span></a>
                                 @if($payment->isCompleted())
-                                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
+                                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ __('Download receipt PDF') }}</span></a>
                                 @elseif($payment->checkout_url)
-                                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>{{ __('Open checkout') }}</span></a>
                                 @endif
                             </div>
                         </article>
@@ -156,7 +156,7 @@
 
     <div class="branch-show-grid mt-5">
         <section class="card-rgc branch-show-card">
-            <span class="section-kicker">{{ __('Church Location') }}</span>
+            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'church', 'class' => 'section-kicker-icon'])<span>{{ __('Church Location') }}</span></span>
             <dl class="branch-detail-list mt-4">
                 <div>
                     <dt>{{ __('Region') }}</dt>
@@ -178,7 +178,7 @@
         </section>
 
         <section class="card-rgc branch-show-card">
-            <span class="section-kicker">{{ __('Contact Details') }}</span>
+            <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'user', 'class' => 'section-kicker-icon'])<span>{{ __('Contact Details') }}</span></span>
             <dl class="branch-detail-list mt-4">
                 <div>
                     <dt>{{ __('Address') }}</dt>
@@ -204,7 +204,7 @@
         <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Recent Offerings') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Recent Offerings') }}</span></span>
                 </div>
             </div>
             @if($recentOfferings->isEmpty())
@@ -224,7 +224,7 @@
         <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Recent Expenses') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'section-kicker-icon'])<span>{{ __('Recent Expenses') }}</span></span>
                 </div>
             </div>
             @if($recentExpenses->isEmpty())
@@ -246,7 +246,7 @@
         <section class="card-rgc branch-show-card">
             <div class="branch-show-header">
                 <div>
-                    <span class="section-kicker">{{ __('Recent Events') }}</span>
+                    <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'sparkles', 'class' => 'section-kicker-icon'])<span>{{ __('Recent Events') }}</span></span>
                 </div>
             </div>
             @if($recentEvents->isEmpty())

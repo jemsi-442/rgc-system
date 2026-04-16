@@ -5,11 +5,11 @@
     <div class="form-panel">
         <div class="form-page-header">
             <div>
-                <span class="section-kicker">{{ __('Branch Setup') }}</span>
+                <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'church', 'class' => 'section-kicker-icon'])<span>{{ __('Branch Setup') }}</span></span>
                 <h1 class="mt-4 text-2xl font-semibold">{{ __('Edit Branch') }}</h1>
                 <p class="mt-2 text-sm text-black/65">{{ __('Review the branch location, identity, and contact details carefully before saving changes.') }}</p>
             </div>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Back to branches') }}</a>
+            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'button-icon'])<span>{{ __('Back to branches') }}</span></a>
         </div>
 
         <div class="branch-admin-banner branch-admin-banner--executive mt-6">
@@ -113,7 +113,7 @@
             </section>
 
             <div class="form-actions">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Update Branch') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Update Branch') }}</span></button>
             </div>
         </form>
     </div>

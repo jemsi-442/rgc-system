@@ -79,28 +79,28 @@
 
             <nav class="top-nav nav-scroll" id="primary-navigation" data-mobile-menu>
                 @auth
-                    <a class="nav-link {{ $dashboardActive ? 'nav-link--active' : '' }}" href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
-                    <a class="nav-link {{ $announcementsActive ? 'nav-link--active' : '' }}" href="{{ route('announcements.index') }}">{{ __('Announcements') }}</a>
-                    <a class="nav-link {{ $messagesActive ? 'nav-link--active' : '' }}" href="{{ route('messages.index') }}">{{ __('Branch Chat') }}</a>
-                    <a class="nav-link {{ $givingActive ? 'nav-link--active' : '' }}" href="{{ route('giving.index') }}">{{ __('Giving') }}</a>
-                    <a class="nav-link {{ $accountActive ? 'nav-link--active' : '' }}" href="{{ route('account.profile.edit') }}">{{ __('My Account') }}</a>
-                    <a class="nav-link {{ $passwordActive ? 'nav-link--active' : '' }}" href="{{ route('account.password.edit') }}">{{ __('My Password') }}</a>
+                    <a class="nav-link {{ $dashboardActive ? 'nav-link--active' : '' }}" href="{{ route('dashboard') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'nav-link-icon'])<span>{{ __('Dashboard') }}</span></a>
+                    <a class="nav-link {{ $announcementsActive ? 'nav-link--active' : '' }}" href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'nav-link-icon'])<span>{{ __('Announcements') }}</span></a>
+                    <a class="nav-link {{ $messagesActive ? 'nav-link--active' : '' }}" href="{{ route('messages.index') }}">@include('partials.ui.icon', ['name' => 'chat', 'class' => 'nav-link-icon'])<span>{{ __('Branch Chat') }}</span></a>
+                    <a class="nav-link {{ $givingActive ? 'nav-link--active' : '' }}" href="{{ route('giving.index') }}">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'nav-link-icon'])<span>{{ __('Giving') }}</span></a>
+                    <a class="nav-link {{ $accountActive ? 'nav-link--active' : '' }}" href="{{ route('account.profile.edit') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'nav-link-icon'])<span>{{ __('My Account') }}</span></a>
+                    <a class="nav-link {{ $passwordActive ? 'nav-link--active' : '' }}" href="{{ route('account.password.edit') }}">@include('partials.ui.icon', ['name' => 'lock', 'class' => 'nav-link-icon'])<span>{{ __('My Password') }}</span></a>
                     @if(auth()->user()->hasSystemRole('super_admin'))
-                        <a class="nav-link {{ $usersActive ? 'nav-link--active' : '' }}" href="{{ route('admin.users.index') }}">{{ __('Users') }}</a>
-                        <a class="nav-link {{ $branchesActive ? 'nav-link--active' : '' }}" href="{{ route('branches.index') }}">{{ __('Branches') }}</a>
-                        <a class="nav-link {{ $slidesActive ? 'nav-link--active' : '' }}" href="{{ route('sliders.index') }}">{{ __('Slides') }}</a>
+                        <a class="nav-link {{ $usersActive ? 'nav-link--active' : '' }}" href="{{ route('admin.users.index') }}">@include('partials.ui.icon', ['name' => 'users', 'class' => 'nav-link-icon'])<span>{{ __('Users') }}</span></a>
+                        <a class="nav-link {{ $branchesActive ? 'nav-link--active' : '' }}" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'nav-link-icon'])<span>{{ __('Branches') }}</span></a>
+                        <a class="nav-link {{ $slidesActive ? 'nav-link--active' : '' }}" href="{{ route('sliders.index') }}">@include('partials.ui.icon', ['name' => 'image', 'class' => 'nav-link-icon'])<span>{{ __('Slides') }}</span></a>
                     @endif
                     @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
-                        <a class="nav-link {{ $assistantTopicsActive ? 'nav-link--active' : '' }}" href="{{ route('assistant.topics.index') }}">{{ __('Assistant Topics') }}</a>
+                        <a class="nav-link {{ $assistantTopicsActive ? 'nav-link--active' : '' }}" href="{{ route('assistant.topics.index') }}">@include('partials.ui.icon', ['name' => 'assistant', 'class' => 'nav-link-icon'])<span>{{ __('Assistant Topics') }}</span></a>
                     @endif
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button class="btn-rgc" type="submit">{{ __('Logout') }}</button>
                     </form>
                 @else
-                    <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}" href="{{ route('home') }}">{{ __('Home') }}</a>
-                    <a class="nav-link {{ request()->routeIs('login') ? 'nav-link--active' : '' }}" href="{{ route('login') }}">{{ __('Login') }}</a>
-                    <a class="btn-rgc" href="{{ route('register') }}">{{ __('Register') }}</a>
+                    <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}" href="{{ route('home') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'nav-link-icon'])<span>{{ __('Home') }}</span></a>
+                    <a class="nav-link {{ request()->routeIs('login') ? 'nav-link--active' : '' }}" href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'nav-link-icon'])<span>{{ __('Login') }}</span></a>
+                    <a class="btn-rgc" href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Register') }}</span></a>
                 @endauth
             </nav>
         </div>
@@ -152,12 +152,12 @@
                 <div class="site-footer-link-row">
                     <a href="{{ route('home') }}">{{ __('Home') }}</a>
                     @auth
-                        <a href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
-                        <a href="{{ route('announcements.index') }}">{{ __('Announcements') }}</a>
-                        <a href="{{ route('giving.index') }}">{{ __('Giving') }}</a>
+                        <a href="{{ route('dashboard') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'footer-link-icon'])<span>{{ __('Dashboard') }}</span></a>
+                        <a href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'footer-link-icon'])<span>{{ __('Announcements') }}</span></a>
+                        <a href="{{ route('giving.index') }}">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'footer-link-icon'])<span>{{ __('Giving') }}</span></a>
                     @else
-                        <a href="{{ route('login') }}">{{ __('Login') }}</a>
-                        <a href="{{ route('register') }}">{{ __('Register') }}</a>
+                        <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
+                        <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
                     @endauth
                 </div>
             </div>

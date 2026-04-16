@@ -126,7 +126,7 @@
 
 <section class="page-banner">
     <div class="page-banner-content">
-        <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ $bannerKicker }}</span>
+        <span class="section-kicker section-kicker--icon border-white/10 bg-white/10 text-rgc-yellow">@include('partials.ui.icon', ['name' => auth()->user()->hasSystemRole('member') ? 'home' : 'sparkles', 'class' => 'section-kicker-icon'])<span>{{ $bannerKicker }}</span></span>
         <h1 class="mt-5">{{ $roleLabel }} {{ __('Home') }}</h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">
             {{ $bannerCopy }}
@@ -174,10 +174,10 @@
     </div>
 
     <div class="admin-tools-row">
-        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.index') }}">{{ __('Manage users') }}</a>
-        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Manage branches') }}</a>
-        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('sliders.index') }}">{{ __('Homepage slider') }}</a>
-        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
+        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.index') }}">@include('partials.ui.icon', ['name' => 'users', 'class' => 'button-icon'])<span>{{ __('Manage users') }}</span></a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'button-icon'])<span>{{ __('Manage branches') }}</span></a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('sliders.index') }}">@include('partials.ui.icon', ['name' => 'image', 'class' => 'button-icon'])<span>{{ __('Homepage slider') }}</span></a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">@include('partials.ui.icon', ['name' => 'assistant', 'class' => 'button-icon'])<span>{{ __('Assistant knowledge') }}</span></a>
     </div>
 </section>
 @endif

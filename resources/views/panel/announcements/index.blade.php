@@ -5,7 +5,7 @@
 @section('content')
 <section class="page-banner">
     <div class="page-banner-content">
-        <span class="section-kicker !border-white/10 !bg-white/10 !text-rgc-yellow">{{ __('Announcements') }}</span>
+        <span class="section-kicker section-kicker--icon !border-white/10 !bg-white/10 !text-rgc-yellow">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'section-kicker-icon'])<span>{{ __('Announcements') }}</span></span>
         <h1 class="mt-5">{{ __('Announcements') }}</h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official church updates prepared for the people and places connected to your area of service.') }}</p>
     </div>
@@ -18,9 +18,9 @@
             <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have already passed, but they remain here for reference.') : __('Church-wide announcements appear here together with the notices shared for the churches connected to your care.') }}</p>
         </div>
         <div class="announcement-toolbar-actions">
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</a>
+            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</span></a>
             @can('create', App\Models\Announcement::class)
-                <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.create') }}">{{ __('Share announcement') }}</a>
+                <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.create') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Share announcement') }}</span></a>
             @endcan
         </div>
     </div>
@@ -101,16 +101,16 @@
                     @endif
 
                     <div class="announcement-actions">
-                        <a class="btn-rgc-alt" href="{{ route('announcements.show', $announcement) }}">{{ __('Open details') }}</a>
+                        <a class="btn-rgc-alt" href="{{ route('announcements.show', $announcement) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('Open details') }}</span></a>
                         @canany(['update', 'delete'], $announcement)
                             @can('update', $announcement)
-                                <a class="btn-rgc-alt" href="{{ route('announcements.edit', $announcement) }}">{{ __('Edit') }}</a>
+                                <a class="btn-rgc-alt" href="{{ route('announcements.edit', $announcement) }}">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Edit') }}</span></a>
                             @endcan
                             @can('delete', $announcement)
                                 <form method="POST" action="{{ route('announcements.destroy', $announcement) }}" onsubmit="return confirm('{{ __('Delete this announcement?') }}')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="announcement-delete" type="submit">{{ __('Delete') }}</button>
+                                    <button class="announcement-delete" type="submit">@include('partials.ui.icon', ['name' => 'trash', 'class' => 'button-icon'])<span>{{ __('Delete') }}</span></button>
                                 </form>
                             @endcan
                         @endcanany

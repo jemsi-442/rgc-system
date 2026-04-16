@@ -5,7 +5,7 @@
 @section('content')
 <div class="form-shell max-w-3xl">
     <div class="form-panel">
-        <span class="section-kicker">{{ __('Account Security') }}</span>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'lock', 'class' => 'section-kicker-icon'])<span>{{ __('Account Security') }}</span></span>
         <h1 class="mt-4 text-2xl font-semibold">{{ __('Change my password') }}</h1>
         <p class="mt-2 text-sm text-black/65">{{ __('Update your own password from the dashboard with current-password verification.') }}</p>
 
@@ -35,7 +35,7 @@
             </section>
 
             <div class="form-actions pt-2">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Update password') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'lock', 'class' => 'button-icon'])<span>{{ __('Update password') }}</span></button>
             </div>
         </form>
     </div>

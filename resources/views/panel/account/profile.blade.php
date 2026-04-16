@@ -5,7 +5,7 @@
 @section('content')
 <div class="form-shell max-w-3xl">
     <div class="form-panel">
-        <span class="section-kicker">{{ __('My Account') }}</span>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'user', 'class' => 'section-kicker-icon'])<span>{{ __('My Account') }}</span></span>
         <h1 class="mt-4 text-2xl font-semibold">{{ __('My contact details') }}</h1>
         <p class="mt-2 text-sm text-black/65">{{ __('Keep your name, email, and phone current so branch leaders can reach you when they need to follow up, share updates, or support you.') }}</p>
 
@@ -36,7 +36,7 @@
             </section>
 
             <div class="form-actions pt-2">
-                <button class="btn-rgc w-full sm:w-auto" type="submit">{{ __('Save contact details') }}</button>
+                <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'edit', 'class' => 'button-icon'])<span>{{ __('Save contact details') }}</span></button>
             </div>
         </form>
     </div>
