@@ -92,6 +92,7 @@ Role enforcement uses:
 Related admin documentation:
 - `docs/user-role-lifecycle.md`
 - `docs/railway-deploy.md`
+- `docs/security-checklist.md`
 
 ## Core Data Model
 
