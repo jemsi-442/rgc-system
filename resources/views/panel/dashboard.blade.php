@@ -120,6 +120,8 @@
         return $color . ' ' . $start . '% ' . $end . '%';
     })->implode(', ');
     $memberMixGradient = $memberMixGradient !== '' ? $memberMixGradient : 'rgba(23, 23, 23, 0.12) 0% 100%';
+    $prayerPrefill = __('Prayer request: Hello leadership team, I would like prayer support for ');
+    $followUpPrefill = __('Follow-up request: Hello leadership team, I would appreciate a follow-up conversation about ');
 @endphp
 
 <section class="page-banner">
@@ -581,6 +583,24 @@
                     <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('View announcements') }}</a>
                 </div>
             </section>
+
+            <div class="member-action-grid mt-5">
+                <a class="member-action-card" href="{{ route('messages.index', ['prefill' => $prayerPrefill]) }}">
+                    <span class="member-action-mark">{{ __('Prayer') }}</span>
+                    <strong>{{ __('Ask for prayer') }}</strong>
+                    <p>{{ __('Open branch chat with a ready-made prayer request so leadership can respond quickly.') }}</p>
+                </a>
+                <a class="member-action-card" href="{{ route('messages.index', ['prefill' => $followUpPrefill]) }}">
+                    <span class="member-action-mark">{{ __('Support') }}</span>
+                    <strong>{{ __('Request follow-up') }}</strong>
+                    <p>{{ __('Start a follow-up message for pastoral care, questions, or a personal check-in.') }}</p>
+                </a>
+                <a class="member-action-card" href="{{ route('account.profile.edit') }}">
+                    <span class="member-action-mark">{{ __('Contact') }}</span>
+                    <strong>{{ __('Update my contact') }}</strong>
+                    <p>{{ __('Keep your phone and email current so your branch can reach you when needed.') }}</p>
+                </a>
+            </div>
 
             <div class="member-home-grid mt-5">
                 <article class="member-encouragement-card">

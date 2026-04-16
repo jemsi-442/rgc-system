@@ -67,6 +67,7 @@
                     <a class="nav-link" href="{{ route('announcements.index') }}">{{ __('Announcements') }}</a>
                     <a class="nav-link" href="{{ route('messages.index') }}">{{ __('Branch Chat') }}</a>
                     <a class="nav-link" href="{{ route('giving.index') }}">{{ __('Giving') }}</a>
+                    <a class="nav-link" href="{{ route('account.profile.edit') }}">{{ __('My Account') }}</a>
                     <a class="nav-link" href="{{ route('account.password.edit') }}">{{ __('My Password') }}</a>
                     @if(auth()->user()->hasSystemRole('super_admin'))
                         <a class="nav-link" href="{{ route('admin.users.index') }}">{{ __('Users') }}</a>

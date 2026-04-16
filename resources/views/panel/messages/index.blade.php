@@ -138,6 +138,7 @@
             data-chat-form
             data-feed-url="{{ route('messages.feed') }}"
             data-stream-url="{{ $streamUrl }}"
+            data-prefill-message="{{ request('prefill', '') }}"
         >
             @csrf
             <input type="hidden" name="parent_id" value="" data-chat-parent-input>
@@ -159,14 +160,13 @@
             >
 
             <div class="chat-compose-tools">
-                <span class="chat-drop-hint">{{ __('Share images, reports, or quick ministry files here') }}</span>
                 <div class="chat-selected-files hidden" data-chat-selected-files></div>
             </div>
 
             <div class="chat-dropzone" data-chat-dropzone>
                 <div class="chat-dropzone-inner">
-                    <strong>{{ __('Drop attachments here') }}</strong>
-                    <p>{{ __('You can attach up to :count files per message.', ['count' => 5]) }}</p>
+                    <strong>{{ __('Attach files') }}</strong>
+                    <p>{{ __('Release files to attach them') }}</p>
                 </div>
             </div>
 
@@ -221,6 +221,7 @@
     const currentUserId = Number(thread?.dataset.currentUserId ?? 0);
     const feedUrl = form?.dataset.feedUrl ?? @json(route('messages.feed'));
     const streamUrl = form?.dataset.streamUrl ?? @json($streamUrl);
+    const prefillMessage = form?.dataset.prefillMessage ?? '';
     const emptyTitle = @json(__('Branch Chat'));
     const emptyBody = @json(__('No messages yet. Start the conversation from your branch.'));
     const todayLabel = @json(__('Today'));
@@ -1307,6 +1308,13 @@
 
     renderSelectedFiles();
     renderReplyPreview();
+    if (prefillMessage && !textarea.value.trim()) {
+        textarea.value = prefillMessage;
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight}px`;
+        textarea.focus();
+        textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
     fetchLatestMessages({ force: true });
     connectRealtimeStream();
 })();

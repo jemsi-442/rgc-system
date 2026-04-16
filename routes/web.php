@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/giving', [OfferingPaymentController::class, 'index'])->name('giving.index');
     Route::post('/giving', [OfferingPaymentController::class, 'memberStore'])->name('giving.store');
 
+    Route::get('/account/profile', [AccountController::class, 'editProfile'])->name('account.profile.edit');
+    Route::put('/account/profile', [AccountController::class, 'updateProfile'])->name('account.profile.update');
     Route::get('/account/password', [AccountController::class, 'editPassword'])->name('account.password.edit');
     Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
 

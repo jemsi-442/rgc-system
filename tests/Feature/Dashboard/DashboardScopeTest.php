@@ -81,7 +81,10 @@ class DashboardScopeTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Give now')
-            ->assertSee('Giving Snapshot');
+            ->assertSee('Giving Snapshot')
+            ->assertSee('Ask for prayer')
+            ->assertSee('Request follow-up')
+            ->assertSee('Update my contact');
     }
 
     public function test_member_dashboard_shows_personal_snapshot_highlight_and_upcoming_events(): void
