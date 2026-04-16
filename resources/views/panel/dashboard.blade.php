@@ -12,17 +12,113 @@
     $isRegionalAdmin = $dashboardUser->hasSystemRole('regional_admin');
     $isDistrictAdmin = $dashboardUser->hasSystemRole('district_admin');
     $paymentRequestHeading = $canCreateBranchPayments ? __('Recent Payment Requests') : __('Recent payment activity');
+    $bannerKicker = $isSuperAdmin ? __('Platform Overview') : __('Leadership Dashboard');
+    $bannerCopy = $isSuperAdmin
+        ? __('See the full church platform at a glance, keep an eye on growth, and move into the tools that shape branches, users, and public presentation.')
+        : __('This dashboard is automatically scoped to your role so your numbers, updates, and shortcuts stay aligned with the region, district, or branch you are approved to serve.');
+
+    $activitySeries = collect($charts['activity'] ?? []);
+    $activityPeak = max(1, (int) ($charts['activity_peak'] ?? 1));
+    $activityChartWidth = 420;
+    $activityChartHeight = 220;
+    $activityChartPaddingX = 18;
+    $activityChartPaddingTop = 22;
+    $activityChartPaddingBottom = 44;
+    $activityPlotWidth = $activityChartWidth - ($activityChartPaddingX * 2);
+    $activityPlotHeight = $activityChartHeight - ($activityChartPaddingTop + $activityChartPaddingBottom);
+    $activityDivisor = max(1, $activitySeries->count() - 1);
+    $activityCoordinates = $activitySeries->values()->map(function (array $day, int $index) use ($activityChartPaddingX, $activityChartPaddingTop, $activityPlotWidth, $activityPlotHeight, $activityDivisor, $activityPeak) {
+        $x = $activityChartPaddingX + (($activityPlotWidth / $activityDivisor) * $index);
+        $y = $activityChartPaddingTop + $activityPlotHeight - (((int) $day['count'] / $activityPeak) * $activityPlotHeight);
+
+        return [
+            'x' => round($x, 2),
+            'y' => round($y, 2),
+            'label' => $day['label'],
+            'date' => $day['date'],
+            'count' => $day['count'],
+        ];
+    });
+    $activityLinePoints = $activityCoordinates
+        ->map(fn (array $point) => $point['x'] . ',' . $point['y'])
+        ->implode(' ');
+    $activityAreaPath = $activityCoordinates->isNotEmpty()
+        ? 'M ' . $activityCoordinates->first()['x'] . ' ' . ($activityChartHeight - $activityChartPaddingBottom)
+            . ' L ' . $activityCoordinates
+                ->map(fn (array $point) => $point['x'] . ' ' . $point['y'])
+                ->implode(' L ')
+            . ' L ' . $activityCoordinates->last()['x'] . ' ' . ($activityChartHeight - $activityChartPaddingBottom)
+            . ' Z'
+        : '';
+    $statusMix = collect($charts['status_mix'] ?? []);
+    $statusTotal = max(1, (int) $statusMix->sum('count'));
+    $statusColors = [
+        'pending' => '#f0b429',
+        'completed' => '#8f1111',
+        'failed' => '#2f2f2f',
+    ];
+    $statusOffset = 0;
+    $statusGradient = $statusMix->map(function (array $item) use (&$statusOffset, $statusTotal, $statusColors) {
+        $portion = ((int) $item['count'] / $statusTotal) * 100;
+        $start = round($statusOffset, 2);
+        $end = round($statusOffset + $portion, 2);
+        $statusOffset += $portion;
+        $color = $statusColors[$item['key']] ?? '#801115';
+
+        return $color . ' ' . $start . '% ' . $end . '%';
+    })->implode(', ');
+    $statusGradient = $statusGradient !== '' ? $statusGradient : 'rgba(23, 23, 23, 0.12) 0% 100%';
 @endphp
 
 <section class="page-banner">
     <div class="page-banner-content">
-        <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ __('Governance Dashboard') }}</span>
+        <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ $bannerKicker }}</span>
         <h1 class="mt-5">{{ $roleLabel }} {{ __('Workspace') }}</h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">
-            {{ __('This dashboard is automatically scoped to your governance level. Statistics, announcements, users, and operational shortcuts are filtered according to your approved region, district, or branch authority.') }}
+            {{ $bannerCopy }}
         </p>
     </div>
 </section>
+
+@if($isSuperAdmin)
+<section class="mt-8 admin-focus-card">
+    <div class="admin-focus-copy">
+        <span class="section-kicker">{{ __('Executive Summary') }}</span>
+        <h2 class="mt-5">{{ __('Keep the platform healthy and easy to run.') }}</h2>
+        <p class="mt-3">{{ __('Use this space to watch coverage, jump into user and branch administration, and keep public-facing content tidy without scanning every section on the page.') }}</p>
+    </div>
+
+    <div class="admin-focus-grid">
+        <article class="admin-focus-metric">
+            <span>{{ __('Active regions') }}</span>
+            <strong>{{ $stats['regions'] }}</strong>
+            <p>{{ __('Church-wide coverage currently visible from headquarters.') }}</p>
+        </article>
+        <article class="admin-focus-metric">
+            <span>{{ __('District network') }}</span>
+            <strong>{{ $stats['districts'] }}</strong>
+            <p>{{ __('District structure connected across the platform.') }}</p>
+        </article>
+        <article class="admin-focus-metric">
+            <span>{{ __('Branch network') }}</span>
+            <strong>{{ $stats['branches'] }}</strong>
+            <p>{{ __('Branches currently attached to the system.') }}</p>
+        </article>
+        <article class="admin-focus-metric">
+            <span>{{ __('People accounts') }}</span>
+            <strong>{{ $stats['users'] }}</strong>
+            <p>{{ __('User accounts visible to headquarters oversight.') }}</p>
+        </article>
+    </div>
+
+    <div class="admin-tools-row">
+        <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.index') }}">{{ __('Manage users') }}</a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Manage branches') }}</a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('sliders.index') }}">{{ __('Homepage slider') }}</a>
+        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
+    </div>
+</section>
+@endif
 
 <section class="panel-grid cols-4 mt-8">
     <article class="stat-card">
@@ -62,6 +158,89 @@
         <strong>{{ $stats['completed_payments'] }}</strong>
     </article>
 </section>
+
+@if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']))
+<section class="tablet-stack two mt-8">
+    <article class="card-rgc dashboard-visual-card">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+                <span class="section-kicker">{{ __('Activity Trend') }}</span>
+                <h2 class="mt-4 text-2xl font-semibold">{{ __('Payment activity in the last 7 days') }}</h2>
+                <p class="mt-2 text-sm text-black/65">{{ __('Use this chart to see whether payment prompts and follow-up activity are rising, slowing down, or staying steady in your scope.') }}</p>
+            </div>
+            <div class="assistant-usage-summary">
+                <span class="payment-status-badge is-pending">{{ __('Peak day') }}: {{ $charts['activity_peak'] }}</span>
+            </div>
+        </div>
+
+        <div class="dashboard-line-chart mt-6">
+            <svg viewBox="0 0 {{ $activityChartWidth }} {{ $activityChartHeight }}" class="dashboard-line-chart-svg" role="img" aria-label="{{ __('Payment activity trend chart') }}">
+                <defs>
+                    <linearGradient id="dashboard-activity-fill" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="rgba(192, 0, 0, 0.38)" />
+                        <stop offset="100%" stop-color="rgba(255, 215, 0, 0.04)" />
+                    </linearGradient>
+                </defs>
+
+                <line x1="{{ $activityChartPaddingX }}" y1="{{ $activityChartHeight - $activityChartPaddingBottom }}" x2="{{ $activityChartWidth - $activityChartPaddingX }}" y2="{{ $activityChartHeight - $activityChartPaddingBottom }}" class="dashboard-line-chart-axis" />
+
+                @if($activityAreaPath !== '')
+                    <path d="{{ $activityAreaPath }}" fill="url(#dashboard-activity-fill)" class="dashboard-line-chart-area" />
+                    <polyline points="{{ $activityLinePoints }}" fill="none" class="dashboard-line-chart-path" />
+                @endif
+
+                @foreach($activityCoordinates as $point)
+                    <circle cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="4.5" class="dashboard-line-chart-dot" />
+                    <text x="{{ $point['x'] }}" y="{{ $point['y'] - 12 }}" text-anchor="middle" class="dashboard-line-chart-count">{{ $point['count'] }}</text>
+                    <text x="{{ $point['x'] }}" y="{{ $activityChartHeight - 18 }}" text-anchor="middle" class="dashboard-line-chart-label">{{ $point['label'] }}</text>
+                @endforeach
+            </svg>
+        </div>
+    </article>
+
+    <article class="card-rgc dashboard-mix-card">
+        <div class="dashboard-ring-layout">
+            <div>
+                <span class="section-kicker">{{ __('Payment Status') }}</span>
+                <h2 class="mt-4 text-2xl font-semibold">{{ __('Outcome mix across your scope') }}</h2>
+                <p class="mt-2 text-sm text-black/65">{{ __('This donut helps you read the balance between pending, completed, and failed payment outcomes at a glance.') }}</p>
+            </div>
+
+            <div class="dashboard-status-donut-block">
+                <div class="dashboard-status-donut" style="background: conic-gradient({{ $statusGradient }})">
+                    <div class="dashboard-status-donut-center">
+                        <strong>{{ $statusTotal }}</strong>
+                        <span>{{ __('Total') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-status-inline mt-6">
+            @foreach($charts['status_mix'] as $statusItem)
+                <div class="dashboard-status-pill">
+                    <span class="payment-status-badge is-{{ $statusItem['key'] }}">{{ $statusItem['label'] }}</span>
+                    <strong>{{ $statusItem['count'] }}</strong>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="dashboard-mix-list mt-6">
+            @foreach($charts['finance_mix'] as $item)
+                <div class="dashboard-mix-row">
+                    <div class="dashboard-mix-labels">
+                        <strong>{{ $item['label'] }}</strong>
+                        <span>TZS {{ $item['display_value'] }}</span>
+                    </div>
+                    <div class="dashboard-mix-bar-shell">
+                        <span class="dashboard-mix-bar is-{{ $item['key'] }}" style="width: {{ $item['width'] }}%"></span>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </article>
+</section>
+@endif
 
 @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']))
 <section class="mt-8 card-rgc">
@@ -189,19 +368,25 @@
 <section class="tablet-stack two mt-8">
     <article class="card-rgc-strong">
         <span class="section-kicker">{{ __('Operational Shortcuts') }}</span>
-        <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ __('Move quickly through your approved scope.') }}</h2>
+        <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">
+            {{ $isSuperAdmin ? __('Platform actions and everyday tools.') : __('Move quickly through your approved scope.') }}
+        </h2>
         <div class="shortcut-grid mt-6 text-sm">
             <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('View announcements') }}</a>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('messages.index') }}">{{ __('Open branch chat') }}</a>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('account.password.edit') }}">{{ __('Change my password') }}</a>
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
             @if(auth()->user()->hasSystemRole('super_admin'))
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.index') }}">{{ __('Manage users') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.index') }}">{{ __('Manage branches') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('sliders.index') }}">{{ __('Homepage slider') }}</a>
+                <div class="admin-secondary-links">
+                    <a href="{{ route('admin.users.index') }}">{{ __('Manage users') }}</a>
+                    <a href="{{ route('branches.index') }}">{{ __('Manage branches') }}</a>
+                    <a href="{{ route('sliders.index') }}">{{ __('Homepage slider') }}</a>
+                </div>
             @endif
             @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
+                @if(! $isSuperAdmin)
+                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
+                @endif
             @endif
             @if($canOpenBranchBooks)
                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('offerings.index') }}">{{ __('Offerings') }}</a>

@@ -27,9 +27,10 @@ class DashboardController extends Controller
         $recentPayments = $this->buildRecentPayments($user, $branchId);
         $paymentAlerts = $this->buildPaymentAlerts($user, $branchId);
         $memberPayments = $this->buildMemberPayments($user);
+        $charts = $this->buildCharts($user, $branchId, $stats);
         $roleLabel = __(str($user->normalizedRoleName() ?? 'member')->replace('_', ' ')->title()->toString());
 
-        return view('panel.dashboard', compact('stats', 'announcements', 'scope', 'recentPayments', 'paymentAlerts', 'memberPayments', 'roleLabel'));
+        return view('panel.dashboard', compact('stats', 'announcements', 'scope', 'recentPayments', 'paymentAlerts', 'memberPayments', 'charts', 'roleLabel'));
     }
 
     private function buildStats(User $user, ?int $branchId): array
@@ -232,6 +233,110 @@ class DashboardController extends Controller
             ->get();
     }
 
+    private function buildCharts(User $user, ?int $branchId, array $stats): array
+    {
+        if (! $user->hasAnySystemRole(['super_admin', 'regional_admin', 'district_admin', 'branch_admin', 'pastor', 'bishop', 'accountant'])) {
+            return [
+                'activity' => collect(),
+                'activity_peak' => 1,
+                'finance_mix' => collect(),
+                'status_mix' => collect(),
+            ];
+        }
+
+        $paymentQuery = $this->paymentScopeQuery($user, $branchId);
+        $branchIds = $this->scopeBranchIds($user, $branchId);
+        $activityStart = now()->startOfDay()->subDays(6);
+
+        $activityRows = (clone $paymentQuery)
+            ->where('created_at', '>=', $activityStart)
+            ->selectRaw('DATE(created_at) as activity_date, COUNT(*) as aggregate')
+            ->groupBy('activity_date')
+            ->pluck('aggregate', 'activity_date');
+
+        $activity = collect(range(0, 6))
+            ->map(function (int $offset) use ($activityStart, $activityRows): array {
+                $date = (clone $activityStart)->addDays($offset);
+                $key = $date->toDateString();
+
+                return [
+                    'label' => $date->translatedFormat('D'),
+                    'date' => $date->translatedFormat('d M'),
+                    'count' => (int) ($activityRows[$key] ?? 0),
+                ];
+            });
+
+        $activityPeak = max(1, (int) $activity->max('count'));
+
+        $statusRows = (clone $paymentQuery)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $statusLabels = [
+            'pending' => __('Pending'),
+            'completed' => __('Completed'),
+            'failed' => __('Failed'),
+        ];
+
+        $statusTotal = max(1, (int) collect($statusLabels)->keys()->sum(fn (string $status) => (int) ($statusRows[$status] ?? 0)));
+        $statusMix = collect($statusLabels)->map(function (string $label, string $status) use ($statusRows, $statusTotal): array {
+            $count = (int) ($statusRows[$status] ?? 0);
+
+            return [
+                'key' => $status,
+                'label' => $label,
+                'count' => $count,
+                'width' => $count > 0 ? max(10, (int) round(($count / $statusTotal) * 100)) : 0,
+            ];
+        })->values();
+
+        $offeringsTotal = $this->scopedAmount(Offering::query(), $branchIds);
+        $expensesTotal = $this->scopedAmount(Expense::query(), $branchIds);
+        $completedCollectionsTotal = $this->scopedAmount(
+            OfferingPayment::query()->where('status', 'completed'),
+            $branchIds
+        );
+
+        $financeMix = collect([
+            [
+                'key' => 'offerings',
+                'label' => __('Offerings'),
+                'value' => (float) $offeringsTotal,
+            ],
+            [
+                'key' => 'expenses',
+                'label' => __('Expenses'),
+                'value' => (float) $expensesTotal,
+            ],
+            [
+                'key' => 'collections',
+                'label' => __('Completed collections'),
+                'value' => (float) $completedCollectionsTotal,
+            ],
+        ]);
+
+        $financePeak = max(1, (float) $financeMix->max('value'));
+        $financeMix = $financeMix
+            ->map(function (array $item) use ($financePeak): array {
+                $value = (float) $item['value'];
+
+                return [
+                    ...$item,
+                    'display_value' => number_format($value, 2),
+                    'width' => $value > 0 ? max(10, (int) round(($value / $financePeak) * 100)) : 0,
+                ];
+            })
+            ->values();
+
+        return [
+            'activity' => $activity,
+            'activity_peak' => $activityPeak,
+            'finance_mix' => $financeMix,
+            'status_mix' => $statusMix,
+        ];
+    }
+
     private function paymentScopeQuery(User $user, ?int $branchId): Builder
     {
         $query = OfferingPayment::query();
@@ -253,5 +358,35 @@ class DashboardController extends Controller
         }
 
         return $query->where('church_id', $branchId);
+    }
+
+    private function scopeBranchIds(User $user, ?int $branchId): ?Collection
+    {
+        if ($user->hasSystemRole('super_admin')) {
+            return null;
+        }
+
+        if ($user->hasSystemRole('regional_admin')) {
+            return Branch::query()->where('region_id', $user->region_id)->pluck('id');
+        }
+
+        if ($user->hasSystemRole('district_admin')) {
+            return Branch::query()->where('district_id', $user->district_id)->pluck('id');
+        }
+
+        return $branchId ? collect([$branchId]) : collect();
+    }
+
+    private function scopedAmount(Builder $query, ?Collection $branchIds): float
+    {
+        if ($branchIds === null) {
+            return (float) $query->sum('amount');
+        }
+
+        if ($branchIds->isEmpty()) {
+            return 0.0;
+        }
+
+        return (float) $query->whereIn('church_id', $branchIds)->sum('amount');
     }
 }

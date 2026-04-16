@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card-rgc">
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div class="user-admin-header">
         <div>
             <span class="section-kicker">{{ __('User Governance') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('All user accounts') }}</h1>
@@ -13,13 +13,28 @@
         <a class="btn-rgc w-full sm:w-auto" href="{{ route('admin.users.create') }}">{{ __('Add User') }}</a>
     </div>
 
-    <form class="mt-5 flex flex-col gap-3 sm:flex-row" method="GET" action="{{ route('admin.users.index') }}">
-        <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search by name, email, role, or status') }}">
+    <div class="user-admin-summary mt-5">
+        <article class="user-admin-summary-card">
+            <span>{{ __('Accounts in view') }}</span>
+            <strong>{{ number_format($users->total()) }}</strong>
+            <p>{{ __('All records matching the current search and pagination scope.') }}</p>
+        </article>
+        <article class="user-admin-summary-card">
+            <span>{{ __('Current search') }}</span>
+            <strong>{{ filled($search) ? __('Filtered') : __('All users') }}</strong>
+            <p>{{ filled($search) ? __('Showing matches for your current search term.') : __('No keyword filter is active right now.') }}</p>
+        </article>
+    </div>
+
+    <form class="user-admin-search mt-5" method="GET" action="{{ route('admin.users.index') }}">
+        <div class="user-admin-search-field">
+            <input class="input-rgc" type="search" name="q" value="{{ $search }}" placeholder="{{ __('Search by name, email, role, or status') }}">
+        </div>
         <button class="btn-rgc-alt w-full sm:w-auto" type="submit">{{ __('Search') }}</button>
     </form>
 
-    <div class="table-wrap mt-5">
-        <table class="responsive-table w-full text-sm">
+    <div class="table-wrap mt-5 user-admin-table-wrap">
+        <table class="responsive-table w-full text-sm user-admin-table">
             <thead>
                 <tr>
                     <th>{{ __('Name') }}</th>
@@ -34,9 +49,9 @@
             </thead>
             <tbody>
                 @forelse($users as $managedUser)
-                    <tr class="border-t">
+                    <tr class="border-t user-admin-row">
                         <td>
-                            <div class="font-semibold">{{ $managedUser->name }}</div>
+                            <div class="user-admin-name">{{ $managedUser->name }}</div>
                             <div class="mt-1 text-xs text-black/55">
                                 {{ $managedUser->branch?->name ?? __('No branch assigned') }}
                                 @if($managedUser->district?->name)
@@ -50,9 +65,11 @@
                                 <div class="mt-1 text-xs text-black/50">{{ __('Current account') }}</div>
                             @endif
                         </td>
-                        <td class="break-all">{{ $managedUser->email }}</td>
+                        <td class="break-all">
+                            <div class="user-admin-email">{{ $managedUser->email }}</div>
+                        </td>
                         <td>
-                            <div>{{ __(Illuminate\Support\Str::headline($managedUser->normalizedRoleName() ?? $managedUser->role)) }}</div>
+                            <div class="user-admin-role">{{ __(Illuminate\Support\Str::headline($managedUser->normalizedRoleName() ?? $managedUser->role)) }}</div>
                             @if($managedUser->phone)
                                 <div class="mt-1 text-xs text-black/55">{{ $managedUser->phone }}</div>
                             @endif
@@ -66,7 +83,7 @@
                         <td>{{ $managedUser->district?->name ?? '—' }}</td>
                         <td>{{ $managedUser->region?->name ?? '—' }}</td>
                         <td>
-                            <div class="flex flex-col gap-2 sm:flex-row">
+                            <div class="user-admin-actions">
                                 <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('admin.users.edit', $managedUser) }}">{{ __('Edit') }}</a>
                                 @if($managedUser->id !== auth()->id())
                                     <form method="POST" action="{{ route('admin.users.destroy', $managedUser) }}" onsubmit="return confirm('{{ __('Delete this user account?') }}');">

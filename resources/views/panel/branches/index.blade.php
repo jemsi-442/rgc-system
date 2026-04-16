@@ -2,18 +2,34 @@
 
 @section('content')
 <div class="card-rgc">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="branch-admin-header">
         <div>
-            <h1 class="text-xl font-semibold">{{ __('Branches') }}</h1>
+            <span class="section-kicker">{{ __('Branch Administration') }}</span>
+            <h1 class="mt-4 text-2xl font-semibold">{{ __('Branches') }}</h1>
             <p class="mt-1 text-sm text-black/65">{{ __('Manage branches, update records, remove inactive locations, or move into the creation page to use CSV and Excel import with hierarchy validation.') }}</p>
         </div>
-        <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap branch-export-actions">
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.template', 'xlsx') }}">{{ __('Blank Template') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.template.sample', 'xlsx') }}">{{ __('Sample Template') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.export', 'xlsx') }}">{{ __('Export XLSX') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('branches.export', 'csv') }}">{{ __('Export CSV') }}</a>
+        <div class="branch-admin-actions">
             <a class="btn-rgc w-full sm:w-auto" href="{{ route('branches.create') }}">{{ __('Create or Import Branches') }}</a>
+            <div class="branch-admin-links">
+                <a href="{{ route('branches.template', 'xlsx') }}">{{ __('Blank Template') }}</a>
+                <a href="{{ route('branches.template.sample', 'xlsx') }}">{{ __('Sample Template') }}</a>
+                <a href="{{ route('branches.export', 'xlsx') }}">{{ __('Export XLSX') }}</a>
+                <a href="{{ route('branches.export', 'csv') }}">{{ __('Export CSV') }}</a>
+            </div>
         </div>
+    </div>
+
+    <div class="branch-admin-summary mt-5">
+        <article class="branch-admin-summary-card">
+            <span>{{ __('Branches in view') }}</span>
+            <strong>{{ number_format($branches->total()) }}</strong>
+            <p>{{ __('Records visible in the current branch list and pagination scope.') }}</p>
+        </article>
+        <article class="branch-admin-summary-card">
+            <span>{{ __('Current focus') }}</span>
+            <strong>{{ $selectedRegion?->name ?? __('All regions') }}</strong>
+            <p>{{ $selectedDistrict?->name ? __('District: :district', ['district' => $selectedDistrict->name]) : __('District filter is currently open to all locations.') }}</p>
+        </article>
     </div>
 
     <form class="branch-filter-shell mt-5" method="GET" action="{{ route('branches.index') }}">
@@ -68,7 +84,7 @@
         </div>
     </form>
 
-    <div class="table-wrap mt-3">
+    <div class="table-wrap mt-3 branch-admin-table-wrap">
         <table class="responsive-table w-full text-sm branch-index-table">
             <thead>
                 <tr>
@@ -83,17 +99,17 @@
             </thead>
             <tbody>
                 @foreach($branches as $branch)
-                    <tr class="border-t">
+                    <tr class="border-t branch-admin-row">
                         <td>
-                            <div class="font-semibold text-black">{{ $branch->name }}</div>
+                            <div class="branch-admin-name">{{ $branch->name }}</div>
                             @if($branch->address)
                                 <div class="text-xs text-black/60">{{ $branch->address }}</div>
                             @endif
                         </td>
-                        <td>{{ __(Illuminate\Support\Str::headline($branch->branch_type)) }}</td>
+                        <td><span class="branch-admin-type">{{ __(Illuminate\Support\Str::headline($branch->branch_type)) }}</span></td>
                         <td>{{ $branch->district->name }}</td>
                         <td>{{ $branch->region->name }}</td>
-                        <td>{{ __(Illuminate\Support\Str::headline($branch->status)) }}</td>
+                        <td><span class="branch-admin-status">{{ __(Illuminate\Support\Str::headline($branch->status)) }}</span></td>
                         <td>
                             <div class="text-xs text-black/65">
                                 <div>{{ $branch->phone ?: __('No phone') }}</div>
