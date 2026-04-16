@@ -149,19 +149,17 @@
                 <button class="chat-reply-cancel" type="button" data-chat-reply-cancel>{{ __('Cancel reply') }}</button>
             </div>
 
+            <input
+                class="hidden"
+                id="branch-chat-attachment"
+                type="file"
+                name="attachments[]"
+                accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+                multiple
+            >
+
             <div class="chat-compose-tools">
-                <div class="chat-compose-actions">
-                    <label class="chat-attach-button" for="branch-chat-attachment">{{ __('Attach files') }}</label>
-                    <span class="chat-drop-hint">{{ __('Share images, reports, or quick ministry files here') }}</span>
-                </div>
-                <input
-                    class="hidden"
-                    id="branch-chat-attachment"
-                    type="file"
-                    name="attachments[]"
-                    accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-                    multiple
-                >
+                <span class="chat-drop-hint">{{ __('Share images, reports, or quick ministry files here') }}</span>
                 <div class="chat-selected-files hidden" data-chat-selected-files></div>
             </div>
 
@@ -173,15 +171,31 @@
             </div>
 
             <div class="chat-composer-shell">
-                <label class="sr-only" for="branch-chat-message">{{ __('Type a message') }}</label>
-                <textarea
-                    class="textarea-rgc chat-input"
-                    id="branch-chat-message"
-                    name="message"
-                    rows="1"
-                    placeholder="{{ __('Write a message to your branch...') }}"
-                ></textarea>
-                <button class="btn-rgc chat-send" type="submit">{{ __('Send') }}</button>
+                <label class="chat-action-button chat-action-button--attach" for="branch-chat-attachment" aria-label="{{ __('Attach files') }}" title="{{ __('Attach files') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21.44 11.05 12.25 20.24a6 6 0 0 1-8.49-8.49l9.2-9.19a4 4 0 1 1 5.65 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.49" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>
+                    </svg>
+                    <span class="sr-only">{{ __('Attach files') }}</span>
+                </label>
+
+                <div class="chat-input-shell">
+                    <label class="sr-only" for="branch-chat-message">{{ __('Type a message') }}</label>
+                    <textarea
+                        class="textarea-rgc chat-input"
+                        id="branch-chat-message"
+                        name="message"
+                        rows="1"
+                        placeholder="{{ __('Write a message to your branch...') }}"
+                    ></textarea>
+                </div>
+
+                <button class="chat-action-button chat-action-button--send" type="submit" aria-label="{{ __('Send message') }}" title="{{ __('Send message') }}">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 11.5 19.5 4l-3.7 16-3.65-5.85L4 11.5Z" fill="currentColor"/>
+                        <path d="M11.9 14.2 19.5 4" fill="none" stroke="rgba(255,255,255,.9)" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/>
+                    </svg>
+                    <span class="sr-only">{{ __('Send') }}</span>
+                </button>
             </div>
         </form>
     </section>
