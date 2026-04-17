@@ -9,6 +9,7 @@
             <span class="section-kicker">{{ __('Branch Chat') }}</span>
             <h1 class="mt-4 text-2xl font-semibold">{{ __('Branch Chat') }}</h1>
             <p class="mt-2 text-sm text-black/65">{{ __('Use this space for branch coordination, quick updates, replies, and file sharing with the people in your branch.') }}</p>
+            <p class="mt-3 text-sm text-black/70">{{ __('Speak with grace, clarity, and care so your branch stays united in prayer, service, and communication.') }}</p>
         </div>
         <div class="chat-branch-chip">
             <span>{{ __('Active branch') }}</span>
@@ -124,6 +125,7 @@
                         <div class="chat-empty-copy">
                             <strong>{{ __('Branch Chat') }}</strong>
                             <p>{{ __('No messages yet. Start the conversation from your branch.') }}</p>
+                            <p>{{ __('A simple word of encouragement, prayer, or update can help your church family stay connected.') }}</p>
                         </div>
                     </li>
                 @endforelse

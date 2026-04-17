@@ -32,14 +32,35 @@
             <div class="announcement-callout mt-6 payment-success-callout">
                 <p class="font-semibold text-black">{{ __('Payment confirmed successfully.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('The offering has already been posted to the branch ledger and is ready for reporting.') }}</p>
-                <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->temporaryPublicReceiptUrl() }}">{{ __('Download receipt PDF') }}</a>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
+                <p class="mt-2 text-sm text-black/70">{{ __('Thank God with joy for this completed giving and for the work it will support in the church.') }}</p>
+                <div class="action-tile-grid mt-4">
+                    <a class="action-tile is-primary" href="{{ $payment->temporaryPublicReceiptUrl() }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                        <strong>{{ __('Download receipt PDF') }}</strong>
+                        <p>{{ __('Keep a clean record of this confirmed giving.') }}</p>
+                    </a>
+                    <button class="action-tile" type="button" data-copy-text="{{ $payment->public_reference }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                        <strong>{{ __('Copy reference') }}</strong>
+                        <p>{{ __('Keep the payment reference ready for support or follow-up.') }}</p>
+                    </button>
+                    <button class="action-tile" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'megaphone'])</span>
+                        <strong>{{ __('Share status page') }}</strong>
+                        <p>{{ __('Send this status page to the giver or branch team.') }}</p>
+                    </button>
                     @auth
-                        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give again') }}</a>
+                        <a class="action-tile" href="{{ route('giving.index') }}">
+                            <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                            <strong>{{ __('Give again') }}</strong>
+                            <p>{{ __('Start another branch contribution when you are ready.') }}</p>
+                        </a>
                     @else
-                        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('home') }}">{{ __('Return to homepage') }}</a>
+                        <a class="action-tile" href="{{ route('home') }}">
+                            <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'home'])</span>
+                            <strong>{{ __('Return to homepage') }}</strong>
+                            <p>{{ __('Go back to the church home page from here.') }}</p>
+                        </a>
                     @endauth
                 </div>
             </div>
@@ -48,30 +69,69 @@
                 <p class="font-semibold text-black">{{ __('Payment prompt sent successfully.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('A payment prompt was sent to :phone. Ask the payer to approve it on the phone, then this page will update after confirmation arrives.', ['phone' => $payment->maskedPayerPhone()]) }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('Requested network') }}: {{ $payment->requestedNetworkLabel() }} · {{ __('Last update') }}: {{ optional($payment->updated_at)->translatedFormat('d M Y H:i') }}</p>
-                <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
+                <p class="mt-2 text-sm text-black/70">{{ __('Wait with peace. Once confirmation arrives, the giving will be recorded automatically.') }}</p>
+                <div class="action-tile-grid mt-4">
+                    <button class="action-tile" type="button" data-copy-text="{{ $payment->public_reference }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                        <strong>{{ __('Copy reference') }}</strong>
+                        <p>{{ __('Keep the payment reference close while confirmation is pending.') }}</p>
+                    </button>
+                    <button class="action-tile" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'megaphone'])</span>
+                        <strong>{{ __('Share status page') }}</strong>
+                        <p>{{ __('Send the live status page to the payer if needed.') }}</p>
+                    </button>
+                    <a class="action-tile" href="{{ $returnUrl }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => auth()->check() ? 'giving' : 'home'])</span>
+                        <strong>{{ $returnLabel }}</strong>
+                        <p>{{ __('Move back without losing this payment reference.') }}</p>
+                    </a>
                 </div>
             </div>
         @elseif($payment->isPending() && $payment->checkout_url)
             <div class="announcement-callout mt-6">
                 <p class="font-semibold text-black">{{ __('Complete payment using the checkout link below.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('After payment, the system will receive confirmation and this page will update to completed status.') }}</p>
-                <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">{{ __('Share status page') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
+                <p class="mt-2 text-sm text-black/70">{{ __('Move forward with confidence and finish this giving in peace when you are ready.') }}</p>
+                <div class="action-tile-grid mt-4">
+                    <a class="action-tile is-primary" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                        <strong>{{ __('Open checkout') }}</strong>
+                        <p>{{ __('Continue payment from the secure checkout page.') }}</p>
+                    </a>
+                    <button class="action-tile" type="button" data-copy-text="{{ $payment->public_reference }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                        <strong>{{ __('Copy reference') }}</strong>
+                        <p>{{ __('Keep the payment reference available during checkout.') }}</p>
+                    </button>
+                    <button class="action-tile" type="button" data-share-link="{{ $payment->publicStatusUrl() }}" data-share-title="{{ __('Offering Payment Status') }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'megaphone'])</span>
+                        <strong>{{ __('Share status page') }}</strong>
+                        <p>{{ __('Send the payment status page to the giver if needed.') }}</p>
+                    </button>
+                    <a class="action-tile" href="{{ $returnUrl }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => auth()->check() ? 'giving' : 'home'])</span>
+                        <strong>{{ $returnLabel }}</strong>
+                        <p>{{ __('Leave checkout for now and return later if needed.') }}</p>
+                    </a>
                 </div>
             </div>
         @else
             <div class="announcement-callout mt-6">
                 <p class="font-semibold text-black">{{ __('This payment is not currently active.') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ $failedRecoveryCopy }}</p>
-                <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                    <button class="btn-rgc-outline w-full sm:w-auto" type="button" data-copy-text="{{ $payment->public_reference }}">{{ __('Copy reference') }}</button>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ $returnUrl }}">{{ $returnLabel }}</a>
+                <p class="mt-2 text-sm text-black/70">{{ __('Do not be discouraged. You can begin again when the time is right.') }}</p>
+                <div class="action-tile-grid mt-4">
+                    <button class="action-tile" type="button" data-copy-text="{{ $payment->public_reference }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                        <strong>{{ __('Copy reference') }}</strong>
+                        <p>{{ __('Keep the reference ready if you need support.') }}</p>
+                    </button>
+                    <a class="action-tile" href="{{ $returnUrl }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => auth()->check() ? 'giving' : 'home'])</span>
+                        <strong>{{ $returnLabel }}</strong>
+                        <p>{{ __('Go back and create a fresh request when you are ready.') }}</p>
+                    </a>
                 </div>
             </div>
         @endif
@@ -181,6 +241,7 @@
                     <p class="section-kicker">{{ __('Need support?') }}</p>
                     <h2 class="text-2xl font-semibold">{{ __('Branch Contact') }}</h2>
                     <p class="text-sm text-black/65">{{ __('If you need help with this payment, use the branch contact details below.') }}</p>
+                    <p class="text-sm text-black/65">{{ __('Your church family can help you follow this giving through to completion.') }}</p>
                 </div>
 
                 <dl class="payment-receipt-grid mt-6">

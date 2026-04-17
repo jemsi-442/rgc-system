@@ -4,11 +4,11 @@
     <div class="card-rgc">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="section-kicker">{{ __('Ledger') }}</p>
+                <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Ledger') }}</span></p>
                 <h1 class="text-xl font-semibold">{{ __('Offerings') }}</h1>
                 <p class="mt-2 text-sm text-black/65">{{ __('Manual branch records and payment-prompt collections meet here so finance staff can review the full giving picture in one place.') }}</p>
             </div>
-            <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.create') }}">{{ __('Add or collect') }}</a>
+            <a class="btn-rgc w-full sm:w-auto" href="{{ route('offerings.create') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Add or collect') }}</span></a>
         </div>
 
         @if(session('payment_reference'))
@@ -20,11 +20,19 @@
                 @if(session('payment_prompt_phone'))
                     <p class="text-sm text-black/70">{{ __('Prompt sent to') }}: <span class="font-medium text-black">{{ session('payment_prompt_phone') }}</span></p>
                 @endif
-                <div class="flex flex-col gap-3 sm:flex-row">
+                <div class="action-tile-grid mt-4">
                     @if(session('payment_link'))
-                        <a class="btn-rgc w-full sm:w-auto" href="{{ session('payment_link') }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                        <a class="action-tile is-primary" href="{{ session('payment_link') }}" target="_blank" rel="noopener">
+                            <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                            <strong>{{ __('Open checkout') }}</strong>
+                            <p>{{ __('Continue the latest payment request from checkout.') }}</p>
+                        </a>
                     @endif
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">{{ __('View status page') }}</a>
+                    <a class="action-tile" href="{{ route('offerings.payments.public.show', session('payment_reference')) }}">
+                        <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'eye'])</span>
+                        <strong>{{ __('View status page') }}</strong>
+                        <p>{{ __('Follow the latest payment request from its live status page.') }}</p>
+                    </a>
                 </div>
             </div>
         @endif
@@ -58,7 +66,7 @@
 
     <div class="card-rgc">
             <div class="space-y-2">
-                <p class="section-kicker">{{ __('Snippe payments') }}</p>
+                <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Snippe payments') }}</span></p>
                 <h2 class="text-xl font-semibold">{{ __('Payment Requests') }}</h2>
                 <p class="text-sm text-black/65">{{ __('Track pending phone prompts, refresh status manually, and confirm whether the collection has already reached the branch ledger.') }}</p>
             </div>
@@ -92,14 +100,26 @@
                         </div>
                     @endif
 
-                    <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <div class="action-tile-grid mt-4">
                         @if($payment->checkout_url)
-                            <a class="btn-rgc w-full sm:w-auto" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">{{ __('Open checkout') }}</a>
+                            <a class="action-tile is-primary" href="{{ $payment->checkout_url }}" target="_blank" rel="noopener">
+                                <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                                <strong>{{ __('Open checkout') }}</strong>
+                                <p>{{ __('Resume the hosted checkout for this payment request.') }}</p>
+                            </a>
                         @endif
-                        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
-                        <form method="POST" action="{{ route('offerings.payments.sync', $payment) }}">
+                        <a class="action-tile" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">
+                            <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'eye'])</span>
+                            <strong>{{ __('Status page') }}</strong>
+                            <p>{{ __('Open the live status page for this payment request.') }}</p>
+                        </a>
+                        <form method="POST" action="{{ route('offerings.payments.sync', $payment) }}" class="action-tile-form">
                             @csrf
-                            <button class="btn-rgc-outline w-full sm:w-auto" type="submit">{{ __('Refresh status') }}</button>
+                            <button class="action-tile" type="submit">
+                                <span class="action-tile-icon">@include('partials.ui.icon', ['name' => 'sparkles'])</span>
+                                <strong>{{ __('Refresh status') }}</strong>
+                                <p>{{ __('Ask the system to check the latest payment status now.') }}</p>
+                            </button>
                         </form>
                     </div>
                 </article>

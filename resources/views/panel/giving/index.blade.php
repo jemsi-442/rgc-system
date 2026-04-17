@@ -7,8 +7,14 @@
     <section class="card-rgc-strong">
         <div class="space-y-2">
             <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Member giving') }}</span></p>
-            <h1 class="text-2xl font-semibold">{{ __('Give to your branch securely') }}</h1>
-            <p class="text-sm text-black/70">{{ __('Choose the kind of giving, enter the amount and phone number, then a payment prompt will be sent to that phone.') }}</p>
+            <h1 class="text-2xl font-semibold">{{ __('Give with worship and gratitude') }}</h1>
+            <p class="text-sm text-black/70">{{ __('Prepare your giving with a willing heart, choose the amount and phone number, and the payment prompt will be sent to that phone.') }}</p>
+        </div>
+
+        <div class="announcement-callout mt-5 space-y-2">
+            <p class="font-semibold text-black">{{ __('Each one must give as he has decided in his heart, not reluctantly or under compulsion, for God loves a cheerful giver.') }}</p>
+            <p class="text-xs uppercase tracking-[0.22em] text-black/55">{{ __('2 Corinthians 9:7') }}</p>
+            <p class="text-sm text-black/70">{{ __('Let your giving here be part of worship, thanksgiving, and support for the work of God in your branch.') }}</p>
         </div>
 
         <div class="branch-preview-breakdown mt-5">
@@ -114,6 +120,7 @@
             <div class="announcement-callout">
                 <p class="font-semibold text-black">{{ __('What happens next?') }}</p>
                 <p class="mt-2 text-sm text-black/70">{{ __('A payment request is prepared, the phone prompt is sent, and after confirmation the giving is recorded for your branch.') }}</p>
+                <p class="mt-2 text-sm text-black/70">{{ __('Take a moment to give with peace, faith, and thanksgiving before you send the prompt.') }}</p>
             </div>
             <div class="form-actions">
                 <button class="btn-rgc w-full sm:w-auto" type="submit">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'button-icon'])<span>{{ __('Send giving prompt') }}</span></button>
@@ -145,7 +152,7 @@
             <div class="space-y-2">
                 <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('My recent giving') }}</span></p>
                 <h2 class="text-xl font-semibold">{{ __('Giving history') }}</h2>
-                <p class="text-sm text-black/65">{{ __('Follow the status of the giving prompts you have already sent.') }}</p>
+                <p class="text-sm text-black/65">{{ __('Follow the giving prompts you have already sent and remember the faithfulness of God through each step.') }}</p>
             </div>
 
             <div class="mt-5 grid gap-4">

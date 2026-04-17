@@ -7,7 +7,11 @@
     <div class="page-banner-content">
         <span class="section-kicker section-kicker--icon !border-white/10 !bg-white/10 !text-rgc-yellow">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'section-kicker-icon'])<span>{{ __('Announcements') }}</span></span>
         <h1 class="mt-5">{{ __('Announcements') }}</h1>
-        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Official church updates prepared for the people and places connected to your area of service.') }}</p>
+        <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">{{ __('Church updates, guidance, and reminders that help God’s people stay informed, prepared, and joined together in one direction.') }}</p>
+        <div class="member-scripture-callout mt-5 max-w-3xl">
+            <p class="member-scripture-text">"{{ __('Let all things be done decently and in order.') }}"</p>
+            <span class="member-scripture-reference">{{ __('1 Corinthians 14:40') }}</span>
+        </div>
     </div>
 </section>
 
@@ -16,6 +20,9 @@
         <div>
             <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your view') : __('Recent announcements in your view') }}</h2>
             <p class="mt-2 text-sm text-black/65">{{ $showArchived ? __('These announcements have already passed, but they remain here for reference.') : __('Church-wide announcements appear here together with the notices shared for the churches connected to your care.') }}</p>
+            @if(! $showArchived)
+                <p class="mt-3 text-sm text-black/70">{{ __('Read these updates with readiness so prayer, worship, gatherings, and church service can move together in peace.') }}</p>
+            @endif
         </div>
         <div class="announcement-toolbar-actions">
             <a class="btn-rgc-alt w-full sm:w-auto" href="{{ $showArchived ? route('announcements.index') : route('announcements.index', ['archived' => 1]) }}">@include('partials.ui.icon', ['name' => 'archive', 'class' => 'button-icon'])<span>{{ $showArchived ? __('View active announcements') : __('View archived announcements') }}</span></a>
@@ -121,6 +128,7 @@
             <article class="announcement-empty-state">
                 <strong>{{ __('No announcements are available here yet.') }}</strong>
                 <p>{{ __('When church leaders share a new update, it will appear here with its image and details.') }}</p>
+                <p>{{ __('Until then, stay prayerful and keep close to your church fellowship.') }}</p>
             </article>
         @endforelse
     </div>

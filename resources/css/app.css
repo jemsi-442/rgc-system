@@ -1418,6 +1418,189 @@ body::before {
   gap: 0.75rem;
 }
 
+.dashboard-action-grid {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.dashboard-action-card,
+.member-home-action-card,
+.member-giving-action-card {
+  display: grid;
+  gap: 0.45rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(23, 23, 23, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 223, 0.88)),
+    linear-gradient(180deg, rgba(255, 215, 0, 0.04), rgba(23, 23, 23, 0.02));
+  padding: 1rem 1.05rem;
+  box-shadow: 0 14px 28px rgba(23, 23, 23, 0.05);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.dashboard-action-card:hover,
+.member-home-action-card:hover,
+.member-giving-action-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(143, 17, 17, 0.18);
+  box-shadow: 0 20px 36px rgba(23, 23, 23, 0.08);
+}
+
+.dashboard-action-card.is-primary,
+.member-home-action-card.is-primary,
+.member-giving-action-card.is-primary {
+  background:
+    linear-gradient(145deg, rgba(143, 17, 17, 0.96), rgba(106, 12, 12, 0.94)),
+    linear-gradient(180deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.02));
+  border-color: rgba(143, 17, 17, 0.28);
+  box-shadow: 0 22px 42px rgba(82, 17, 23, 0.18);
+}
+
+.dashboard-action-icon,
+.member-home-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background: rgba(23, 23, 23, 0.06);
+  color: var(--rgc-red-deep);
+}
+
+.dashboard-action-card.is-primary .dashboard-action-icon,
+.member-home-action-card.is-primary .member-home-action-icon,
+.member-giving-action-card.is-primary .member-home-action-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--color-rgc-yellow);
+}
+
+.dashboard-action-icon svg,
+.member-home-action-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.dashboard-action-card strong,
+.member-home-action-card strong,
+.member-giving-action-card strong {
+  font-size: 1rem;
+  color: var(--color-rgc-black);
+}
+
+.dashboard-action-card p,
+.member-home-action-card p,
+.member-giving-action-card p {
+  color: rgba(23, 23, 23, 0.64);
+  line-height: 1.58;
+  font-size: 0.9rem;
+}
+
+.dashboard-action-card.is-primary strong,
+.dashboard-action-card.is-primary p,
+.member-home-action-card.is-primary strong,
+.member-home-action-card.is-primary p,
+.member-giving-action-card.is-primary strong,
+.member-giving-action-card.is-primary p {
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.member-home-action-grid,
+.member-giving-action-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.member-inline-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--rgc-red-deep);
+  font-weight: 700;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.member-inline-link:hover {
+  color: var(--color-rgc-black);
+  transform: translateX(1px);
+}
+
+.action-tile-grid {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.action-tile,
+.action-tile-form {
+  display: block;
+}
+
+.action-tile {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 0.45rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(23, 23, 23, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(255, 248, 223, 0.88)),
+    linear-gradient(180deg, rgba(255, 215, 0, 0.04), rgba(23, 23, 23, 0.02));
+  padding: 1rem 1.05rem;
+  box-shadow: 0 14px 28px rgba(23, 23, 23, 0.05);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.action-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(143, 17, 17, 0.18);
+  box-shadow: 0 20px 36px rgba(23, 23, 23, 0.08);
+}
+
+.action-tile.is-primary {
+  background:
+    linear-gradient(145deg, rgba(143, 17, 17, 0.96), rgba(106, 12, 12, 0.94)),
+    linear-gradient(180deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.02));
+  border-color: rgba(143, 17, 17, 0.28);
+  box-shadow: 0 22px 42px rgba(82, 17, 23, 0.18);
+}
+
+.action-tile-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 9999px;
+  background: rgba(23, 23, 23, 0.06);
+  color: var(--rgc-red-deep);
+}
+
+.action-tile.is-primary .action-tile-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--color-rgc-yellow);
+}
+
+.action-tile-icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.action-tile strong {
+  font-size: 1rem;
+  color: var(--color-rgc-black);
+}
+
+.action-tile p {
+  color: rgba(23, 23, 23, 0.64);
+  line-height: 1.58;
+  font-size: 0.9rem;
+}
+
+.action-tile.is-primary strong,
+.action-tile.is-primary p {
+  color: rgba(255, 255, 255, 0.94);
+}
+
 .admin-focus-card {
   display: grid;
   gap: 1.15rem;
@@ -1513,6 +1696,22 @@ body::before {
   .dashboard-overview-shell {
     grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
     align-items: start;
+  }
+
+  .dashboard-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .member-home-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .member-giving-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .action-tile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1971,6 +2170,52 @@ body::before {
   margin-top: 1rem;
 }
 
+.member-scripture-callout,
+.member-scripture-panel {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+}
+
+.member-scripture-callout {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05)),
+    rgba(255, 255, 255, 0.06);
+}
+
+.member-scripture-panel {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 215, 0, 0.08), rgba(255, 255, 255, 0.06)),
+    rgba(255, 255, 255, 0.06);
+}
+
+.member-scripture-text {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.75;
+}
+
+.member-scripture-reference {
+  display: inline-flex;
+  margin-top: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.member-spiritual-action {
+  margin-top: 0.95rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .member-home-chips span,
 .member-card-mark {
   display: inline-flex;
@@ -2019,6 +2264,14 @@ body::before {
   font-size: 0.95rem;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.82);
+}
+
+.member-encouragement-card .member-scripture-reference {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.member-encouragement-card .member-spiritual-action {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .member-giving-card {

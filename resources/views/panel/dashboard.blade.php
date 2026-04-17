@@ -437,15 +437,31 @@
 
 <section id="dashboard-actions" class="tablet-stack two mt-8">
     <article class="card-rgc-strong">
-        <span class="section-kicker">{{ __('Quick Actions') }}</span>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'sparkles', 'class' => 'section-kicker-icon'])<span>{{ __('Quick Actions') }}</span></span>
         <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">
             {{ $isSuperAdmin ? __('Main church actions and everyday tools.') : __('Open the tools prepared for your area of service.') }}
         </h2>
-        <div class="shortcut-grid mt-6 text-sm">
-            <a class="btn-rgc w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('View announcements') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('messages.index') }}">{{ __('Open branch chat') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('account.password.edit') }}">{{ __('Change my password') }}</a>
-            <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
+        <div class="dashboard-action-grid mt-6">
+            <a class="dashboard-action-card is-primary" href="{{ route('announcements.index') }}">
+                <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'megaphone'])</span>
+                <strong>{{ __('Announcements') }}</strong>
+                <p>{{ __('Read current church updates and shared notices.') }}</p>
+            </a>
+            <a class="dashboard-action-card" href="{{ route('messages.index') }}">
+                <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'chat'])</span>
+                <strong>{{ __('Branch chat') }}</strong>
+                <p>{{ __('Move into your branch conversation without searching through menus.') }}</p>
+            </a>
+            <a class="dashboard-action-card" href="{{ route('account.password.edit') }}">
+                <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'lock'])</span>
+                <strong>{{ __('Password') }}</strong>
+                <p>{{ __('Refresh your password and keep your account secure.') }}</p>
+            </a>
+            <a class="dashboard-action-card" href="{{ route('giving.index') }}">
+                <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                <strong>{{ __('Give now') }}</strong>
+                <p>{{ __('Open the giving page and send a branch contribution prompt.') }}</p>
+            </a>
             @if(auth()->user()->hasSystemRole('super_admin'))
                 <div class="admin-secondary-links">
                     <a href="{{ route('admin.users.index') }}">{{ __('Manage users') }}</a>
@@ -455,14 +471,30 @@
             @endif
             @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
                 @if(! $isSuperAdmin)
-                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('assistant.topics.index') }}">{{ __('Assistant knowledge') }}</a>
+                    <a class="dashboard-action-card" href="{{ route('assistant.topics.index') }}">
+                        <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'assistant'])</span>
+                        <strong>{{ __('Assistant knowledge') }}</strong>
+                        <p>{{ __('Open the assistant topics and guide answers more clearly.') }}</p>
+                    </a>
                 @endif
             @endif
             @if($canOpenBranchBooks)
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('offerings.index') }}">{{ __('Offerings') }}</a>
-                <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('expenses.index') }}">{{ __('Expenses') }}</a>
+                <a class="dashboard-action-card" href="{{ route('offerings.index') }}">
+                    <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                    <strong>{{ __('Offerings') }}</strong>
+                    <p>{{ __('Open giving records and payment requests for your church area.') }}</p>
+                </a>
+                <a class="dashboard-action-card" href="{{ route('expenses.index') }}">
+                    <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'archive'])</span>
+                    <strong>{{ __('Expenses') }}</strong>
+                    <p>{{ __('Review branch expenses and recorded spending in one place.') }}</p>
+                </a>
                 @if(! $isAccountant)
-                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('events.index') }}">{{ __('Events') }}</a>
+                    <a class="dashboard-action-card" href="{{ route('events.index') }}">
+                        <span class="dashboard-action-icon">@include('partials.ui.icon', ['name' => 'sparkles'])</span>
+                        <strong>{{ __('Events') }}</strong>
+                        <p>{{ __('See upcoming church moments and manage event details.') }}</p>
+                    </a>
                 @endif
             @endif
         </div>
@@ -569,6 +601,15 @@
                     <span class="section-kicker border-white/10 bg-white/10 text-rgc-yellow">{{ __('Church Home') }}</span>
                     <h3>{{ $memberDashboard['encouragement']['title'] ?? __('Stay close to your branch') }}</h3>
                     <p>{{ $memberDashboard['encouragement']['body'] ?? __('Keep up with the life of your branch through notices, events, and member giving.') }}</p>
+                    @if(filled($memberDashboard['encouragement']['verse'] ?? null))
+                        <div class="member-scripture-callout">
+                            <p class="member-scripture-text">"{{ $memberDashboard['encouragement']['verse'] }}"</p>
+                            <span class="member-scripture-reference">{{ $memberDashboard['encouragement']['reference'] ?? __('Scripture') }}</span>
+                        </div>
+                    @endif
+                    @if(filled($memberDashboard['encouragement']['action'] ?? null))
+                        <p class="member-spiritual-action">{{ $memberDashboard['encouragement']['action'] }}</p>
+                    @endif
 
                     <div class="member-home-chips">
                         <span>{{ trans_choice(':count notice|:count notices', $scope->count(), ['count' => $scope->count()]) }}</span>
@@ -577,10 +618,22 @@
                     </div>
                 </div>
 
-                <div class="member-home-hero-actions">
-                    <a class="btn-rgc w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
-                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('messages.index') }}">{{ __('Open branch chat') }}</a>
-                    <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('View announcements') }}</a>
+                <div class="member-home-action-grid">
+                    <a class="member-home-action-card is-primary" href="{{ route('giving.index') }}">
+                        <span class="member-home-action-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                        <strong>{{ __('Give now') }}</strong>
+                        <p>{{ __('Open your branch giving page and continue quickly.') }}</p>
+                    </a>
+                    <a class="member-home-action-card" href="{{ route('messages.index') }}">
+                        <span class="member-home-action-icon">@include('partials.ui.icon', ['name' => 'chat'])</span>
+                        <strong>{{ __('Branch chat') }}</strong>
+                        <p>{{ __('Go straight into branch conversation and follow-up.') }}</p>
+                    </a>
+                    <a class="member-home-action-card" href="{{ route('announcements.index') }}">
+                        <span class="member-home-action-icon">@include('partials.ui.icon', ['name' => 'megaphone'])</span>
+                        <strong>{{ __('Announcements') }}</strong>
+                        <p>{{ __('Read the latest updates for your church area.') }}</p>
+                    </a>
                 </div>
             </section>
 
@@ -607,6 +660,15 @@
                     <span class="section-kicker">{{ __('Today’s Encouragement') }}</span>
                     <h3 class="mt-4">{{ $memberDashboard['encouragement']['title'] ?? __('Stay close to your branch') }}</h3>
                     <p class="mt-3">{{ $memberDashboard['encouragement']['body'] ?? __('Keep up with the life of your branch through notices, events, and member giving.') }}</p>
+                    @if(filled($memberDashboard['encouragement']['verse'] ?? null))
+                        <div class="member-scripture-panel mt-4">
+                            <p class="member-scripture-text">"{{ $memberDashboard['encouragement']['verse'] }}"</p>
+                            <span class="member-scripture-reference">{{ $memberDashboard['encouragement']['reference'] ?? __('Scripture') }}</span>
+                        </div>
+                    @endif
+                    @if(filled($memberDashboard['encouragement']['action'] ?? null))
+                        <p class="member-spiritual-action mt-4">{{ $memberDashboard['encouragement']['action'] }}</p>
+                    @endif
                 </article>
 
                 <article class="card-rgc member-giving-card">
@@ -634,9 +696,17 @@
                             {{ __('Your giving history will begin to appear here after your first contribution.') }}
                         @endif
                     </p>
-                    <div class="member-giving-actions mt-5">
-                        <a class="btn-rgc w-full sm:w-auto" href="{{ route('giving.index') }}">{{ __('Give now') }}</a>
-                        <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('account.password.edit') }}">{{ __('Account settings') }}</a>
+                    <div class="member-giving-action-grid mt-5">
+                        <a class="member-giving-action-card is-primary" href="{{ route('giving.index') }}">
+                            <span class="member-home-action-icon">@include('partials.ui.icon', ['name' => 'giving'])</span>
+                            <strong>{{ __('Give now') }}</strong>
+                            <p>{{ __('Send another giving prompt from your branch page.') }}</p>
+                        </a>
+                        <a class="member-giving-action-card" href="{{ route('account.password.edit') }}">
+                            <span class="member-home-action-icon">@include('partials.ui.icon', ['name' => 'lock'])</span>
+                            <strong>{{ __('Account settings') }}</strong>
+                            <p>{{ __('Update your password and keep your account safe.') }}</p>
+                        </a>
                     </div>
                 </article>
             </div>
@@ -720,7 +790,7 @@
                     </div>
                     <p class="mt-3 text-sm text-black/72">{{ str($memberDashboard['highlight']->body)->limit(220) }}</p>
                     <div class="member-highlight-actions mt-5">
-                        <a class="btn-rgc-alt w-full sm:w-auto" href="{{ route('announcements.show', $memberDashboard['highlight']) }}">{{ __('Open update') }}</a>
+                        <a class="member-inline-link" href="{{ route('announcements.show', $memberDashboard['highlight']) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('Open update') }}</span></a>
                     </div>
                 </article>
             @endif
@@ -766,7 +836,7 @@
                             <h3>TZS {{ number_format((float) $payment->amount, 2) }}</h3>
                             <p>{{ $payment->paymentTypeLabel() }}</p>
                             <div class="payment-request-actions">
-                                <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">{{ __('Status page') }}</a>
+                                <a class="member-inline-link" href="{{ route('offerings.payments.public.show', $payment->public_reference) }}">@include('partials.ui.icon', ['name' => 'eye', 'class' => 'button-icon'])<span>{{ __('Status page') }}</span></a>
                             </div>
                         </article>
                     @endforeach
@@ -779,7 +849,7 @@
                         <span class="section-kicker">{{ __('Noticeboard') }}</span>
                         <h3>{{ __('Latest branch notices') }}</h3>
                     </div>
-                    <a class="btn-rgc-outline w-full sm:w-auto" href="{{ route('announcements.index') }}">{{ __('Open all notices') }}</a>
+                    <a class="member-inline-link" href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'button-icon'])<span>{{ __('Open all notices') }}</span></a>
                 </div>
 
                 <div class="branch-list mt-5">

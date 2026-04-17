@@ -505,30 +505,51 @@ class DashboardController extends Controller
             0 => [
                 'title' => __('Start the week with purpose'),
                 'body' => __('Stay close to your branch updates, upcoming gatherings, and giving plans so the week begins with clarity and peace.'),
+                'verse' => __('Commit your work to the Lord, and your plans will be established.'),
+                'reference' => __('Proverbs 16:3'),
+                'action' => __('Offer this week to God and walk in faith with your church family.'),
             ],
             1 => [
                 'title' => __('Keep your branch connection active'),
                 'body' => __('Open the latest notices, check upcoming moments, and stay ready to support what your church family is doing this week.'),
+                'verse' => __('Let us consider how to stir up one another to love and good works.'),
+                'reference' => __('Hebrews 10:24'),
+                'action' => __('Strengthen someone today through presence, prayer, or service.'),
             ],
             2 => [
                 'title' => __('Walk with your branch day by day'),
                 'body' => __('A simple check-in here keeps you close to church communication, encouragement, and practical ways to stay involved.'),
+                'verse' => __('Your word is a lamp to my feet and a light to my path.'),
+                'reference' => __('Psalm 119:105'),
+                'action' => __('Let the Word guide your steps today as you stay close to the church.'),
             ],
             3 => [
                 'title' => __('Stay encouraged and prepared'),
                 'body' => __('Use this space to follow branch life, keep up with church moments, and respond quickly when something important is happening.'),
+                'verse' => __('Be steadfast, immovable, always abounding in the work of the Lord.'),
+                'reference' => __('1 Corinthians 15:58'),
+                'action' => __('Keep serving with joy, knowing your labour in the Lord is never wasted.'),
             ],
             4 => [
                 'title' => __('Finish the week with awareness'),
                 'body' => __('Before the weekend gathers pace, take a moment to review notices, events, and any giving plans you want to complete.'),
+                'verse' => __('In everything give thanks; for this is the will of God in Christ Jesus for you.'),
+                'reference' => __('1 Thessalonians 5:18'),
+                'action' => __('Thank God for the week and prepare your heart for worship and giving.'),
             ],
             5 => [
                 'title' => __('Weekend branch moments are near'),
                 'body' => __('This is a good time to check service updates, branch events, and the things your church family is preparing together.'),
+                'verse' => __('I was glad when they said to me, “Let us go to the house of the Lord!”'),
+                'reference' => __('Psalm 122:1'),
+                'action' => __('Prepare with gladness for worship, fellowship, and service.'),
             ],
             6 => [
                 'title' => __('Welcome to today’s church home'),
                 'body' => __('Stay close to the life of your branch today through updates, upcoming gatherings, and the giving tools prepared for members.'),
+                'verse' => __('This is the day that the Lord has made; let us rejoice and be glad in it.'),
+                'reference' => __('Psalm 118:24'),
+                'action' => __('Receive today with joy and stay open to what God wants to do through you.'),
             ],
         ];
 
