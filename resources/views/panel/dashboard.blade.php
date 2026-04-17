@@ -435,7 +435,7 @@
 </section>
 @endif
 
-<section id="dashboard-actions" class="tablet-stack two mt-8">
+<section id="dashboard-actions" class="dashboard-actions-shell {{ auth()->user()->hasSystemRole('member') ? 'dashboard-actions-shell--member' : 'tablet-stack two' }} mt-8">
     <article class="card-rgc-strong">
         <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'sparkles', 'class' => 'section-kicker-icon'])<span>{{ __('Quick Actions') }}</span></span>
         <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">

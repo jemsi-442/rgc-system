@@ -29,7 +29,7 @@
     $assistantTopicsActive = request()->routeIs('assistant.topics.*');
 @endphp
 <header class="site-header text-rgc-white" data-site-header>
-    <div class="site-header-inner mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="site-header-inner mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" class="brand-lockup">
             <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="brand-mark">
             <span>
@@ -107,7 +107,7 @@
     </div>
 </header>
 
-<main class="main-shell mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+<main class="main-shell mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
     <section
         class="install-prompt hidden"
         data-pwa-install-prompt
