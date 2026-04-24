@@ -54,7 +54,12 @@
     };
 @endphp
 
-<div>
+<div
+    data-mobile-network-picker
+    data-has-explicit-selection="{{ old('mobile_network') !== null ? 'true' : 'false' }}"
+    data-auto-hint="{{ __('The system matched a network from the phone number prefix. If the line was moved to another network, change it manually.') }}"
+    data-default-hint="{{ __('Choose the payer network if you know it. If you leave it unchanged, the system will try to match the phone prefix automatically.') }}"
+>
     <label class="field-label" for="mobile_network">{{ __('Mobile money network') }}</label>
     <div class="payment-network-grid">
         @foreach($paymentNetworks as $network)
@@ -65,6 +70,7 @@
                     type="radio"
                     name="mobile_network"
                     value="{{ $network['value'] }}"
+                    data-mobile-network-option
                     @checked($selectedNetwork === $network['value'])
                 >
                 <span class="payment-network-card">
@@ -78,5 +84,9 @@
             </label>
         @endforeach
     </div>
-    <p class="form-hint mt-2">{{ __('Choose the payer network if you know it. You can place official network logos in public/images/payments/networks/.') }}</p>
+    <p class="form-hint mt-2" data-mobile-network-hint>
+        {{ $selectedNetwork
+            ? __('The system matched a network from the phone number prefix. If the line was moved to another network, change it manually.')
+            : __('Choose the payer network if you know it. If you leave it unchanged, the system will try to match the phone prefix automatically.') }}
+    </p>
 </div>

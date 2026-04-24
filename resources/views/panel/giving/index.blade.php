@@ -3,6 +3,12 @@
 @section('title', __('Giving') . ' - RGC')
 
 @section('content')
+@php
+    use App\Support\TanzaniaMobileNetwork;
+
+    $defaultPayerPhone = old('payer_phone', auth()->user()->phone);
+    $defaultDetectedNetwork = old('mobile_network') ?: TanzaniaMobileNetwork::inferNetwork($defaultPayerPhone);
+@endphp
 <section class="shell-page-header">
     <div>
         <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Giving') }}</span></span>
@@ -112,15 +118,15 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <label class="field-label" for="giving_payer_phone">{{ __('Phone number') }}</label>
-                    <input class="input-rgc" id="giving_payer_phone" type="text" name="payer_phone" value="{{ old('payer_phone', auth()->user()->phone) }}" placeholder="2557XXXXXXXX" required>
-                    <p class="form-hint mt-2">{{ __('Use the mobile money number that should receive the payment prompt.') }}</p>
+                    <input class="input-rgc" id="giving_payer_phone" type="text" name="payer_phone" value="{{ $defaultPayerPhone }}" placeholder="2557XXXXXXXX" inputmode="tel" autocomplete="tel" data-payment-phone required>
+                    <p class="form-hint mt-2">{{ __('Your registered phone is loaded automatically. Change it only if the payment prompt should go to another mobile money line.') }}</p>
                 </div>
                 <div>
                     <label class="field-label" for="giving_payer_email">{{ __('Email address') }}</label>
                     <input class="input-rgc" id="giving_payer_email" type="email" name="payer_email" value="{{ old('payer_email', auth()->user()->email) }}">
                 </div>
             </div>
-            @include('panel.offerings.partials.mobile-network-options', ['selectedNetwork' => old('mobile_network')])
+            @include('panel.offerings.partials.mobile-network-options', ['selectedNetwork' => $defaultDetectedNetwork])
             <div>
                 <label class="field-label" for="giving_description">{{ __('Description') }}</label>
                 <textarea class="textarea-rgc min-h-28" id="giving_description" name="description" placeholder="{{ __('Sunday giving, thanksgiving, special contribution, or any branch-specific note.') }}">{{ old('description') }}</textarea>

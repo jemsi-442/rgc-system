@@ -379,7 +379,6 @@
         <div class="site-footer-grid">
             <div class="site-footer-brand">
                 <div class="site-footer-lockup">
-                    <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
                     <div>
                         <strong>{{ __('RGC Tanzania') }}</strong>
                         <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>

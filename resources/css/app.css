@@ -32,6 +32,7 @@ html {
 body {
   min-height: 100vh;
   color: var(--color-rgc-black);
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, rgba(255, 215, 0, 0.24), transparent 24%),
     radial-gradient(circle at top right, rgba(192, 0, 0, 0.14), transparent 28%),
@@ -53,6 +54,11 @@ body::before {
 
 .page-shell {
   position: relative;
+  overflow-x: clip;
+}
+
+body.menu-open {
+  overflow: hidden;
 }
 
 .site-header {
@@ -366,14 +372,20 @@ body::before {
 .sidebar-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.5rem;
   min-height: 2.35rem;
   position: relative;
   border-radius: 0.75rem;
-  padding: 0.42rem 0.55rem 0.42rem 0.9rem;
+  padding: 0.42rem 0.55rem 0.42rem 0.75rem;
   color: rgba(255, 255, 255, 0.84);
   transition: background 180ms ease, color 180ms ease, transform 180ms ease;
   border: 0;
+}
+
+.sidebar-link span {
+  line-height: 1.2;
+  letter-spacing: normal;
+  word-spacing: normal;
 }
 
 .sidebar-link:hover {
@@ -1277,6 +1289,73 @@ body::before {
   color: rgba(255, 255, 255, 0.72);
 }
 
+.site-footer-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.site-footer-brand,
+.site-footer-links,
+.site-footer-meta {
+  min-width: 0;
+}
+
+.site-footer-lockup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.site-footer-lockup strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.site-footer-lockup p,
+.site-footer-meta-copy {
+  margin: 0;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.site-footer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 215, 0, 0.88);
+}
+
+.site-footer-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-top: 0.75rem;
+}
+
+.site-footer-link-row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  max-width: 100%;
+  color: rgba(255, 255, 255, 0.84);
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.site-footer-link-row a:hover {
+  color: var(--color-rgc-yellow);
+  transform: translateY(-1px);
+}
+
+.site-footer-meta {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .site-footer--app {
   margin-top: 0;
   flex-shrink: 0;
@@ -1370,6 +1449,10 @@ body::before {
     padding: 1rem 0.95rem;
   }
 
+  .site-footer-grid {
+    gap: 1rem;
+  }
+
   .site-footer-bottom {
     flex-direction: column;
   }
@@ -1429,6 +1512,11 @@ body::before {
 }
 
 @media (min-width: 640px) {
+  .site-footer-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
+    align-items: start;
+  }
+
   .has-auth-sidebar {
     overflow: hidden;
   }
@@ -1511,6 +1599,10 @@ body::before {
 }
 
 @media (min-width: 1024px) {
+  .site-footer-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1fr);
+  }
+
   .has-auth-sidebar .app-page-bar {
     padding: 1rem 1.5rem;
   }
@@ -3472,22 +3564,43 @@ body::before {
     width: 100%;
   }
 
-  .top-nav,
   .app-mobile-nav {
     width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 0.2rem;
+    justify-content: flex-start;
+  }
+
+  .app-mobile-nav form,
+  .app-mobile-nav a,
+  .app-mobile-nav button {
+    max-width: 100%;
+  }
+
+  .top-nav {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    overflow: hidden;
+    border-radius: 1.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+      linear-gradient(180deg, rgba(15, 14, 14, 0.9), rgba(67, 10, 10, 0.88)),
+      linear-gradient(120deg, rgba(255, 215, 0, 0.04), rgba(255, 255, 255, 0.03));
+    padding: 0.9rem;
+    box-shadow: 0 20px 38px rgba(0, 0, 0, 0.18);
+  }
+
+  .top-nav.is-open {
+    display: flex;
   }
 
   .top-nav form,
   .top-nav a,
-  .top-nav button,
-  .app-mobile-nav form,
-  .app-mobile-nav a,
-  .app-mobile-nav button {
-    flex: 0 0 auto;
-    white-space: nowrap;
+  .top-nav button {
+    width: 100%;
+    max-width: none;
+    white-space: normal;
   }
 
   .slider-shell {
@@ -3578,7 +3691,7 @@ body::before {
 @media (max-width: 640px) {
   .top-nav .btn-rgc,
   .top-nav .btn-rgc-alt {
-    width: auto;
+    width: 100%;
   }
 }
 

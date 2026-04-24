@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\TanzaniaMobileNetwork;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,19 +29,14 @@ class StoreOfferingPaymentRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $phone = preg_replace('/\D+/', '', (string) $this->input('payer_phone', '')) ?? '';
-
-        if ($phone !== '') {
-            if (str_starts_with($phone, '0') && strlen($phone) === 10) {
-                $phone = '255' . substr($phone, 1);
-            } elseif (strlen($phone) === 9 && in_array($phone[0], ['6', '7'], true)) {
-                $phone = '255' . $phone;
-            }
-        }
+        $phone = TanzaniaMobileNetwork::normalizePhone($this->input('payer_phone')) ?? '';
+        $selectedNetwork = $this->filled('mobile_network')
+            ? $this->input('mobile_network')
+            : TanzaniaMobileNetwork::inferNetwork($phone);
 
         $this->merge([
             'payer_phone' => $phone,
-            'mobile_network' => $this->input('mobile_network') ?: null,
+            'mobile_network' => $selectedNetwork ?: null,
         ]);
     }
 }

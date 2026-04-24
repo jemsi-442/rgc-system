@@ -15,6 +15,37 @@ const mobileBackdrop = document.querySelector('[data-mobile-backdrop]');
 
 const emptyOption = (select, fallback) => select?.dataset.emptyOptionLabel ?? fallback;
 const selectedOption = (select) => select?.dataset.selectedValue ?? select?.value ?? '';
+const detectTanzaniaMobileNetwork = (value) => {
+  let digits = (value ?? '').replace(/\D+/g, '');
+
+  if (digits.startsWith('0') && digits.length === 10) {
+    digits = `255${digits.slice(1)}`;
+  } else if (digits.length === 9 && ['6', '7'].includes(digits[0])) {
+    digits = `255${digits}`;
+  }
+
+  if (!digits.startsWith('255') || digits.length < 6) {
+    return null;
+  }
+
+  const prefix = digits.slice(3, 6);
+  const networkMap = {
+    '061': 'halopesa',
+    '065': 'mixx_by_yas',
+    '067': 'mixx_by_yas',
+    '068': 'airtel_money',
+    '069': 'airtel_money',
+    '071': 'mixx_by_yas',
+    '074': 'mpesa',
+    '075': 'mpesa',
+    '076': 'mpesa',
+    '077': 'mixx_by_yas',
+    '078': 'airtel_money',
+    '079': 'mpesa',
+  };
+
+  return networkMap[prefix] ?? null;
+};
 
 const syncRegistrationHierarchyVisibility = ({ showDistrict, showBranch }) => {
   if (districtField) {
@@ -293,6 +324,59 @@ if (menuToggle && mobileMenu) {
     }
   });
 }
+
+document.querySelectorAll('[data-mobile-network-picker]').forEach((picker) => {
+  const form = picker.closest('form');
+  const phoneInput = form?.querySelector('[data-payment-phone]');
+  const networkInputs = Array.from(picker.querySelectorAll('[data-mobile-network-option]'));
+  const networkHint = picker.querySelector('[data-mobile-network-hint]');
+
+  if (!phoneInput || networkInputs.length === 0) {
+    return;
+  }
+
+  let manualSelectionLocked = picker.dataset.hasExplicitSelection === 'true';
+
+  const syncNetworkHint = (isAutoDetected) => {
+    if (!networkHint) {
+      return;
+    }
+
+    networkHint.textContent = isAutoDetected
+      ? (picker.dataset.autoHint ?? '')
+      : (picker.dataset.defaultHint ?? '');
+  };
+
+  const applyDetectedNetwork = () => {
+    if (manualSelectionLocked) {
+      syncNetworkHint(false);
+      return;
+    }
+
+    const detectedNetwork = detectTanzaniaMobileNetwork(phoneInput.value);
+
+    networkInputs.forEach((input) => {
+      input.checked = detectedNetwork !== null && input.value === detectedNetwork;
+    });
+
+    syncNetworkHint(detectedNetwork !== null);
+  };
+
+  networkInputs.forEach((input) => {
+    input.addEventListener('change', () => {
+      manualSelectionLocked = true;
+      syncNetworkHint(false);
+    });
+  });
+
+  phoneInput.addEventListener('input', () => {
+    if (!manualSelectionLocked) {
+      applyDetectedNetwork();
+    }
+  });
+
+  applyDetectedNetwork();
+});
 
 const slider = document.querySelector('[data-hero-slider]');
 

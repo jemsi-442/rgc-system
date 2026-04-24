@@ -1,5 +1,11 @@
 @extends('layouts.app')
 @section('content')
+@php
+    use App\Support\TanzaniaMobileNetwork;
+
+    $promptPayerPhone = old('payer_phone');
+    $promptSelectedNetwork = old('mobile_network') ?: TanzaniaMobileNetwork::inferNetwork($promptPayerPhone);
+@endphp
 <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
     <div class="card-rgc">
         <div class="space-y-2">
@@ -95,7 +101,7 @@
             <div class="grid gap-4 sm:grid-cols-2">
                 <div>
                     <label class="field-label" for="payer_phone">{{ __('Phone number') }}</label>
-                    <input class="input-rgc" id="payer_phone" type="text" name="payer_phone" value="{{ old('payer_phone') }}" placeholder="2557XXXXXXXX" required>
+                    <input class="input-rgc" id="payer_phone" type="text" name="payer_phone" value="{{ $promptPayerPhone }}" placeholder="2557XXXXXXXX" inputmode="tel" autocomplete="tel" data-payment-phone required>
                     <p class="form-hint mt-2">{{ __('Use the number that should receive the payment prompt.') }}</p>
                 </div>
                 <div>
@@ -103,7 +109,7 @@
                     <input class="input-rgc" id="payer_email" type="email" name="payer_email" value="{{ old('payer_email') }}" placeholder="name@example.com">
                 </div>
             </div>
-            @include('panel.offerings.partials.mobile-network-options', ['selectedNetwork' => old('mobile_network')])
+            @include('panel.offerings.partials.mobile-network-options', ['selectedNetwork' => $promptSelectedNetwork])
             <div>
                 <label class="field-label" for="payment_description">{{ __('Description') }}</label>
                 <textarea class="textarea-rgc min-h-32" id="payment_description" name="description" placeholder="{{ __('Sunday giving, thanksgiving, special contribution, or any branch-specific note.') }}">{{ old('description') }}</textarea>

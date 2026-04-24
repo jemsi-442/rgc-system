@@ -371,6 +371,48 @@ class SnippeOfferingPaymentTest extends TestCase
             && data_get($request->data(), 'channel') === 'mobile');
     }
 
+    public function test_member_payment_prompt_infers_network_from_phone_when_not_selected(): void
+    {
+        Http::fake([
+            'https://api.snippe.sh/v1/payments' => Http::response([
+                'data' => [
+                    'reference' => 'SNP-MEMBER-AUTO-123',
+                    'status' => 'pending',
+                    'channel' => [
+                        'type' => 'mobile',
+                        'provider' => 'mpesa',
+                    ],
+                ],
+            ], 201),
+        ]);
+
+        $this->seed(DatabaseSeeder::class);
+
+        [$region, $district, $branch] = $this->darHeadquartersContext();
+        $member = $this->makeUser('member', $region, $district, $branch, 'member.auto.network@rgc.test');
+        $member->forceFill(['phone' => '255744123456'])->save();
+
+        $this->actingAs($member)
+            ->post(route('giving.store'), [
+                'payment_type' => 'sadaka',
+                'offering_date' => '2026-03-19',
+                'amount' => '18000',
+                'payer_name' => 'Auto Network Member',
+                'payer_phone' => '0744 123 456',
+                'payer_email' => 'member.auto.network@rgc.test',
+                'description' => 'Auto detected network',
+            ])
+            ->assertRedirect(route('giving.index'));
+
+        $payment = OfferingPayment::query()->latest('id')->firstOrFail();
+
+        $this->assertSame('255744123456', $payment->payer_phone);
+        $this->assertSame('mpesa', data_get($payment->metadata, 'requested_network'));
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.snippe.sh/v1/payments'
+            && data_get($request->data(), 'metadata.requested_network') === 'mpesa');
+    }
+
     public function test_offerings_payment_list_shows_review_metadata(): void
     {
         $this->seed(DatabaseSeeder::class);
