@@ -38,6 +38,12 @@
             <path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" />
             @break
 
+        @case('logout')
+            <path d="M10 5H6.5A1.5 1.5 0 0 0 5 6.5v11A1.5 1.5 0 0 0 6.5 19H10" />
+            <path d="M13 8.5 17.5 12 13 15.5" />
+            <path d="M9 12h8.5" />
+            @break
+
         @case('users')
             <circle cx="9" cy="9" r="2.75" />
             <path d="M4.5 18a4.5 4.5 0 0 1 9 0" />

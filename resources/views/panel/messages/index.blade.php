@@ -3,7 +3,15 @@
 @section('title', __('Branch Chat') . ' - RGC')
 
 @section('content')
-<div class="chat-shell">
+<section class="shell-page-header">
+    <div>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'chat', 'class' => 'section-kicker-icon'])<span>{{ __('Branch Chat') }}</span></span>
+        <h1 class="shell-page-title">{{ __('Shared branch conversation') }}</h1>
+        <p class="shell-page-copy">{{ __('Stay close to branch prayer, updates, and quick coordination through one steady conversation space.') }}</p>
+    </div>
+</section>
+
+<div class="chat-shell chat-shell--framed">
     <div class="chat-shell-header">
         <div>
             <span class="section-kicker">{{ __('Branch Chat') }}</span>

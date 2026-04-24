@@ -11,7 +11,7 @@ const districtField = document.querySelector('[data-district-field]');
 const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
 const mobileMenu = document.querySelector('[data-mobile-menu]');
-const siteHeader = document.querySelector('[data-site-header]');
+const mobileBackdrop = document.querySelector('[data-mobile-backdrop]');
 
 const emptyOption = (select, fallback) => select?.dataset.emptyOptionLabel ?? fallback;
 const selectedOption = (select) => select?.dataset.selectedValue ?? select?.value ?? '';
@@ -248,6 +248,10 @@ if (menuToggle && mobileMenu) {
     menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     mobileMenu.classList.toggle('is-open', isOpen);
     document.body.classList.toggle('menu-open', isOpen);
+    if (mobileBackdrop) {
+      mobileBackdrop.hidden = !isOpen;
+      mobileBackdrop.classList.toggle('is-open', isOpen);
+    }
 
     if (menuLabel) {
       menuLabel.textContent = isOpen ? closeLabel : openLabel;
@@ -265,6 +269,10 @@ if (menuToggle && mobileMenu) {
     syncMenuState(nextState);
   });
 
+  mobileBackdrop?.addEventListener('click', () => {
+    syncMenuState(false);
+  });
+
   mobileMenu.querySelectorAll('a, button').forEach((item) => {
     item.addEventListener('click', () => {
       if (window.innerWidth < 768) {
@@ -278,42 +286,12 @@ if (menuToggle && mobileMenu) {
       syncMenuState(false);
     }
   });
-}
 
-if (siteHeader) {
-  let lastScrollY = window.scrollY;
-  let ticking = false;
-
-  const syncHeaderState = () => {
-    const currentScrollY = window.scrollY;
-    const delta = currentScrollY - lastScrollY;
-    const menuIsOpen = mobileMenu?.classList.contains('is-open') ?? false;
-
-    siteHeader.classList.toggle('is-compact', currentScrollY > 14);
-
-    if (menuIsOpen || currentScrollY <= 12) {
-      siteHeader.classList.remove('is-hidden');
-      lastScrollY = currentScrollY;
-      ticking = false;
-      return;
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      syncMenuState(false);
     }
-
-    if (delta > 10 && currentScrollY > 96) {
-      siteHeader.classList.add('is-hidden');
-    } else if (delta < -8) {
-      siteHeader.classList.remove('is-hidden');
-    }
-
-    lastScrollY = currentScrollY;
-    ticking = false;
-  };
-
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(syncHeaderState);
-      ticking = true;
-    }
-  }, { passive: true });
+  });
 }
 
 const slider = document.querySelector('[data-hero-slider]');

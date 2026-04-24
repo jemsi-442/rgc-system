@@ -15,7 +15,15 @@
     </div>
 </section>
 
-<section class="card-rgc mt-8 announcement-newsroom">
+<section class="shell-page-header shell-page-header--after-banner">
+    <div>
+        <span class="section-kicker">{{ __('Church newsroom') }}</span>
+        <h2 class="shell-page-title shell-page-title--compact">{{ $showArchived ? __('Archived announcements in your view') : __('Recent announcements in your view') }}</h2>
+        <p class="shell-page-copy">{{ $showArchived ? __('These announcements remain available for reference after their main window has passed.') : __('Read, manage, and share church notices from a cleaner workspace that fits the new shell.') }}</p>
+    </div>
+</section>
+
+<section class="card-rgc announcement-newsroom announcement-newsroom--framed">
     <div class="announcement-toolbar">
         <div>
             <h2 class="text-2xl font-semibold">{{ $showArchived ? __('Archived announcements in your view') : __('Recent announcements in your view') }}</h2>

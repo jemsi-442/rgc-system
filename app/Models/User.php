@@ -109,6 +109,20 @@ class User extends Authenticatable
             ->value();
     }
 
+    public function roleDisplayName(?string $role = null): string
+    {
+        $normalized = $this->normalizedRoleName($role);
+
+        if (! $normalized) {
+            return 'Member';
+        }
+
+        return Str::of($normalized)
+            ->replace('_', ' ')
+            ->title()
+            ->value();
+    }
+
     public function hasSystemRole(string $role): bool
     {
         $normalized = $this->normalizedRoleName($role);

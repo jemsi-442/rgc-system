@@ -15,8 +15,11 @@
     <title>@yield('title', config('app.name'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="page-shell min-h-screen">
+<body class="page-shell min-h-screen {{ auth()->check() ? 'has-auth-sidebar' : 'has-guest-shell' }} {{ auth()->check() && auth()->user()->hasSystemRole('member') ? 'has-member-sidebar' : '' }}">
 @php
+    $currentUser = auth()->user();
+    $usesSidebar = (bool) $currentUser;
+    $usesMemberSidebar = $currentUser?->hasSystemRole('member') ?? false;
     $dashboardActive = request()->routeIs('dashboard');
     $announcementsActive = request()->routeIs('announcements.*');
     $messagesActive = request()->routeIs('messages.*');
@@ -27,7 +30,258 @@
     $branchesActive = request()->routeIs('branches.*');
     $slidesActive = request()->routeIs('sliders.*');
     $assistantTopicsActive = request()->routeIs('assistant.topics.*');
+    $eventsActive = request()->routeIs('events.*');
+    $offeringsActive = request()->routeIs('offerings.*');
+    $expensesActive = request()->routeIs('expenses.*');
+    $isSuperAdmin = $currentUser?->hasSystemRole('super_admin') ?? false;
+    $isRegionalAdmin = $currentUser?->hasSystemRole('regional_admin') ?? false;
+
+    $homeItems = [
+        ['label' => __('Dashboard'), 'route' => route('dashboard'), 'active' => $dashboardActive, 'icon' => 'home'],
+        ['label' => __('Updates'), 'route' => route('announcements.index'), 'active' => $announcementsActive, 'icon' => 'megaphone'],
+        ['label' => __('Chat'), 'route' => route('messages.index'), 'active' => $messagesActive, 'icon' => 'chat'],
+    ];
+
+    $workItems = array_values(array_filter([
+        ['label' => __('Giving'), 'route' => $usesMemberSidebar ? route('giving.index') : route('offerings.index'), 'active' => $givingActive || $offeringsActive, 'icon' => 'giving'],
+        ($currentUser?->hasAnySystemRole(['super_admin', 'branch_admin', 'pastor', 'bishop', 'accountant']) ?? false) ? ['label' => __('Expenses'), 'route' => route('expenses.index'), 'active' => $expensesActive, 'icon' => 'archive'] : null,
+        ($currentUser?->hasAnySystemRole(['super_admin', 'branch_admin', 'pastor', 'bishop']) ?? false) ? ['label' => __('Events'), 'route' => route('events.index'), 'active' => $eventsActive, 'icon' => 'sparkles'] : null,
+        ($isRegionalAdmin || $isSuperAdmin) ? ['label' => __('Assistant'), 'route' => route('assistant.topics.index'), 'active' => $assistantTopicsActive, 'icon' => 'assistant'] : null,
+    ]));
+
+    $adminItems = array_values(array_filter([
+        $isSuperAdmin ? ['label' => __('Users'), 'route' => route('admin.users.index'), 'active' => $usersActive, 'icon' => 'users'] : null,
+        $isSuperAdmin ? ['label' => __('Branches'), 'route' => route('branches.index'), 'active' => $branchesActive, 'icon' => 'church'] : null,
+        $isSuperAdmin ? ['label' => __('Slider'), 'route' => route('sliders.index'), 'active' => $slidesActive, 'icon' => 'image'] : null,
+    ]));
+
+    $sidebarSections = $usesSidebar
+        ? ($usesMemberSidebar
+            ? array_values(array_filter([
+                [
+                    'title' => __('Home'),
+                    'show_title' => false,
+                    'items' => array_values(array_filter([
+                        ...$homeItems,
+                        ['label' => __('Giving'), 'route' => route('giving.index'), 'active' => $givingActive, 'icon' => 'giving'],
+                    ])),
+                ],
+            ]))
+            : array_values(array_filter([
+                [
+                    'title' => __('Home'),
+                    'items' => $homeItems,
+                ],
+                [
+                    'title' => __('Work'),
+                    'items' => $workItems,
+                ],
+                $isSuperAdmin ? [
+                    'title' => __('Admin'),
+                    'items' => $adminItems,
+                ] : null,
+            ])))
+        : [];
 @endphp
+@auth
+<div class="app-frame">
+    <aside class="app-sidebar">
+        <div class="app-sidebar-wrap">
+            <div class="app-sidebar-panel {{ $usesMemberSidebar ? 'app-sidebar-panel--member' : 'app-sidebar-panel--admin' }}">
+                @foreach($sidebarSections as $section)
+                    @if(($section['items'] ?? []) !== [])
+                        <div class="sidebar-section">
+                            @if($section['show_title'] ?? true)
+                                <span class="sidebar-section-title">{{ $section['title'] }}</span>
+                            @endif
+                            <nav class="sidebar-nav">
+                                @foreach($section['items'] as $item)
+                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}">
+                                        @include('partials.ui.icon', ['name' => $item['icon'], 'class' => 'sidebar-link-icon'])
+                                        <span>{{ $item['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </nav>
+                        </div>
+                    @endif
+                @endforeach
+
+                <div class="sidebar-section sidebar-section--account">
+                    <span class="sidebar-section-title">{{ __('You') }}</span>
+                    <nav class="sidebar-nav">
+                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}">
+                            @include('partials.ui.icon', ['name' => 'user', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Account') }}</span>
+                        </a>
+                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}">
+                            @include('partials.ui.icon', ['name' => 'lock', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Password') }}</span>
+                        </a>
+                    </nav>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="sidebar-link sidebar-link--logout" type="submit">
+                            @include('partials.ui.icon', ['name' => 'logout', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Logout') }}</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </aside>
+
+    <div class="app-frame-main">
+        <div class="app-page-bar">
+            <a href="{{ route('dashboard') }}" class="app-page-brand">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="brand-mark">
+                <span>
+                    <span class="brand-subtitle">{{ __('Redeemed Gospel Church') }}</span>
+                    <span class="brand-title block">{{ __('Inc. Tanzania') }}</span>
+                </span>
+            </a>
+
+            <div class="app-page-locale" aria-label="{{ __('Language switcher') }}">
+                <form method="POST" action="{{ route('locale.update') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="en">
+                    <button class="locale-chip {{ app()->getLocale() === 'en' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to English') }}">EN</button>
+                </form>
+                <form method="POST" action="{{ route('locale.update') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="sw">
+                    <button class="locale-chip {{ app()->getLocale() === 'sw' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to Kiswahili') }}">SW</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="app-mobile-bar">
+            <button
+                class="menu-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="primary-navigation"
+                data-menu-toggle
+                data-open-label="{{ __('Menu') }}"
+                data-close-label="{{ __('Close') }}"
+            >
+                <span class="sr-only" data-menu-announce>{{ __('Open menu') }}</span>
+                <span class="menu-toggle-icon" aria-hidden="true">
+                    <span class="menu-toggle-bar"></span>
+                    <span class="menu-toggle-bar"></span>
+                    <span class="menu-toggle-bar"></span>
+                </span>
+            </button>
+
+            <a href="{{ route('dashboard') }}" class="app-mobile-brand">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="brand-mark">
+                <span>
+                    <span class="brand-subtitle">{{ __('Redeemed Gospel Church') }}</span>
+                    <span class="brand-title block">{{ __('Inc. Tanzania') }}</span>
+                </span>
+            </a>
+
+            <div class="app-mobile-top-locale" aria-label="{{ __('Language switcher') }}">
+                <form method="POST" action="{{ route('locale.update') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="en">
+                    <button class="locale-chip {{ app()->getLocale() === 'en' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to English') }}">EN</button>
+                </form>
+                <form method="POST" action="{{ route('locale.update') }}">
+                    @csrf
+                    <input type="hidden" name="locale" value="sw">
+                    <button class="locale-chip {{ app()->getLocale() === 'sw' ? 'locale-chip--active' : '' }}" type="submit" aria-label="{{ __('Switch to Kiswahili') }}">SW</button>
+                </form>
+            </div>
+        </div>
+
+        <button class="app-mobile-backdrop" type="button" hidden aria-hidden="true" data-mobile-backdrop></button>
+
+        <nav class="app-mobile-nav nav-scroll" id="primary-navigation" data-mobile-menu>
+            <div class="app-mobile-nav-shell">
+                @foreach($sidebarSections as $section)
+                    @if(($section['items'] ?? []) !== [])
+                        <div class="sidebar-section sidebar-section--mobile">
+                            @if($section['show_title'] ?? true)
+                                <span class="sidebar-section-title">{{ $section['title'] }}</span>
+                            @endif
+                            <nav class="sidebar-nav">
+                                @foreach($section['items'] as $item)
+                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}">
+                                        @include('partials.ui.icon', ['name' => $item['icon'], 'class' => 'sidebar-link-icon'])
+                                        <span>{{ $item['label'] }}</span>
+                                    </a>
+                                @endforeach
+                            </nav>
+                        </div>
+                    @endif
+                @endforeach
+
+                <div class="sidebar-section sidebar-section--account sidebar-section--mobile">
+                    <span class="sidebar-section-title">{{ __('You') }}</span>
+                    <nav class="sidebar-nav">
+                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}">
+                            @include('partials.ui.icon', ['name' => 'user', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Account') }}</span>
+                        </a>
+                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}">
+                            @include('partials.ui.icon', ['name' => 'lock', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Password') }}</span>
+                        </a>
+                    </nav>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button class="sidebar-link sidebar-link--logout" type="submit">
+                            @include('partials.ui.icon', ['name' => 'logout', 'class' => 'sidebar-link-icon'])
+                            <span>{{ __('Logout') }}</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-shell app-main-shell mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
+            <div class="app-shell">
+                <div class="app-shell-main">
+                    <section
+                        class="install-prompt hidden"
+                        data-pwa-install-prompt
+                        data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
+                        data-ready-message="{{ __('Install this app on your device for faster access.') }}"
+                        data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
+                    >
+                        <div class="install-prompt-copy">
+                            <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
+                            <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
+                        </div>
+                        <div class="install-prompt-actions">
+                            <button type="button" class="btn-rgc install-prompt-button" data-pwa-install-action>{{ __('Install') }}</button>
+                            <button type="button" class="btn-rgc-alt install-prompt-button install-prompt-button--quiet" data-pwa-install-dismiss>{{ __('Later') }}</button>
+                        </div>
+                    </section>
+
+                    @if (session('status'))
+                        <div class="notice-ok">{{ session('status') }}</div>
+                    @endif
+
+                    @if ($errors->any())
+                        <div class="notice-error">{{ $errors->first() }}</div>
+                    @endif
+
+                    @yield('content')
+
+                    <footer class="site-footer">
+                        <div class="site-footer-bottom">
+                            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
+                            <span>{{ __('Church communication and member services.') }}</span>
+                        </div>
+                    </footer>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+@else
 <header class="site-header text-rgc-white" data-site-header>
     <div class="site-header-inner mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <a href="{{ route('home') }}" class="brand-lockup">
@@ -78,103 +332,81 @@
             </div>
 
             <nav class="top-nav nav-scroll" id="primary-navigation" data-mobile-menu>
-                @auth
-                    <a class="nav-link {{ $dashboardActive ? 'nav-link--active' : '' }}" href="{{ route('dashboard') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'nav-link-icon'])<span>{{ __('Dashboard') }}</span></a>
-                    <a class="nav-link {{ $announcementsActive ? 'nav-link--active' : '' }}" href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'nav-link-icon'])<span>{{ __('Announcements') }}</span></a>
-                    <a class="nav-link {{ $messagesActive ? 'nav-link--active' : '' }}" href="{{ route('messages.index') }}">@include('partials.ui.icon', ['name' => 'chat', 'class' => 'nav-link-icon'])<span>{{ __('Branch Chat') }}</span></a>
-                    <a class="nav-link {{ $givingActive ? 'nav-link--active' : '' }}" href="{{ route('giving.index') }}">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'nav-link-icon'])<span>{{ __('Giving') }}</span></a>
-                    <a class="nav-link {{ $accountActive ? 'nav-link--active' : '' }}" href="{{ route('account.profile.edit') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'nav-link-icon'])<span>{{ __('My Account') }}</span></a>
-                    <a class="nav-link {{ $passwordActive ? 'nav-link--active' : '' }}" href="{{ route('account.password.edit') }}">@include('partials.ui.icon', ['name' => 'lock', 'class' => 'nav-link-icon'])<span>{{ __('My Password') }}</span></a>
-                    @if(auth()->user()->hasSystemRole('super_admin'))
-                        <a class="nav-link {{ $usersActive ? 'nav-link--active' : '' }}" href="{{ route('admin.users.index') }}">@include('partials.ui.icon', ['name' => 'users', 'class' => 'nav-link-icon'])<span>{{ __('Users') }}</span></a>
-                        <a class="nav-link {{ $branchesActive ? 'nav-link--active' : '' }}" href="{{ route('branches.index') }}">@include('partials.ui.icon', ['name' => 'church', 'class' => 'nav-link-icon'])<span>{{ __('Branches') }}</span></a>
-                        <a class="nav-link {{ $slidesActive ? 'nav-link--active' : '' }}" href="{{ route('sliders.index') }}">@include('partials.ui.icon', ['name' => 'image', 'class' => 'nav-link-icon'])<span>{{ __('Slides') }}</span></a>
-                    @endif
-                    @if(auth()->user()->hasAnySystemRole(['super_admin', 'regional_admin']))
-                        <a class="nav-link {{ $assistantTopicsActive ? 'nav-link--active' : '' }}" href="{{ route('assistant.topics.index') }}">@include('partials.ui.icon', ['name' => 'assistant', 'class' => 'nav-link-icon'])<span>{{ __('Assistant Topics') }}</span></a>
-                    @endif
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button class="btn-rgc" type="submit">{{ __('Logout') }}</button>
-                    </form>
-                @else
-                    <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}" href="{{ route('home') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'nav-link-icon'])<span>{{ __('Home') }}</span></a>
-                    <a class="nav-link {{ request()->routeIs('login') ? 'nav-link--active' : '' }}" href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'nav-link-icon'])<span>{{ __('Login') }}</span></a>
-                    <a class="btn-rgc" href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Register') }}</span></a>
-                @endauth
+                <a class="nav-link {{ request()->routeIs('home') ? 'nav-link--active' : '' }}" href="{{ route('home') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'nav-link-icon'])<span>{{ __('Home') }}</span></a>
+                <a class="nav-link {{ request()->routeIs('login') ? 'nav-link--active' : '' }}" href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'nav-link-icon'])<span>{{ __('Login') }}</span></a>
+                <a class="btn-rgc" href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'button-icon'])<span>{{ __('Register') }}</span></a>
             </nav>
         </div>
     </div>
 </header>
 
 <main class="main-shell mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
-    <section
-        class="install-prompt hidden"
-        data-pwa-install-prompt
-        data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
-        data-ready-message="{{ __('Install this app on your device for faster access.') }}"
-        data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
-    >
-        <div class="install-prompt-copy">
-            <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
-            <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
-        </div>
-        <div class="install-prompt-actions">
-            <button type="button" class="btn-rgc install-prompt-button" data-pwa-install-action>{{ __('Install') }}</button>
-            <button type="button" class="btn-rgc-alt install-prompt-button install-prompt-button--quiet" data-pwa-install-dismiss>{{ __('Later') }}</button>
-        </div>
-    </section>
+    <div class="app-shell">
+        <div class="app-shell-main">
+            <section
+                class="install-prompt hidden"
+                data-pwa-install-prompt
+                data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
+                data-ready-message="{{ __('Install this app on your device for faster access.') }}"
+                data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
+            >
+                <div class="install-prompt-copy">
+                    <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
+                    <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
+                </div>
+                <div class="install-prompt-actions">
+                    <button type="button" class="btn-rgc install-prompt-button" data-pwa-install-action>{{ __('Install') }}</button>
+                    <button type="button" class="btn-rgc-alt install-prompt-button install-prompt-button--quiet" data-pwa-install-dismiss>{{ __('Later') }}</button>
+                </div>
+            </section>
 
-    @if (session('status'))
-        <div class="notice-ok">{{ session('status') }}</div>
-    @endif
+            @if (session('status'))
+                <div class="notice-ok">{{ session('status') }}</div>
+            @endif
 
-    @if ($errors->any())
-        <div class="notice-error">{{ $errors->first() }}</div>
-    @endif
+            @if ($errors->any())
+                <div class="notice-error">{{ $errors->first() }}</div>
+            @endif
 
-    @yield('content')
+            @yield('content')
 
-    <footer class="site-footer">
-        <div class="site-footer-grid">
-            <div class="site-footer-brand">
-                <div class="site-footer-lockup">
-                    <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
-                    <div>
-                        <strong>{{ __('RGC Tanzania') }}</strong>
-                        <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
+            <footer class="site-footer">
+                <div class="site-footer-grid">
+                    <div class="site-footer-brand">
+                        <div class="site-footer-lockup">
+                            <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
+                            <div>
+                                <strong>{{ __('RGC Tanzania') }}</strong>
+                                <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="site-footer-links">
+                        <span class="site-footer-label">{{ __('Quick access') }}</span>
+                        <div class="site-footer-link-row">
+                            <a href="{{ route('home') }}">{{ __('Home') }}</a>
+                            <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
+                            <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
+                        </div>
+                    </div>
+
+                    <div class="site-footer-meta">
+                        <span class="site-footer-label">{{ __('Church home') }}</span>
+                        <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
+                        <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
                     </div>
                 </div>
-            </div>
 
-            <div class="site-footer-links">
-                <span class="site-footer-label">{{ __('Quick access') }}</span>
-                <div class="site-footer-link-row">
-                    <a href="{{ route('home') }}">{{ __('Home') }}</a>
-                    @auth
-                        <a href="{{ route('dashboard') }}">@include('partials.ui.icon', ['name' => 'home', 'class' => 'footer-link-icon'])<span>{{ __('Dashboard') }}</span></a>
-                        <a href="{{ route('announcements.index') }}">@include('partials.ui.icon', ['name' => 'megaphone', 'class' => 'footer-link-icon'])<span>{{ __('Announcements') }}</span></a>
-                        <a href="{{ route('giving.index') }}">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'footer-link-icon'])<span>{{ __('Giving') }}</span></a>
-                    @else
-                        <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
-                        <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
-                    @endauth
+                <div class="site-footer-bottom">
+                    <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
+                    <span>{{ __('Church communication, giving, and member services.') }}</span>
                 </div>
-            </div>
-
-            <div class="site-footer-meta">
-                <span class="site-footer-label">{{ __('Church home') }}</span>
-                <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
-                <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
-            </div>
+            </footer>
         </div>
-
-        <div class="site-footer-bottom">
-            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
-            <span>{{ __('Church communication, giving, and member services.') }}</span>
-        </div>
-    </footer>
+    </div>
 </main>
+@endauth
 
 @php
     $assistantSuggestions = app(\App\Services\SystemAssistantService::class)->starterSuggestions(auth()->user(), app()->getLocale());

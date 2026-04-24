@@ -3,7 +3,15 @@
 @section('title', __('Giving') . ' - RGC')
 
 @section('content')
-<div class="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+<section class="shell-page-header">
+    <div>
+        <span class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Giving') }}</span></span>
+        <h1 class="shell-page-title">{{ __('Member giving') }}</h1>
+        <p class="shell-page-copy">{{ __('Keep worshipful giving, payment progress, and recent activity together in one clear member view.') }}</p>
+    </div>
+</section>
+
+<div class="shell-page-grid shell-page-grid--giving">
     <section class="card-rgc-strong">
         <div class="space-y-2">
             <p class="section-kicker section-kicker--icon">@include('partials.ui.icon', ['name' => 'giving', 'class' => 'section-kicker-icon'])<span>{{ __('Member giving') }}</span></p>
