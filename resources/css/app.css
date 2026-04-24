@@ -528,6 +528,14 @@ body.menu-open {
   gap: 1.85rem;
 }
 
+.home-stack > *,
+.hero-grid > *,
+.info-grid > *,
+.tablet-stack > *,
+.app-shell > * {
+  min-width: 0;
+}
+
 .home-hero {
   margin-top: 0.2rem;
 }
@@ -6720,6 +6728,7 @@ body.menu-open {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.85rem;
+  max-width: calc(100vw - 1rem);
 }
 
 .assistant-launcher {
@@ -6732,6 +6741,7 @@ body.menu-open {
   color: #fff;
   box-shadow: 0 24px 55px rgba(83, 9, 12, 0.28);
   padding: 0.8rem 1rem;
+  max-width: min(100%, calc(100vw - 2rem));
 }
 
 .assistant-launcher-mark {
@@ -6753,11 +6763,13 @@ body.menu-open {
   align-items: flex-start;
   line-height: 1.15;
   text-align: left;
+  min-width: 0;
 }
 
 .assistant-launcher-copy span {
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.8);
+  overflow-wrap: anywhere;
 }
 
 .assistant-panel {
