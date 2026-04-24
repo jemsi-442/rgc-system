@@ -269,16 +269,17 @@
                     @endif
 
                     @yield('content')
-
-                    <footer class="site-footer">
-                        <div class="site-footer-bottom">
-                            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
-                            <span>{{ __('Church communication and member services.') }}</span>
-                        </div>
-                    </footer>
                 </div>
             </div>
         </main>
+
+        <footer class="site-footer site-footer--app">
+            <div class="site-footer-bottom">
+                <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
+                <span>{{ __('Church communication and member services.') }}</span>
+                <span>{{ __('All rights reserved.') }}</span>
+            </div>
+        </footer>
     </div>
 </div>
 @else
@@ -369,43 +370,46 @@
             @endif
 
             @yield('content')
-
-            <footer class="site-footer">
-                <div class="site-footer-grid">
-                    <div class="site-footer-brand">
-                        <div class="site-footer-lockup">
-                            <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
-                            <div>
-                                <strong>{{ __('RGC Tanzania') }}</strong>
-                                <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="site-footer-links">
-                        <span class="site-footer-label">{{ __('Quick access') }}</span>
-                        <div class="site-footer-link-row">
-                            <a href="{{ route('home') }}">{{ __('Home') }}</a>
-                            <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
-                            <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
-                        </div>
-                    </div>
-
-                    <div class="site-footer-meta">
-                        <span class="site-footer-label">{{ __('Church home') }}</span>
-                        <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
-                        <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
-                    </div>
-                </div>
-
-                <div class="site-footer-bottom">
-                    <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
-                    <span>{{ __('Church communication, giving, and member services.') }}</span>
-                </div>
-            </footer>
         </div>
     </div>
 </main>
+
+<footer class="site-footer site-footer--public">
+    <div class="mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
+        <div class="site-footer-grid">
+            <div class="site-footer-brand">
+                <div class="site-footer-lockup">
+                    <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="site-footer-mark">
+                    <div>
+                        <strong>{{ __('RGC Tanzania') }}</strong>
+                        <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-footer-links">
+                <span class="site-footer-label">{{ __('Quick access') }}</span>
+                <div class="site-footer-link-row">
+                    <a href="{{ route('home') }}">{{ __('Home') }}</a>
+                    <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
+                    <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
+                </div>
+            </div>
+
+            <div class="site-footer-meta">
+                <span class="site-footer-label">{{ __('Church home') }}</span>
+                <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
+                <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
+            </div>
+        </div>
+
+        <div class="site-footer-bottom">
+            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
+            <span>{{ __('Church communication, giving, and member services.') }}</span>
+            <span>{{ __('All rights reserved.') }}</span>
+        </div>
+    </div>
+</footer>
 @endauth
 
 @php
