@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Matumizi - ' . $monthName . ' ' . $year)
-@section('page-title', 'Matumizi ya ' . $monthName)
-@section('page-subtitle', 'Rekodi za matumizi ya mwezi wa ' . $monthName . ' ' . $year)
+@section('title', __('Matumizi') . ' - ' . $monthName . ' ' . $year)
+@section('page-title', __('Matumizi ya ') . $monthName)
+@section('page-subtitle', __('Rekodi za matumizi ya mwezi wa ') . $monthName . ' ' . $year)
 
 @php
     $dayNames = ['Jumapili', 'Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi'];
@@ -36,7 +36,7 @@
                    class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg
                           hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow">
                     <i class="fas fa-arrow-left mr-2"></i>
-                    Rudi Orodhani
+                    {{ __('Rudi Orodhani') }}
                 </a>
             </div>
             <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
@@ -45,7 +45,7 @@
                 </span>
                 <i class="fas fa-calendar-alt text-primary-500"></i>
             </h1>
-            <p class="text-gray-600 mt-2">Kalenda ya matumizi kwa mwezi wa {{ $monthName }}</p>
+            <p class="text-gray-600 mt-2">{{ __('Kalenda ya matumizi kwa mwezi wa') }} {{ $monthName }}</p>
         </div>
 
         <!-- Clean Navigation Buttons -->
@@ -71,7 +71,7 @@
                       rounded-lg hover:bg-primary-100 hover:border-primary-300 hover:text-primary-800
                       transition-all duration-200 shadow-sm hover:shadow">
                 <i class="fas fa-chevron-left text-sm"></i>
-                <span class="font-medium">Mwezi Uliopita</span>
+                <span class="font-medium">{{ __('Mwezi Uliopita') }}</span>
             </a>
 
             <!-- Current Month Display -->
@@ -89,7 +89,7 @@
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-50 text-primary-700 border border-primary-200
                       rounded-lg hover:bg-primary-100 hover:border-primary-300 hover:text-primary-800
                       transition-all duration-200 shadow-sm hover:shadow">
-                <span class="font-medium">Mwezi Ujao</span>
+                <span class="font-medium">{{ __('Mwezi Ujao') }}</span>
                 <i class="fas fa-chevron-right text-sm"></i>
             </a>
 
@@ -100,7 +100,7 @@
                       rounded-lg hover:bg-primary-700 hover:border-primary-700 transition-all duration-200
                       shadow-sm hover:shadow">
                 <i class="fas fa-plus"></i>
-                <span class="font-medium">Ongeza Matumizi</span>
+                <span class="font-medium">{{ __('Ongeza Matumizi') }}</span>
             </a>
             @endif
         </div>
@@ -112,7 +112,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Jumla ya Matumizi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Jumla ya Matumizi') }}</p>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($totalAmount, 0) }} TSh</p>
                 </div>
                 <div class="h-12 w-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -125,7 +125,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Idadi ya Rekodi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Idadi ya Rekodi') }}</p>
                     <p class="text-2xl font-bold text-blue-600">{{ $totalCount }}</p>
                 </div>
                 <div class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -138,7 +138,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Aina za Matumizi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Aina za Matumizi') }}</p>
                     <p class="text-2xl font-bold text-green-600">{{ $categoryCount }}</p>
                 </div>
                 <div class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -151,7 +151,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Wastani kwa Rekodi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Wastani kwa Rekodi') }}</p>
                     <p class="text-2xl font-bold text-red-600">{{ $totalCount > 0 ? number_format($totalAmount / $totalCount, 0) : 0 }} TSh</p>
                 </div>
                 <div class="h-12 w-12 bg-red-100 rounded-xl flex items-center justify-center">
@@ -172,11 +172,11 @@
                     </div>
                     <div>
                         <h2 class="text-2xl font-bold">{{ $monthName }} {{ $year }}</h2>
-                        <p class="text-primary-100 text-sm">Kalenda ya Matumizi</p>
+                        <p class="text-primary-100 text-sm">{{ __('Kalenda ya Matumizi') }}</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="text-primary-100 text-sm">Jumla ya Mwezi</p>
+                    <p class="text-primary-100 text-sm">{{ __('Jumla ya Mwezi') }}</p>
                     <p class="text-xl font-bold">{{ number_format($totalAmount, 0) }} TSh</p>
                 </div>
             </div>
@@ -251,7 +251,7 @@
                                             $catColor = $categoriesWithColors[$expense->expense_category_id]['color'] ?? 'blue';
                                         @endphp
                                         <span class="h-2 w-2 rounded-full {{ $colorClasses[$catColor]['dot'] ?? 'bg-blue-500' }}"
-                                              title="{{ $expense->category->name ?? 'Bila Aina' }}: {{ number_format($expense->amount, 0) }} TSh">
+                                              title="{{ $expense->category->name ?? __('Bila Aina') }}: {{ number_format($expense->amount, 0) }} TSh">
                                         </span>
                                     @endforeach
                                     @if($dayData['count'] > 3)
@@ -262,16 +262,16 @@
                                 <!-- Mini expense breakdown - VISIBLE ON HOVER -->
                                 <div class="absolute -top-8 left-0 right-0 bg-white rounded-lg border border-gray-200 shadow-lg p-2
                                             opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                                    <div class="text-xs font-medium text-gray-900 mb-1">Matumizi ya {{ $day }}</div>
+                                    <div class="text-xs font-medium text-gray-900 mb-1">{{ __('Matumizi ya') }} {{ $day }}</div>
                                     @foreach($dayData['expenses']->take(2) as $expense)
                                         <div class="flex items-center justify-between text-xs">
-                                            <span class="text-gray-600 truncate">{{ $expense->category->name ?? 'Bila Aina' }}</span>
+                                            <span class="text-gray-600 truncate">{{ $expense->category->name ?? __('Bila Aina') }}</span>
                                             <span class="font-medium text-gray-900">{{ number_format($expense->amount, 0) }}</span>
                                         </div>
                                     @endforeach
                                     @if($dayData['count'] > 2)
                                         <div class="text-xs text-gray-400 text-center mt-1">
-                                            +{{ $dayData['count'] - 2 }} zaidi
+                                            +{{ $dayData['count'] - 2 }} {{ __('zaidi') }}
                                         </div>
                                     @endif
                                 </div>
@@ -295,11 +295,11 @@
                                             </div>
                                             <div>
                                                 <div class="font-bold text-sm">{{ $monthName }}</div>
-                                                <div class="text-primary-100 text-xs">{{ $dayData['count'] }} rekodi</div>
+                                                <div class="text-primary-100 text-xs">{{ $dayData['count'] }} {{ __('rekodi') }}</div>
                                             </div>
                                         </div>
                                         <div class="text-right">
-                                            <div class="text-xs text-primary-100">Jumla</div>
+                                            <div class="text-xs text-primary-100">{{ __('Jumla') }}</div>
                                             <div class="font-bold">{{ number_format($dayData['total'], 0) }} TSh</div>
                                         </div>
                                     </div>
@@ -319,7 +319,7 @@
                                                 <div class="flex-1 min-w-0">
                                                     <div class="flex items-center justify-between mb-1">
                                                         <span class="text-xs font-semibold {{ $colorClasses[$catColor]['text'] ?? 'text-gray-700' }} truncate">
-                                                            {{ $expense->category->name ?? 'Bila Aina' }}
+                                                            {{ $expense->category->name ?? __('Bila Aina') }}
                                                         </span>
                                                         <span class="font-bold text-gray-900 text-sm">{{ number_format($expense->amount, 0) }} TSh</span>
                                                     </div>
@@ -344,7 +344,7 @@
                                     <a href="{{ route('expenses.create', ['year' => $year, 'month' => $month, 'day' => $day]) }}"
                                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors">
                                         <i class="fas fa-plus"></i>
-                                        Ongeza Matumizi
+                                        {{ __('Ongeza Matumizi') }}
                                     </a>
                                 </div>
                                 @endif
@@ -378,19 +378,19 @@
                 <div class="flex items-center gap-4 flex-wrap">
                     <div class="flex items-center gap-2">
                         <div class="h-2 w-2 bg-primary-500 rounded-full"></div>
-                        <span class="text-xs text-gray-600">Leo</span>
+                        <span class="text-xs text-gray-600">{{ __('Leo') }}</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="h-2 w-2 bg-blue-500 rounded-full"></div>
-                        <span class="text-xs text-gray-600">Na Matumizi</span>
+                        <span class="text-xs text-gray-600">{{ __('Na Matumizi') }}</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="h-2 w-2 bg-gray-300 rounded-full"></div>
-                        <span class="text-xs text-gray-600">Bila Matumizi</span>
+                        <span class="text-xs text-gray-600">{{ __('Bila Matumizi') }}</span>
                     </div>
                 </div>
                 <div class="text-sm font-medium text-gray-700">
-                    <span class="text-gray-500">Jumla:</span>
+                    <span class="text-gray-500">{{ __('Jumla:') }}</span>
                     <span class="ml-2 font-bold text-primary-600">{{ number_format($totalAmount, 0) }} TSh</span>
                 </div>
             </div>
@@ -404,15 +404,15 @@
         <div class="mx-auto w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
             <i class="fas fa-calendar-times text-gray-400 text-3xl"></i>
         </div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">Hakuna Matumizi Yaliyopatikana</h3>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">{{ __('Hakuna Matumizi Yaliyopatikana') }}</h3>
         @if(Auth::user()->isMchungaji() || Auth::user()->isMhasibu())
-        <p class="text-gray-500 mb-6 max-w-md mx-auto">Hakuna matumizi yaliyorekodiwa kwa mwezi wa {{ $monthName }} {{ $year }}. Bofya kitufe hapa chini kuongeza matumizi ya kwanza.</p>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">{{ __('Hakuna matumizi yaliyorekodiwa kwa mwezi wa') }} {{ $monthName }} {{ $year }}. {{ __('Bofya kitufe hapa chini kuongeza matumizi ya kwanza.') }}</p>
         <a href="{{ route('expenses.create', ['year' => $year, 'month' => $month]) }}"
            class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-            <i class="fas fa-plus mr-2"></i> Ongeza Matumizi ya Kwanza
+            <i class="fas fa-plus mr-2"></i> {{ __('Ongeza Matumizi ya Kwanza') }}
         </a>
         @else
-        <p class="text-gray-500 max-w-md mx-auto">Hakuna matumizi yaliyorekodiwa kwa mwezi wa {{ $monthName }} {{ $year }}.</p>
+        <p class="text-gray-500 max-w-md mx-auto">{{ __('Hakuna matumizi yaliyorekodiwa kwa mwezi wa') }} {{ $monthName }} {{ $year }}.</p>
         @endif
     </div>
     @endif
@@ -421,7 +421,7 @@
     @if($categoryCount > 0)
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="border-b border-gray-200 bg-gray-50 px-6 py-4">
-            <h3 class="text-lg font-semibold text-gray-900">Muhtasari wa Aina za Matumizi</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ __('Muhtasari wa Aina za Matumizi') }}</h3>
         </div>
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -434,7 +434,7 @@
                                 </div>
                                 <div>
                                     <div class="font-medium text-gray-900">{{ $category['name'] }}</div>
-                                    <div class="text-sm text-gray-500">{{ $category['count'] }} rekodi</div>
+                                    <div class="text-sm text-gray-500">{{ $category['count'] }} {{ __('rekodi') }}</div>
                                 </div>
                             </div>
                             <div class="text-lg font-bold {{ $colorClasses[$category['color'] ?? 'blue']['text'] }}">

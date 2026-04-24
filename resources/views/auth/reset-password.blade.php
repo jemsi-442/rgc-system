@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weka Nenosiri Jipya - RGC</title>
+    <title>{{ __('Weka Nenosiri Jipya') }} - RGC</title>
     <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -30,11 +30,11 @@
         <!-- Logo and Title -->
         <div class="text-center mb-6">
             <div class="flex justify-center items-center mb-4">
-                <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="w-24 h-24 object-contain">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="w-24 h-24 object-contain">
             </div>
             <span class="text-2xl font-bold text-primary-600 block">RGC</span>
-            <h1 class="text-xl font-bold text-gray-800 mt-2">Weka Nenosiri Jipya</h1>
-            <p class="text-gray-600 text-sm mt-1">Ingiza nenosiri lako jipya hapa chini</p>
+            <h1 class="text-xl font-bold text-gray-800 mt-2">{{ __('Weka Nenosiri Jipya') }}</h1>
+            <p class="text-gray-600 text-sm mt-1">{{ __('Ingiza nenosiri lako jipya hapa chini') }}</p>
         </div>
 
         <!-- Display Errors -->
@@ -42,7 +42,7 @@
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4">
             <div class="flex items-center mb-2">
                 <i class="fas fa-exclamation-circle mr-2"></i>
-                <span class="font-semibold">Kuna makosa yafuatayo:</span>
+                <span class="font-semibold">{{ __('Kuna makosa yafuatayo:') }}</span>
             </div>
             <ul class="list-disc list-inside ml-4 text-sm">
                 @foreach($errors->all() as $error)
@@ -70,8 +70,8 @@
                         <i class="fas fa-key text-white text-xl"></i>
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold text-white">Badilisha Nenosiri</h2>
-                        <p class="text-white/80 text-sm">Tengeneza nenosiri jipya salama</p>
+                        <h2 class="text-lg font-bold text-white">{{ __('Badilisha Nenosiri') }}</h2>
+                        <p class="text-white/80 text-sm">{{ __('Tengeneza nenosiri jipya salama') }}</p>
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 <!-- Email -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">
-                        Barua Pepe
+                        {{ __('Barua Pepe') }}
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -92,14 +92,14 @@
                         </div>
                         <input type="email" name="email" value="{{ $email ?? old('email') }}" required readonly
                                class="pl-10 input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none bg-gray-50 text-gray-600"
-                               placeholder="barua@pepe.com">
+                               placeholder="{{ __('barua@pepe.com') }}">
                     </div>
                 </div>
 
                 <!-- New Password -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">
-                        Nenosiri Jipya <span class="text-red-500">*</span>
+                        {{ __('Nenosiri Jipya') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -107,20 +107,20 @@
                         </div>
                         <input type="password" name="password" id="password" required
                                class="pl-10 pr-10 input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
-                               placeholder="Ingiza nenosiri jipya">
+                               placeholder="{{ __('Ingiza nenosiri jipya') }}">
                         <button type="button" onclick="togglePassword('password', 'toggleIcon1')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i id="toggleIcon1" class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
                         </button>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
-                        <i class="fas fa-info-circle"></i> Nenosiri lazima liwe na herufi 6 au zaidi
+                        <i class="fas fa-info-circle"></i> {{ __('Nenosiri lazima liwe na herufi 6 au zaidi') }}
                     </p>
                 </div>
 
                 <!-- Confirm Password -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-900 mb-2">
-                        Thibitisha Nenosiri <span class="text-red-500">*</span>
+                        {{ __('Thibitisha Nenosiri') }} <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -128,7 +128,7 @@
                         </div>
                         <input type="password" name="password_confirmation" id="password_confirmation" required
                                class="pl-10 pr-10 input-focus w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none"
-                               placeholder="Rudia nenosiri jipya">
+                               placeholder="{{ __('Rudia nenosiri jipya') }}">
                         <button type="button" onclick="togglePassword('password_confirmation', 'toggleIcon2')" class="absolute inset-y-0 right-0 pr-3 flex items-center">
                             <i id="toggleIcon2" class="fas fa-eye text-gray-400 hover:text-gray-600"></i>
                         </button>
@@ -138,7 +138,7 @@
                 <!-- Submit Button -->
                 <button type="submit" class="btn-primary w-full text-white py-3 rounded-lg font-medium mt-4 flex items-center justify-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Hifadhi Nenosiri Jipya</span>
+                    <span>{{ __('Hifadhi Nenosiri Jipya') }}</span>
                 </button>
             </form>
 
@@ -146,7 +146,7 @@
             <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
                 <div class="text-center text-sm text-gray-500">
                     <a href="{{ route('login') }}" class="text-primary-600 hover:text-primary-700 font-medium">
-                        <i class="fas fa-arrow-left mr-1"></i> Rudi kwenye ukurasa wa kuingia
+                        <i class="fas fa-arrow-left mr-1"></i> {{ __('Rudi kwenye ukurasa wa kuingia') }}
                     </a>
                 </div>
             </div>
@@ -159,11 +159,11 @@
                     <i class="fas fa-shield-alt text-blue-600"></i>
                 </div>
                 <div>
-                    <h4 class="font-semibold text-gray-800 text-sm mb-1">Usalama wa Nenosiri</h4>
+                    <h4 class="font-semibold text-gray-800 text-sm mb-1">{{ __('Usalama wa Nenosiri') }}</h4>
                     <ul class="text-xs text-gray-600 space-y-1">
-                        <li><i class="fas fa-check text-green-500 mr-1"></i> Tumia herufi kubwa na ndogo</li>
-                        <li><i class="fas fa-check text-green-500 mr-1"></i> Ongeza namba na alama maalum</li>
-                        <li><i class="fas fa-check text-green-500 mr-1"></i> Usitumie taarifa za kibinafsi</li>
+                        <li><i class="fas fa-check text-green-500 mr-1"></i> {{ __('Tumia herufi kubwa na ndogo') }}</li>
+                        <li><i class="fas fa-check text-green-500 mr-1"></i> {{ __('Ongeza namba na alama maalum') }}</li>
+                        <li><i class="fas fa-check text-green-500 mr-1"></i> {{ __('Usitumie taarifa za kibinafsi') }}</li>
                     </ul>
                 </div>
             </div>

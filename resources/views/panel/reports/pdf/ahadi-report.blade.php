@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Ripoti ya Ahadi - {{ $periodLabel }}</title>
+    <title>{{ __('Ripoti ya Ahadi') }} - {{ $periodLabel }}</title>
     <style>
         @page {
             margin: 10mm;
@@ -226,7 +226,7 @@
     <div class="report-header">
         <div class="header-left">
             @if(file_exists(public_path('images/rgc_logo.png')))
-                <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="church-logo">
+                <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="church-logo">
             @endif
         </div>
         <div class="header-center">
@@ -239,45 +239,45 @@
 
     <!-- Report Title -->
     <div class="report-title">
-        <h1>RIPOTI YA AHADI</h1>
-        <div class="report-period">Kipindi: {{ $periodLabel }}</div>
-        <div class="report-date">Imetengenezwa: {{ now()->format('d/m/Y H:i') }}</div>
+        <h1>{{ __('RIPOTI YA AHADI') }}</h1>
+        <div class="report-period">{{ __('Kipindi') }}: {{ $periodLabel }}</div>
+        <div class="report-date">{{ __('Imetengenezwa') }}: {{ now()->format('d/m/Y H:i') }}</div>
     </div>
 
     <!-- Summary Section -->
     <div class="summary-section">
-        <div class="summary-title">MUHTASARI WA AHADI</div>
+        <div class="summary-title">{{ __('MUHTASARI WA AHADI') }}</div>
         <div class="summary-row">
-            <span>Jumla ya Ahadi:</span>
+            <span>{{ __('Jumla ya Ahadi:') }}</span>
             <span>{{ number_format($totalPledged, 2) }} TZS</span>
         </div>
         <div class="summary-row">
-            <span>Jumla Iliyolipwa:</span>
+            <span>{{ __('Jumla Iliyolipwa:') }}</span>
             <span>{{ number_format($totalPaid, 2) }} TZS</span>
         </div>
         <div class="summary-row">
-            <span>Jumla ya Baki:</span>
+            <span>{{ __('Jumla ya Baki:') }}</span>
             <span>{{ number_format($totalBalance, 2) }} TZS</span>
         </div>
         <div class="summary-row">
-            <span>Jumla ya Ahadi:</span>
-            <span>{{ $ahadiData->count() }} ahadi</span>
+            <span>{{ __('Jumla ya Ahadi:') }}</span>
+            <span>{{ $ahadiData->count() }} {{ __('ahadi') }}</span>
         </div>
     </div>
 
     <!-- Ahadi Table -->
-    <div class="section-title">ORODHA YA AHADI</div>
+    <div class="section-title">{{ __('ORODHA YA AHADI') }}</div>
     <table class="data-table">
         <thead>
             <tr>
-                <th width="5%">Na.</th>
-                <th width="12%">Tarehe ya Ahadi</th>
-                <th width="25%">Mwanachama</th>
-                <th width="12%">Simu</th>
-                <th width="15%">Kiasi Ahadi (TZS)</th>
-                <th width="15%">Kilipwa (TZS)</th>
-                <th width="13%">Baki (TZS)</th>
-                <th width="8%">Hali</th>
+                <th width="5%">{{ __('Na.') }}</th>
+                <th width="12%">{{ __('Tarehe ya Ahadi') }}</th>
+                <th width="25%">{{ __('Mwanachama') }}</th>
+                <th width="12%">{{ __('Simu') }}</th>
+                <th width="15%">{{ __('Kiasi Ahadi (TZS)') }}</th>
+                <th width="15%">{{ __('Kilipwa (TZS)') }}</th>
+                <th width="13%">{{ __('Baki (TZS)') }}</th>
+                <th width="8%">{{ __('Hali') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -285,7 +285,7 @@
                 @php
                     $paidAmount = $ahadi->payments ? $ahadi->payments->sum('amount') : 0;
                     $balance = floatval($ahadi->amount) - $paidAmount;
-                    $status = $balance <= 0 ? 'Imelipwa' : 'Bado';
+                    $status = $balance <= 0 ? __('Imelipwa') : __('Bado');
                 @endphp
                 <tr>
                     <td align="center">{{ $index + 1 }}</td>
@@ -296,7 +296,7 @@
                     <td class="amount">{{ number_format($paidAmount, 2) }}</td>
                     <td class="amount">{{ number_format(max(0, $balance), 2) }}</td>
                     <td align="center">
-                        <span class="{{ $status === 'Imelipwa' ? 'status-paid' : 'status-pending' }}">
+                        <span class="{{ $status === __('Imelipwa') ? 'status-paid' : 'status-pending' }}">
                             {{ $status }}
                         </span>
                     </td>
@@ -304,14 +304,14 @@
             @empty
                 <tr>
                     <td colspan="8" align="center">
-                        <p>Hakuna ahadi zilizopatikana kwa kipindi hiki</p>
+                        <p>{{ __('Hakuna ahadi zilizopatikana kwa kipindi hiki') }}</p>
                     </td>
                 </tr>
             @endforelse
             
             @if(!$ahadiData->isEmpty())
             <tr class="total-row">
-                <td colspan="4" align="right"><strong>JUMLA KUU:</strong></td>
+                <td colspan="4" align="right"><strong>{{ __('JUMLA KUU:') }}</strong></td>
                 <td class="amount">{{ number_format($totalPledged, 2) }}</td>
                 <td class="amount">{{ number_format($totalPaid, 2) }}</td>
                 <td class="amount">{{ number_format($totalBalance, 2) }}</td>
@@ -323,7 +323,7 @@
 
     <!-- Footer -->
     <div class="report-footer">
-        <p>Ripoti hii imetengenezwa kiotomatiki kwaajili ya matumizi ya ndani | {{ now()->format('d/m/Y H:i') }}</p>
+        <p>{{ __('Ripoti hii imetengenezwa kiotomatiki kwa ajili ya matumizi ya ndani') }} | {{ now()->format('d/m/Y H:i') }}</p>
     </div>
 </body>
 </html>

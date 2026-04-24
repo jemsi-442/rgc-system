@@ -1,9 +1,9 @@
 @auth
 @extends('layouts.app')
 
-@section('title', '403 - Huna Ruhusa')
-@section('page-title', 'Huna Ruhusa')
-@section('page-subtitle', 'Hauruhusiwi kuona ukurasa huu')
+@section('title', __('403 - Huna Ruhusa'))
+@section('page-title', __('Huna Ruhusa'))
+@section('page-subtitle', __('Hauruhusiwi kuona ukurasa huu'))
 
 @section('content')
 <div class="flex items-center justify-center min-h-[60vh]">
@@ -22,21 +22,21 @@
 
             <!-- Error Message -->
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Huna Ruhusa
+                {{ __('Huna Ruhusa') }}
             </h1>
             <p class="text-gray-600 mb-8">
-                Samahani, hauruhusiwi kufikia ukurasa huu. Tafadhali wasiliana na msimamizi kama unahitaji ufikiaji.
+                {{ __('Samahani, hauruhusiwi kufikia ukurasa huu. Tafadhali wasiliana na msimamizi kama unahitaji ufikiaji.') }}
             </p>
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('dashboard') }}" class="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-home mr-2"></i>
-                    Rudi Dashboard
+                    {{ __('Rudi Dashboard') }}
                 </a>
                 <button onclick="history.back()" class="inline-flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200">
                     <i class="fas fa-arrow-left mr-2"></i>
-                    Rudi Nyuma
+                    {{ __('Rudi Nyuma') }}
                 </button>
             </div>
         </div>
@@ -44,7 +44,7 @@
         <!-- Help Text -->
         <p class="mt-6 text-sm text-gray-500">
             <i class="fas fa-info-circle mr-1"></i>
-            Kama unahitaji ufikiaji, tafadhali wasiliana na msimamizi wa mfumo
+            {{ __('Kama unahitaji ufikiaji, tafadhali wasiliana na msimamizi wa mfumo') }}
         </p>
     </div>
 </div>
@@ -52,11 +52,11 @@
 
 @else
 <!DOCTYPE html>
-<html lang="sw">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>403 - Huna Ruhusa</title>
+    <title>{{ __('403 - Huna Ruhusa') }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/rgc_logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -69,7 +69,7 @@
     <div class="max-w-lg w-full text-center">
         <!-- Logo -->
         <div class="mb-8">
-            <img src="{{ asset('images/rgc_logo.png') }}" alt="RGC Logo" class="w-24 h-24 mx-auto object-contain">
+            <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="w-24 h-24 mx-auto object-contain">
         </div>
 
         <!-- Error Card -->
@@ -84,28 +84,28 @@
 
             <!-- Error Message -->
             <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
-                Huna Ruhusa
+                {{ __('Huna Ruhusa') }}
             </h1>
             <p class="text-gray-600 mb-8">
-                Samahani, hauruhusiwi kufikia ukurasa huu. Tafadhali ingia kwanza au wasiliana na msimamizi.
+                {{ __('Samahani, hauruhusiwi kufikia ukurasa huu. Tafadhali ingia kwanza au wasiliana na msimamizi.') }}
             </p>
 
             <!-- Action Buttons -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-6 py-3 bg-primary-600 text-white font-medium rounded-xl hover:bg-primary-700 transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-sign-in-alt mr-2"></i>
-                    Ingia
+                    {{ __('Ingia') }}
                 </a>
                 <button onclick="history.back()" class="inline-flex items-center justify-center px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-300 transition-all duration-200">
                     <i class="fas fa-arrow-left mr-2"></i>
-                    Rudi Nyuma
+                    {{ __('Rudi Nyuma') }}
                 </button>
             </div>
         </div>
 
         <!-- Footer -->
         <p class="mt-8 text-sm text-gray-500">
-            <i class="fas fa-church mr-1"></i> RGC - Mfumo wa Kanisa
+            <i class="fas fa-church mr-1"></i> {{ __('RGC - Mfumo wa Kanisa') }}
         </p>
     </div>
 </body>

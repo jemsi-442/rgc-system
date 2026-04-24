@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Sadaka na Ahadi - Mfumo wa Kanisa')
-@section('page-title', 'Sadaka na Ahadi')
-@section('page-subtitle', 'Rekodi na usimamizi wa sadaka na ahadi za kanisa')
+@section('title', __('Sadaka na Ahadi - Mfumo wa Kanisa'))
+@section('page-title', __('Sadaka na Ahadi'))
+@section('page-subtitle', __('Rekodi na usimamizi wa sadaka na ahadi za kanisa'))
 
 @section('content')
 <div class="space-y-6">
@@ -39,7 +39,7 @@
             <div class="flex items-center">
                 <i class="fas fa-exclamation-circle text-red-500 mr-3"></i>
                 <div>
-                    <span class="block font-medium">Tafadhali sahihisha makosa yafuatayo:</span>
+                    <span class="block font-medium">{{ __('Tafadhali sahihisha makosa yafuatayo:') }}</span>
                     <ul class="mt-1 list-disc list-inside text-sm">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -53,21 +53,21 @@
     <!-- Header Section -->
     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Sadaka na Ahadi</h1>
-            <p class="text-gray-600 mt-2">Usimamizi kamili wa rekodi za sadaka na ahadi za kanisa</p>
+            <h1 class="text-3xl font-bold text-gray-900">{{ __('Sadaka na Ahadi') }}</h1>
+            <p class="text-gray-600 mt-2">{{ __('Usimamizi kamili wa rekodi za sadaka na ahadi za kanisa') }}</p>
         </div>
         <div class="flex flex-wrap gap-3">
             <button onclick="exportSadakaExcel()" class="text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
                 <i class="fas fa-file-excel"></i>
-                <span class="font-medium">Export Sadaka</span>
+                <span class="font-medium">{{ __('Hamisha Sadaka') }}</span>
             </button>
             <button onclick="exportAhadiExcel()" class="text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
                 <i class="fas fa-file-excel"></i>
-                <span class="font-medium">Export Ahadi</span>
+                <span class="font-medium">{{ __('Hamisha Ahadi') }}</span>
             </button>
             <a href="{{ route('offerings.create') }}" class="text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800">
                 <i class="fas fa-plus"></i>
-                <span class="font-medium">Ongeza Rekodi</span>
+                <span class="font-medium">{{ __('Ongeza Rekodi') }}</span>
             </a>
         </div>
     </div>
@@ -77,7 +77,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Jumla ya Sadaka {{ date('Y') }}</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Jumla ya Sadaka') }} {{ date('Y') }}</p>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($totalSadaka, 0) }} TZS</p>
                 </div>
                 <div class="h-12 w-12 bg-primary-100 rounded-xl flex items-center justify-center">
@@ -89,7 +89,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Jumla ya Ahadi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Jumla ya Ahadi') }}</p>
                     <p class="text-2xl font-bold text-gray-900">{{ number_format($totalAhadi, 0) }} TZS</p>
                 </div>
                 <div class="h-12 w-12 bg-amber-100 rounded-xl flex items-center justify-center">
@@ -101,7 +101,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Imelipwa</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Imelipwa') }}</p>
                     <p class="text-2xl font-bold text-green-600">{{ number_format($totalMalipo, 0) }} TZS</p>
                 </div>
                 <div class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -113,7 +113,7 @@
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 mb-1">Salio la Ahadi</p>
+                    <p class="text-sm text-gray-600 mb-1">{{ __('Salio la Ahadi') }}</p>
                     <p class="text-2xl font-bold text-yellow-600">{{ number_format($totalAhadi - $totalMalipo, 0) }} TZS</p>
                 </div>
                 <div class="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -127,7 +127,7 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div class="mb-4">
             <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-bolt text-primary-500 mr-2"></i> Hatua za Haraka
+                <i class="fas fa-bolt text-primary-500 mr-2"></i> {{ __('Hatua za Haraka') }}
             </h3>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -137,8 +137,8 @@
                         <i class="fas fa-hand-holding-heart text-primary-500 text-lg"></i>
                     </div>
                     <div>
-                        <div class="font-medium text-gray-900">Ingiza Sadaka</div>
-                        <div class="text-sm text-gray-500">Jumapili au Sikukuu</div>
+                        <div class="font-medium text-gray-900">{{ __('Ingiza Sadaka') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Jumapili au Sikukuu') }}</div>
                     </div>
                 </div>
             </div>
@@ -149,8 +149,8 @@
                         <i class="fas fa-hands-praying text-amber-600 text-lg"></i>
                     </div>
                     <div>
-                        <div class="font-medium text-gray-900">Ahadi Mpya</div>
-                        <div class="text-sm text-gray-500">Kiwanja, RGC, Mavuno</div>
+                        <div class="font-medium text-gray-900">{{ __('Ahadi Mpya') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Kiwanja, RGC, Mavuno') }}</div>
                     </div>
                 </div>
             </div>
@@ -161,8 +161,8 @@
                         <i class="fas fa-coins text-green-600 text-lg"></i>
                     </div>
                     <div>
-                        <div class="font-medium text-gray-900">Rekodi Malipo</div>
-                        <div class="text-sm text-gray-500">Malipo ya ahadi</div>
+                        <div class="font-medium text-gray-900">{{ __('Rekodi Malipo') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Malipo ya ahadi') }}</div>
                     </div>
                 </div>
             </div>
@@ -173,8 +173,8 @@
                         <i class="fas fa-calculator text-blue-600 text-lg"></i>
                     </div>
                     <div>
-                        <div class="font-medium text-gray-900">Kikokotoo</div>
-                        <div class="text-sm text-gray-500">Hesabu noti na sarafu</div>
+                        <div class="font-medium text-gray-900">{{ __('Kikokotoo') }}</div>
+                        <div class="text-sm text-gray-500">{{ __('Hesabu noti na sarafu') }}</div>
                     </div>
                 </div>
             </div>
@@ -185,12 +185,12 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div class="mb-4">
             <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                <i class="fas fa-filter text-primary-500 mr-2"></i> Chuja Rekodi
+                <i class="fas fa-filter text-primary-500 mr-2"></i> {{ __('Chuja Rekodi') }}
             </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Chagua Mwaka</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Chagua Mwaka') }}</label>
                 <select id="yearFilter" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
                     @for($y = date('Y'); $y >= 2020; $y--)
                         <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
@@ -198,9 +198,9 @@
                 </select>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Chagua Mwezi</label>
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Chagua Mwezi') }}</label>
                 <select id="monthFilter" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                    <option value="">Zote</option>
+                    <option value="">{{ __('Zote') }}</option>
                     @foreach(['Januari', 'Februari', 'Machi', 'Aprili', 'Mei', 'Juni', 'Julai', 'Agosti', 'Septemba', 'Oktoba', 'Novemba', 'Desemba'] as $index => $month)
                         <option value="{{ $index + 1 }}" {{ $month == $selectedMonth ? 'selected' : '' }}>{{ $month }}</option>
                     @endforeach
@@ -209,7 +209,7 @@
             <div class="flex items-end">
                 <button onclick="applyFilters()" class="w-full px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all duration-200 flex items-center justify-center gap-2">
                     <i class="fas fa-filter"></i>
-                    <span>Tafuta</span>
+                    <span>{{ __('Tafuta') }}</span>
                 </button>
             </div>
         </div>
@@ -220,10 +220,10 @@
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
                 <button id="sadakaTab" class="px-4 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600" role="tab" aria-selected="true" aria-controls="sadakaContainer">
-                    <i class="fas fa-hand-holding-heart mr-2"></i> Sadaka za Wiki
+                    <i class="fas fa-hand-holding-heart mr-2"></i> {{ __('Sadaka za Wiki') }}
                 </button>
                 <button id="ahadiTab" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" role="tab" aria-selected="false" aria-controls="ahadiContainer">
-                    <i class="fas fa-hands-praying mr-2"></i> Ahadi na Malipo
+                    <i class="fas fa-hands-praying mr-2"></i> {{ __('Ahadi na Malipo') }}
                 </button>
             </nav>
         </div>
@@ -234,9 +234,9 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 flex items-center">
-                        <i class="fas fa-hand-holding-heart text-primary-500 mr-2"></i> Rekodi za Sadaka
+                        <i class="fas fa-hand-holding-heart text-primary-500 mr-2"></i> {{ __('Rekodi za Sadaka') }}
                         <span class="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            <span id="sadakaCount">{{ $sadaka->total() }}</span> rekodi
+                            <span id="sadakaCount">{{ $sadaka->total() }}</span> {{ __('rekodi') }}
                         </span>
                     </h3>
                 </div>
@@ -245,7 +245,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
-                        <input type="text" id="searchSadaka" class="pl-10 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Tafuta kwa tarehe au aina...">
+                        <input type="text" id="searchSadaka" class="pl-10 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="{{ __('Tafuta kwa tarehe au aina...') }}">
                     </div>
                 </div>
             </div>
@@ -259,37 +259,37 @@
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-calendar mr-2"></i>
-                                        Tarehe
+                                        {{ __('Tarehe') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-tag mr-2"></i>
-                                        Aina ya Sadaka
+                                        {{ __('Aina ya Sadaka') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-user mr-2"></i>
-                                        Muumini
+                                        {{ __('Muumini') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-money-bill-wave mr-2"></i>
-                                        Kiasi (TZS)
+                                        {{ __('Kiasi (TZS)') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-info-circle mr-2"></i>
-                                        Maelezo
+                                        {{ __('Maelezo') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider sticky right-0 bg-primary-600">
                                     <div class="flex items-center">
                                         <i class="fas fa-cogs mr-2"></i>
-                                        Hatua
+                                        {{ __('Hatua') }}
                                     </div>
                                 </th>
                             </tr>
@@ -300,21 +300,21 @@
                                 <!-- Date -->
                                 <td class="py-4 px-6">
                                     <div class="text-sm text-gray-900">
-                                        {{ $record->collection_date ? $record->collection_date->format('d/m/Y') : 'N/A' }}
+                                        {{ $record->collection_date ? $record->collection_date->format('d/m/Y') : __('Haipo') }}
                                     </div>
                                 </td>
 
                                 <!-- Type -->
                                 <td class="py-4 px-6">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                                        {{ $record->category->name ?? 'N/A' }}
+                                        {{ $record->category->name ?? __('Haipo') }}
                                     </span>
                                 </td>
 
                                 <!-- Member -->
                                 <td class="py-4 px-6">
                                     <div class="text-sm text-gray-900">
-                                        {{ $record->member->full_name ?? 'Jumla' }}
+                                        {{ $record->member->full_name ?? __('Jumla') }}
                                     </div>
                                 </td>
 
@@ -335,10 +335,10 @@
                                 <!-- Actions -->
                                 <td class="py-4 px-6 text-sm sticky right-0 bg-white">
                                     <div class="flex items-center space-x-2">
-                                        <button onclick="viewSadakaDetails('{{ $record->id }}')" class="h-8 w-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-all duration-200" title="Angalia Maelezo">
+                                        <button onclick="viewSadakaDetails('{{ $record->id }}')" class="h-8 w-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-all duration-200" title="{{ __('Angalia Maelezo') }}">
                                             <i class="fas fa-eye text-sm"></i>
                                         </button>
-                                        <button onclick="deleteSadaka('{{ $record->id }}')" class="h-8 w-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-200 transition-all duration-200" title="Futa Rekodi">
+                                        <button onclick="deleteSadaka('{{ $record->id }}')" class="h-8 w-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-200 transition-all duration-200" title="{{ __('Futa Rekodi') }}">
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
                                     </div>
@@ -355,10 +355,10 @@
                         <div class="mx-auto w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                             <i class="fas fa-hand-holding-heart text-gray-400 text-2xl"></i>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Hakuna rekodi za sadaka</h3>
-                        <p class="text-gray-500 mb-6">Hakuna rekodi zilizopatikana kwenye kipindi kilichochaguliwa.</p>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Hakuna rekodi za sadaka') }}</h3>
+                        <p class="text-gray-500 mb-6">{{ __('Hakuna rekodi zilizopatikana kwenye kipindi kilichochaguliwa.') }}</p>
                         <button class="text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 inline-flex" onclick="openModal('sadakaModal')">
-                            <i class="fas fa-hand-holding-heart"></i> Ingiza Sadaka
+                            <i class="fas fa-hand-holding-heart"></i> {{ __('Ingiza Sadaka') }}
                         </button>
                     </div>
                 @endif
@@ -378,9 +378,9 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                     <h3 class="text-lg font-medium text-gray-700 flex items-center">
-                        <i class="fas fa-hands-praying text-amber-600 mr-2"></i> Ahadi na Malipo
+                        <i class="fas fa-hands-praying text-amber-600 mr-2"></i> {{ __('Ahadi na Malipo') }}
                         <span class="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            <span id="ahadiCount">{{ $ahadi->total() }}</span> rekodi
+                            <span id="ahadiCount">{{ $ahadi->total() }}</span> {{ __('rekodi') }}
                         </span>
                     </h3>
                 </div>
@@ -389,7 +389,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
-                        <input type="text" id="searchAhadi" class="pl-10 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Tafuta kwa jina au aina...">
+                        <input type="text" id="searchAhadi" class="pl-10 w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="{{ __('Tafuta kwa jina au aina...') }}">
                     </div>
                 </div>
             </div>
@@ -402,7 +402,7 @@
                             <i class="fas fa-hands-praying text-amber-600 text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-medium text-gray-900">Jumla ya Ahadi</div>
+                            <div class="font-medium text-gray-900">{{ __('Jumla ya Ahadi') }}</div>
                             <div class="text-lg font-bold text-amber-600">{{ number_format($totalAhadi, 0) }} TZS</div>
                         </div>
                     </div>
@@ -413,7 +413,7 @@
                             <i class="fas fa-check-circle text-green-600 text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-medium text-gray-900">Imelipwa</div>
+                            <div class="font-medium text-gray-900">{{ __('Imelipwa') }}</div>
                             <div class="text-lg font-bold text-green-600">{{ number_format($totalMalipo, 0) }} TZS</div>
                         </div>
                     </div>
@@ -424,7 +424,7 @@
                             <i class="fas fa-clock text-yellow-600 text-lg"></i>
                         </div>
                         <div>
-                            <div class="font-medium text-gray-900">Bado Hajalipa</div>
+                            <div class="font-medium text-gray-900">{{ __('Bado Hajalipa') }}</div>
                             <div class="text-lg font-bold text-yellow-600">{{ number_format($totalAhadi - $totalMalipo, 0) }} TZS</div>
                         </div>
                     </div>
@@ -440,43 +440,43 @@
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider sticky left-0 bg-primary-600">
                                     <div class="flex items-center">
                                         <i class="fas fa-user mr-2"></i>
-                                        Muumini
+                                        {{ __('Muumini') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-tag mr-2"></i>
-                                        Aina ya Ahadi
+                                        {{ __('Aina ya Ahadi') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-hand-holding-usd mr-2"></i>
-                                        Ahadi (TZS)
+                                        {{ __('Ahadi (TZS)') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-check-circle mr-2"></i>
-                                        Imelipwa (TZS)
+                                        {{ __('Imelipwa (TZS)') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-clock mr-2"></i>
-                                        Salio (TZS)
+                                        {{ __('Salio (TZS)') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider">
                                     <div class="flex items-center">
                                         <i class="fas fa-circle mr-2"></i>
-                                        Hali
+                                        {{ __('Hali') }}
                                     </div>
                                 </th>
                                 <th class="py-4 px-6 text-left font-semibold uppercase tracking-wider sticky right-0 bg-primary-600">
                                     <div class="flex items-center">
                                         <i class="fas fa-cogs mr-2"></i>
-                                        Hatua
+                                        {{ __('Hatua') }}
                                     </div>
                                 </th>
                             </tr>
@@ -486,8 +486,8 @@
                             @php
                                 $salio = $record->amount - $record->amount_paid;
                                 $statusColor = $salio == 0 ? 'bg-green-100 text-green-800' : ($salio > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800');
-                                $statusText = $salio == 0 ? 'Imekamilika' : ($salio > 0 ? 'Sehemu' : 'Bado');
-                                $memberName = $record->member->full_name ?? 'N/A';
+                                $statusText = $salio == 0 ? __('Imekamilika') : ($salio > 0 ? __('Sehemu') : __('Bado'));
+                                $memberName = $record->member->full_name ?? __('Haipo');
                             @endphp
                             <tr class="bg-white hover:bg-gray-50 transition-all duration-200">
                                 <!-- Member -->
@@ -498,14 +498,14 @@
                                         </div>
                                         <div>
                                             <div class="text-sm font-medium text-gray-900">{{ $memberName }}</div>
-                                            <div class="text-xs text-gray-500">{{ $record->member->phone ?? 'N/A' }}</div>
+                                            <div class="text-xs text-gray-500">{{ $record->member->phone ?? __('Haipo') }}</div>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Type -->
                                 <td class="py-4 px-6">
-                                    <div class="text-sm text-gray-900">{{ $record->pledge_type ?? 'N/A' }}</div>
+                                    <div class="text-sm text-gray-900">{{ $record->pledge_type ?? __('Haipo') }}</div>
                                 </td>
 
                                 <!-- Pledge Amount -->
@@ -535,10 +535,10 @@
                                 <!-- Actions -->
                                 <td class="py-4 px-6 text-sm sticky right-0 bg-white">
                                     <div class="flex items-center space-x-2">
-                                        <button onclick="viewAhadiDetails('{{ $record->id }}')" class="h-8 w-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-all duration-200" title="Angalia Maelezo">
+                                        <button onclick="viewAhadiDetails('{{ $record->id }}')" class="h-8 w-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-all duration-200" title="{{ __('Angalia Maelezo') }}">
                                             <i class="fas fa-eye text-sm"></i>
                                         </button>
-                                        <button onclick="addMalipo('{{ $record->id }}')" class="h-8 w-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center hover:bg-green-200 transition-all duration-200" title="Ongeza Malipo">
+                                        <button onclick="addMalipo('{{ $record->id }}')" class="h-8 w-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center hover:bg-green-200 transition-all duration-200" title="{{ __('Ongeza Malipo') }}">
                                             <i class="fas fa-plus text-sm"></i>
                                         </button>
                                     </div>
@@ -555,10 +555,10 @@
                         <div class="mx-auto w-16 h-16 mb-4 rounded-full bg-gray-100 flex items-center justify-center">
                             <i class="fas fa-hands-praying text-gray-400 text-2xl"></i>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Hakuna rekodi za ahadi</h3>
-                        <p class="text-gray-500 mb-6">Hakuna rekodi zilizopatikana kwenye kipindi kilichochaguliwa.</p>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Hakuna rekodi za ahadi') }}</h3>
+                        <p class="text-gray-500 mb-6">{{ __('Hakuna rekodi zilizopatikana kwenye kipindi kilichochaguliwa.') }}</p>
                         <button class="text-white px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 inline-flex" onclick="openModal('ahadiModal')">
-                            <i class="fas fa-hands-praying"></i> Ongeza Ahadi
+                            <i class="fas fa-hands-praying"></i> {{ __('Ongeza Ahadi') }}
                         </button>
                     </div>
                 @endif
@@ -584,8 +584,8 @@
                         <i class="fas fa-hand-holding-heart text-primary-600 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Ingiza Sadaka Mpya</h3>
-                        <p class="text-sm text-gray-600">Rekodi sadaka ya leo</p>
+                        <h3 class="text-lg font-bold text-gray-900">{{ __('Ingiza Sadaka Mpya') }}</h3>
+                        <p class="text-sm text-gray-600">{{ __('Rekodi sadaka ya leo') }}</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeModal('sadakaModal')" class="text-gray-400 hover:text-gray-600 rounded-lg p-1.5 hover:bg-gray-100 transition-all duration-200">
@@ -597,32 +597,32 @@
             @csrf
             <div class="p-6 space-y-4">
                 <div>
-                    <label for="tarehe" class="block text-gray-700 text-sm font-medium mb-1">Tarehe</label>
+                    <label for="tarehe" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Tarehe') }}</label>
                     <input type="text" id="tarehe" name="collection_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" value="{{ date('Y-m-d') }}" required>
                 </div>
                 <div>
-                    <label for="aina_sadaka" class="block text-gray-700 text-sm font-medium mb-1">Aina ya Sadaka</label>
+                    <label for="aina_sadaka" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Aina ya Sadaka') }}</label>
                     <select id="aina_sadaka" name="income_category_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
-                        <option value="">Chagua aina ya sadaka</option>
+                        <option value="">{{ __('Chagua aina ya sadaka') }}</option>
                         @foreach(\App\Models\IncomeCategory::all() as $category)
                             <option value="{{ $category->id }}">{{ $category->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label for="kiasi" class="block text-gray-700 text-sm font-medium mb-1">Kiasi (TZS)</label>
-                    <input type="number" id="kiasi" name="amount" placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-primary-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
+                    <label for="kiasi" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Kiasi (TZS)') }}</label>
+                    <input type="number" id="kiasi" name="amount" placeholder="{{ __('0') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-primary-600 focus:ring-2 focus:ring-primary-500 focus:border-primary-500" required>
                 </div>
                 <div>
-                    <label for="notes" class="block text-gray-700 text-sm font-medium mb-1">Maelezo (Hiari)</label>
-                    <textarea id="notes" name="notes" rows="2" placeholder="Maelezo..." class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></textarea>
+                    <label for="notes" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Maelezo (Hiari)') }}</label>
+                    <textarea id="notes" name="notes" rows="2" placeholder="{{ __('Maelezo...') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"></textarea>
                 </div>
             </div>
             <div class="sticky bottom-0 flex justify-end gap-3 px-6 py-5 bg-gray-50 rounded-b-xl border-t border-gray-200">
-                <button type="button" onclick="closeModal('sadakaModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">Ghairi</button>
+                <button type="button" onclick="closeModal('sadakaModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">{{ __('Ghairi') }}</button>
                 <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-all duration-200 flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Hifadhi</span>
+                    <span>{{ __('Hifadhi') }}</span>
                 </button>
             </div>
         </form>
@@ -639,8 +639,8 @@
                         <i class="fas fa-hands-praying text-amber-600 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Ahadi Mpya</h3>
-                        <p class="text-sm text-gray-600">Rekodi ahadi ya muumini</p>
+                        <h3 class="text-lg font-bold text-gray-900">{{ __('Ahadi Mpya') }}</h3>
+                        <p class="text-sm text-gray-600">{{ __('Rekodi ahadi ya muumini') }}</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeModal('ahadiModal')" class="text-gray-400 hover:text-gray-600 rounded-lg p-1.5 hover:bg-gray-100 transition-all duration-200">
@@ -652,39 +652,39 @@
             @csrf
             <div class="p-6 space-y-4">
                 <div>
-                    <label for="member_id" class="block text-gray-700 text-sm font-medium mb-1">Muumini</label>
+                    <label for="member_id" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Muumini') }}</label>
                     <select id="member_id" name="member_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500">
-                        <option value="">Chagua muumini (hiari)</option>
+                        <option value="">{{ __('Chagua muumini (hiari)') }}</option>
                         @foreach(\App\Models\Member::orderBy('first_name')->get() as $member)
                             <option value="{{ $member->id }}">{{ $member->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label for="pledge_type" class="block text-gray-700 text-sm font-medium mb-1">Aina ya Ahadi</label>
+                    <label for="pledge_type" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Aina ya Ahadi') }}</label>
                     <select id="pledge_type" name="pledge_type" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500" required>
-                        <option value="">Chagua aina</option>
-                        <option value="Kiwanja">Kiwanja</option>
-                        <option value="Usiku wa RGC">Usiku wa RGC</option>
-                        <option value="Mavuno">Mavuno</option>
-                        <option value="Ujenzi">Ujenzi</option>
-                        <option value="Nyingine">Nyingine</option>
+                        <option value="">{{ __('Chagua aina') }}</option>
+                        <option value="Kiwanja">{{ __('Kiwanja') }}</option>
+                        <option value="Usiku wa RGC">{{ __('Usiku wa RGC') }}</option>
+                        <option value="Mavuno">{{ __('Mavuno') }}</option>
+                        <option value="Ujenzi">{{ __('Ujenzi') }}</option>
+                        <option value="Nyingine">{{ __('Nyingine') }}</option>
                     </select>
                 </div>
                 <div>
-                    <label for="kiasi_ahadi" class="block text-gray-700 text-sm font-medium mb-1">Kiasi (TZS)</label>
-                    <input type="number" id="kiasi_ahadi" name="amount" placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-amber-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500" required>
+                    <label for="kiasi_ahadi" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Kiasi (TZS)') }}</label>
+                    <input type="number" id="kiasi_ahadi" name="amount" placeholder="{{ __('0') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-amber-600 focus:ring-2 focus:ring-amber-500 focus:border-amber-500" required>
                 </div>
                 <div>
-                    <label for="tarehe_ahadi" class="block text-gray-700 text-sm font-medium mb-1">Tarehe</label>
+                    <label for="tarehe_ahadi" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Tarehe') }}</label>
                     <input type="text" id="tarehe_ahadi" name="pledge_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500" value="{{ date('Y-m-d') }}" required>
                 </div>
             </div>
             <div class="sticky bottom-0 flex justify-end gap-3 px-6 py-5 bg-gray-50 rounded-b-xl border-t border-gray-200">
-                <button type="button" onclick="closeModal('ahadiModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">Ghairi</button>
+                <button type="button" onclick="closeModal('ahadiModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">{{ __('Ghairi') }}</button>
                 <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-all duration-200 flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Hifadhi</span>
+                    <span>{{ __('Hifadhi') }}</span>
                 </button>
             </div>
         </form>
@@ -701,8 +701,8 @@
                         <i class="fas fa-coins text-green-600 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Rekodi Malipo</h3>
-                        <p class="text-sm text-gray-600">Lipa ahadi ya muumini</p>
+                        <h3 class="text-lg font-bold text-gray-900">{{ __('Rekodi Malipo') }}</h3>
+                        <p class="text-sm text-gray-600">{{ __('Lipa ahadi ya muumini') }}</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeModal('malipoModal')" class="text-gray-400 hover:text-gray-600 rounded-lg p-1.5 hover:bg-gray-100 transition-all duration-200">
@@ -714,40 +714,40 @@
             @csrf
             <div class="p-6 space-y-4">
                 <div>
-                    <label for="pledge_id" class="block text-gray-700 text-sm font-medium mb-1">Chagua Ahadi</label>
+                    <label for="pledge_id" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Chagua Ahadi') }}</label>
                     <select id="pledge_id" name="pledge_id" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                        <option value="">Chagua ahadi</option>
+                        <option value="">{{ __('Chagua ahadi') }}</option>
                         @foreach(\App\Models\Pledge::with('member')->whereRaw('amount > amount_paid')->get() as $pledge)
                             <option value="{{ $pledge->id }}">
-                                {{ $pledge->member->full_name ?? 'N/A' }} - {{ $pledge->pledge_type }} (Salio: TZS {{ number_format($pledge->amount - $pledge->amount_paid, 0) }})
+                                {{ $pledge->member->full_name ?? __('Haipo') }} - {{ $pledge->pledge_type }} ({{ __('Salio') }}: TZS {{ number_format($pledge->amount - $pledge->amount_paid, 0) }})
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div>
-                    <label for="tarehe_malipo" class="block text-gray-700 text-sm font-medium mb-1">Tarehe</label>
+                    <label for="tarehe_malipo" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Tarehe') }}</label>
                     <input type="text" id="tarehe_malipo" name="payment_date" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" value="{{ date('Y-m-d') }}" required>
                 </div>
                 <div>
-                    <label for="kiasi_malipo" class="block text-gray-700 text-sm font-medium mb-1">Kiasi (TZS)</label>
-                    <input type="number" id="kiasi_malipo" name="amount" placeholder="0" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-green-600 focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+                    <label for="kiasi_malipo" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Kiasi (TZS)') }}</label>
+                    <input type="number" id="kiasi_malipo" name="amount" placeholder="{{ __('0') }}" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-xl font-bold text-green-600 focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
                 </div>
                 <div>
-                    <label for="payment_method" class="block text-gray-700 text-sm font-medium mb-1">Njia ya Malipo</label>
+                    <label for="payment_method" class="block text-gray-700 text-sm font-medium mb-1">{{ __('Njia ya Malipo') }}</label>
                     <select id="payment_method" name="payment_method" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
-                        <option value="">Chagua njia</option>
-                        <option value="Taslimu">Pesa Taslimu</option>
+                        <option value="">{{ __('Chagua njia') }}</option>
+                        <option value="Taslimu">{{ __('Pesa Taslimu') }}</option>
                         <option value="M-Pesa">M-Pesa</option>
                         <option value="Tigo Pesa">Tigo Pesa</option>
-                        <option value="Benki">Benki</option>
+                        <option value="Benki">{{ __('Benki') }}</option>
                     </select>
                 </div>
             </div>
             <div class="sticky bottom-0 flex justify-end gap-3 px-6 py-5 bg-gray-50 rounded-b-xl border-t border-gray-200">
-                <button type="button" onclick="closeModal('malipoModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">Ghairi</button>
+                <button type="button" onclick="closeModal('malipoModal')" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200">{{ __('Ghairi') }}</button>
                 <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Hifadhi</span>
+                    <span>{{ __('Hifadhi') }}</span>
                 </button>
             </div>
         </form>
@@ -764,8 +764,8 @@
                         <i class="fas fa-calculator text-blue-600 text-xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Kikokotoo cha Noti na Sarafu</h3>
-                        <p class="text-sm text-gray-600">Hesabu jumla ya sadaka</p>
+                        <h3 class="text-lg font-bold text-gray-900">{{ __('Kikokotoo cha Noti na Sarafu') }}</h3>
+                        <p class="text-sm text-gray-600">{{ __('Hesabu jumla ya sadaka') }}</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeModal('calculatorModal')" class="text-gray-400 hover:text-gray-600 rounded-lg p-1.5 hover:bg-gray-100 transition-all duration-200">
@@ -809,18 +809,18 @@
                 </div>
             </div>
             <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 text-center">
-                <p class="text-sm text-gray-600 mb-1">Jumla</p>
+                <p class="text-sm text-gray-600 mb-1">{{ __('Jumla') }}</p>
                 <p class="text-2xl font-bold text-blue-600" id="calculatorTotal">TZS 0</p>
             </div>
         </div>
         <div class="sticky bottom-0 flex justify-end gap-3 px-6 py-5 bg-gray-50 rounded-b-xl border-t border-gray-200">
             <button type="button" onclick="resetCalculator()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200 flex items-center gap-2">
                 <i class="fas fa-redo"></i>
-                <span>Safisha</span>
+                <span>{{ __('Safisha') }}</span>
             </button>
             <button type="button" onclick="copyToSadaka()" class="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-2">
                 <i class="fas fa-copy"></i>
-                <span>Nakili kwa Sadaka</span>
+                <span>{{ __('Nakili kwa Sadaka') }}</span>
             </button>
         </div>
     </div>
@@ -837,17 +837,17 @@
     // ============================================
 
     // Show success notification
-    function showSuccess(message, title = 'Imefanikiwa') {
+    function showSuccess(message, title = @json(__('Imefanikiwa'))) {
         showNotification(message, title, 'success');
     }
 
     // Show error notification
-    function showError(message, title = 'Hitilafu') {
+    function showError(message, title = @json(__('Hitilafu'))) {
         showNotification(message, title, 'error');
     }
 
     // Show warning notification
-    function showWarning(message, title = 'Onyo') {
+    function showWarning(message, title = @json(__('Onyo'))) {
         showNotification(message, title, 'warning');
     }
 
@@ -887,7 +887,7 @@
     }
 
     // Show confirm dialog (returns Promise)
-    function showConfirm(message, title = 'Thibitisha') {
+    function showConfirm(message, title = @json(__('Thibitisha'))) {
         return new Promise((resolve) => {
             // Create modal backdrop
             const modal = document.createElement('div');
@@ -907,10 +907,10 @@
                     </div>
                     <div class="flex justify-end gap-3 px-5 py-4 bg-gray-50 rounded-b-xl border-t">
                         <button id="confirmCancel" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all duration-200 font-medium">
-                            Ghairi
+                            {{ __('Ghairi') }}
                         </button>
                         <button id="confirmOk" class="px-5 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-all duration-200 flex items-center">
-                            <i class="fas fa-check mr-2"></i> Thibitisha
+                            <i class="fas fa-check mr-2"></i> {{ __('Thibitisha') }}
                         </button>
                     </div>
                 </div>
@@ -1409,7 +1409,7 @@
                         body: JSON.stringify({
                             amount: jimboAmount,
                             collection_date: data.collection_date,
-                            notes: 'Asilimia 8% ya Sadaka ya Shukrani'
+                            notes: @json(__('Asilimia 8% ya Sadaka ya Shukrani'))
                         })
                     });
                 }
@@ -1427,7 +1427,7 @@
             successDiv.innerHTML = `
                 <div class="flex items-center">
                     <i class="fas fa-check-circle text-green-500 mr-3"></i>
-                    <span>Sadaka imehifadhiwa kikamilifu!</span>
+                    <span>{{ __('Sadaka imehifadhiwa kikamilifu!') }}</span>
                 </div>
             `;
             document.body.appendChild(successDiv);
@@ -1475,7 +1475,7 @@
     }
 
     async function deleteSadaka(id) {
-        const confirmed = await showConfirm('Je, una uhakika unataka kufuta rekodi hii ya sadaka?', 'Thibitisha Kufuta');
+        const confirmed = await showConfirm(@json(__('Je, una uhakika unataka kufuta rekodi hii ya sadaka?')), @json(__('Thibitisha Kufuta')));
         if (confirmed) {
             fetch('/panel/offerings/' + id, {
                 method: 'DELETE',
@@ -1487,14 +1487,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    showSuccess('Rekodi imefutwa kikamilifu!');
+                    showSuccess(@json(__('Rekodi imefutwa kikamilifu!')));
                     setTimeout(() => location.reload(), 1000);
                 } else {
-                    showError('Hitilafu: ' + data.message);
+                showError(@json(__('Hitilafu:')) + ' ' + data.message);
                 }
             })
             .catch(error => {
-                showError('Hitilafu: ' + error.message);
+                showError(@json(__('Hitilafu:')) + ' ' + error.message);
             });
         }
     }
@@ -1518,7 +1518,7 @@
         const total = window.calculatorTotalValue || 0;
         if (total <= 0) {
             if (typeof showWarning === 'function') {
-                showWarning('Tafadhali ingiza noti au sarafu kwanza.');
+                showWarning(@json(__('Tafadhali ingiza noti au sarafu kwanza.')));
             }
             return;
         }
@@ -1537,7 +1537,7 @@
 
         // Show success message
         if (typeof showSuccess === 'function') {
-            showSuccess('Kiasi cha TZS ' + total.toLocaleString() + ' kimenakiliwa kwenye fomu ya sadaka.');
+            showSuccess(@json(__('Kiasi cha TZS')) + ' ' + total.toLocaleString() + ' ' + @json(__('kimenakiliwa kwenye fomu ya sadaka.')));
         }
     }
 </script>
