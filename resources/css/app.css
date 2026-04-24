@@ -417,7 +417,18 @@ body.menu-open {
 .sidebar-link--logout {
   width: 100%;
   justify-content: flex-start;
+  gap: 0.18rem;
   margin-top: 0.2rem;
+}
+
+.sidebar-link--logout span {
+  flex: 0 0 auto;
+}
+
+.sidebar-link--logout .sidebar-link-icon {
+  width: 0.92rem;
+  min-width: 0.92rem;
+  margin-right: -0.02rem;
 }
 
 .sidebar-link--logout:hover {
@@ -806,6 +817,29 @@ body.menu-open {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 223, 0.92));
   padding: 1.5rem;
   box-shadow: var(--rgc-shadow);
+}
+
+.dashboard-welcome-card {
+  color: var(--color-rgc-black);
+}
+
+.dashboard-welcome-copy {
+  color: rgba(23, 23, 23, 0.76);
+}
+
+.dashboard-welcome-scripture {
+  border-color: rgba(128, 17, 21, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 255, 255, 0.72)),
+    rgba(255, 255, 255, 0.82);
+}
+
+.dashboard-welcome-scripture .member-scripture-text {
+  color: rgba(23, 23, 23, 0.9);
+}
+
+.dashboard-welcome-scripture .member-scripture-reference {
+  color: rgba(82, 17, 23, 0.82);
 }
 
 .panel-grid {

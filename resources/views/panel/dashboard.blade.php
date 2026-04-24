@@ -204,11 +204,11 @@
     </div>
 </section>
 
-<section class="mt-8 card-rgc-strong">
+<section class="mt-8 card-rgc-strong dashboard-welcome-card">
     <span class="section-kicker">{{ __('Welcome') }}</span>
     <h2 class="mt-5 font-[family-name:var(--font-display)] text-3xl leading-none">{{ $welcomeGuidance['title'] }}</h2>
-    <p class="mt-4 max-w-3xl text-sm leading-7 text-white/84">{{ $welcomeGuidance['body'] }}</p>
-    <div class="member-scripture-callout mt-6">
+    <p class="dashboard-welcome-copy mt-4 max-w-3xl text-sm leading-7">{{ $welcomeGuidance['body'] }}</p>
+    <div class="member-scripture-callout dashboard-welcome-scripture mt-6">
         <p class="member-scripture-text">"{{ $welcomeGuidance['scripture'] }}"</p>
         <span class="member-scripture-reference">{{ $welcomeGuidance['reference'] }}</span>
     </div>
