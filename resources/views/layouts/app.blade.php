@@ -15,7 +15,7 @@
     <title>@yield('title', config('app.name'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="page-shell min-h-screen {{ auth()->check() ? 'has-auth-sidebar' : 'has-guest-shell' }} {{ auth()->check() && auth()->user()->hasSystemRole('member') ? 'has-member-sidebar' : '' }}">
+<body class="page-shell min-h-screen {{ auth()->check() ? 'has-auth-sidebar is-sidebar-collapsed' : 'has-guest-shell' }} {{ auth()->check() && auth()->user()->hasSystemRole('member') ? 'has-member-sidebar' : '' }}">
 @php
     $currentUser = auth()->user();
     $usesSidebar = (bool) $currentUser;
@@ -88,6 +88,28 @@
     <aside class="app-sidebar">
         <div class="app-sidebar-wrap">
             <div class="app-sidebar-panel {{ $usesMemberSidebar ? 'app-sidebar-panel--member' : 'app-sidebar-panel--admin' }}">
+                <div class="sidebar-topbar">
+                    <button
+                        class="sidebar-toggle"
+                        type="button"
+                        aria-expanded="false"
+                        aria-label="{{ __('Menu') }}"
+                        title="{{ __('Menu') }}"
+                        data-sidebar-toggle
+                    >
+                        <span class="menu-toggle-icon" aria-hidden="true">
+                            <span class="menu-toggle-bar"></span>
+                            <span class="menu-toggle-bar"></span>
+                            <span class="menu-toggle-bar"></span>
+                        </span>
+                    </button>
+
+                    <a href="{{ route('dashboard') }}" class="sidebar-brand" aria-label="{{ __('RGC Tanzania') }}" title="{{ __('RGC Tanzania') }}">
+                        <span>{{ __('RGC Tanzania') }}</span>
+                        <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="sidebar-brand-logo">
+                    </a>
+                </div>
+
                 @foreach($sidebarSections as $section)
                     @if(($section['items'] ?? []) !== [])
                         <div class="sidebar-section">
@@ -96,7 +118,7 @@
                             @endif
                             <nav class="sidebar-nav">
                                 @foreach($section['items'] as $item)
-                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}">
+                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                                         @include('partials.ui.icon', ['name' => $item['icon'], 'class' => 'sidebar-link-icon'])
                                         <span>{{ $item['label'] }}</span>
                                     </a>
@@ -109,22 +131,27 @@
                 <div class="sidebar-section sidebar-section--account">
                     <span class="sidebar-section-title">{{ __('You') }}</span>
                     <nav class="sidebar-nav">
-                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}">
+                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}" aria-label="{{ __('Account') }}" title="{{ __('Account') }}">
                             @include('partials.ui.icon', ['name' => 'user', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Account') }}</span>
                         </a>
-                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}">
+                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}" aria-label="{{ __('Password') }}" title="{{ __('Password') }}">
                             @include('partials.ui.icon', ['name' => 'lock', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Password') }}</span>
                         </a>
                     </nav>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="sidebar-link sidebar-link--logout" type="submit">
+                        <button class="sidebar-link sidebar-link--logout" type="submit" aria-label="{{ __('Logout') }}" title="{{ __('Logout') }}">
                             @include('partials.ui.icon', ['name' => 'logout', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Logout') }}</span>
                         </button>
                     </form>
+                </div>
+
+                <div class="sidebar-footer">
+                    <span>{{ __('RGC Tanzania') }}</span>
+                    <span>© {{ now()->year }}</span>
                 </div>
 
             </div>
@@ -199,6 +226,26 @@
 
         <nav class="app-mobile-nav nav-scroll" id="primary-navigation" data-mobile-menu>
             <div class="app-mobile-nav-shell">
+                <div class="sidebar-topbar sidebar-topbar--mobile">
+                    <button
+                        class="sidebar-toggle mobile-sidebar-close"
+                        type="button"
+                        aria-label="{{ __('Close') }}"
+                        title="{{ __('Close') }}"
+                    >
+                        <span class="menu-toggle-icon" aria-hidden="true">
+                            <span class="menu-toggle-bar"></span>
+                            <span class="menu-toggle-bar"></span>
+                            <span class="menu-toggle-bar"></span>
+                        </span>
+                    </button>
+
+                    <a href="{{ route('dashboard') }}" class="sidebar-brand" aria-label="{{ __('RGC Tanzania') }}" title="{{ __('RGC Tanzania') }}">
+                        <span>{{ __('RGC Tanzania') }}</span>
+                        <img src="{{ asset('images/rgc_logo.png') }}" alt="{{ __('RGC Logo') }}" class="sidebar-brand-logo">
+                    </a>
+                </div>
+
                 @foreach($sidebarSections as $section)
                     @if(($section['items'] ?? []) !== [])
                         <div class="sidebar-section sidebar-section--mobile">
@@ -207,7 +254,7 @@
                             @endif
                             <nav class="sidebar-nav">
                                 @foreach($section['items'] as $item)
-                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}">
+                                    <a class="sidebar-link {{ $item['active'] ? 'sidebar-link--active' : '' }}" href="{{ $item['route'] }}" aria-label="{{ $item['label'] }}" title="{{ $item['label'] }}">
                                         @include('partials.ui.icon', ['name' => $item['icon'], 'class' => 'sidebar-link-icon'])
                                         <span>{{ $item['label'] }}</span>
                                     </a>
@@ -220,22 +267,27 @@
                 <div class="sidebar-section sidebar-section--account sidebar-section--mobile">
                     <span class="sidebar-section-title">{{ __('You') }}</span>
                     <nav class="sidebar-nav">
-                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}">
+                        <a class="sidebar-link {{ $accountActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.profile.edit') }}" aria-label="{{ __('Account') }}" title="{{ __('Account') }}">
                             @include('partials.ui.icon', ['name' => 'user', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Account') }}</span>
                         </a>
-                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}">
+                        <a class="sidebar-link {{ $passwordActive ? 'sidebar-link--active' : '' }}" href="{{ route('account.password.edit') }}" aria-label="{{ __('Password') }}" title="{{ __('Password') }}">
                             @include('partials.ui.icon', ['name' => 'lock', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Password') }}</span>
                         </a>
                     </nav>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button class="sidebar-link sidebar-link--logout" type="submit">
+                        <button class="sidebar-link sidebar-link--logout" type="submit" aria-label="{{ __('Logout') }}" title="{{ __('Logout') }}">
                             @include('partials.ui.icon', ['name' => 'logout', 'class' => 'sidebar-link-icon'])
                             <span>{{ __('Logout') }}</span>
                         </button>
                     </form>
+                </div>
+
+                <div class="sidebar-footer sidebar-footer--mobile">
+                    <span>{{ __('RGC Tanzania') }}</span>
+                    <span>© {{ now()->year }}</span>
                 </div>
             </div>
         </nav>
@@ -243,23 +295,6 @@
         <main class="main-shell app-main-shell mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
             <div class="app-shell">
                 <div class="app-shell-main">
-                    <section
-                        class="install-prompt hidden"
-                        data-pwa-install-prompt
-                        data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
-                        data-ready-message="{{ __('Install this app on your device for faster access.') }}"
-                        data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
-                    >
-                        <div class="install-prompt-copy">
-                            <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
-                            <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
-                        </div>
-                        <div class="install-prompt-actions">
-                            <button type="button" class="btn-rgc install-prompt-button" data-pwa-install-action>{{ __('Install') }}</button>
-                            <button type="button" class="btn-rgc-alt install-prompt-button install-prompt-button--quiet" data-pwa-install-dismiss>{{ __('Later') }}</button>
-                        </div>
-                    </section>
-
                     @if (session('status'))
                         <div class="notice-ok">{{ session('status') }}</div>
                     @endif
@@ -344,23 +379,6 @@
 <main class="main-shell mx-auto max-w-[96rem] px-4 py-6 sm:px-6 lg:px-8">
     <div class="app-shell">
         <div class="app-shell-main">
-            <section
-                class="install-prompt hidden"
-                data-pwa-install-prompt
-                data-ios-message="{{ __('To install this app on iPhone or iPad, open Share and choose Add to Home Screen.') }}"
-                data-ready-message="{{ __('Install this app on your device for faster access.') }}"
-                data-installed-message="{{ __('RGC Tanzania is already installed on this device.') }}"
-            >
-                <div class="install-prompt-copy">
-                    <strong data-pwa-install-title>{{ __('Install RGC Tanzania') }}</strong>
-                    <p data-pwa-install-message>{{ __('Install this app on your device for faster access.') }}</p>
-                </div>
-                <div class="install-prompt-actions">
-                    <button type="button" class="btn-rgc install-prompt-button" data-pwa-install-action>{{ __('Install') }}</button>
-                    <button type="button" class="btn-rgc-alt install-prompt-button install-prompt-button--quiet" data-pwa-install-dismiss>{{ __('Later') }}</button>
-                </div>
-            </section>
-
             @if (session('status'))
                 <div class="notice-ok">{{ session('status') }}</div>
             @endif
@@ -381,31 +399,39 @@
                 <div class="site-footer-lockup">
                     <div>
                         <strong>{{ __('RGC Tanzania') }}</strong>
-                        <p>{{ __('Redeemed Gospel Church Inc. Tanzania official digital home.') }}</p>
                     </div>
                 </div>
-            </div>
 
-            <div class="site-footer-links">
-                <span class="site-footer-label">{{ __('Quick access') }}</span>
-                <div class="site-footer-link-row">
-                    <a href="{{ route('home') }}">{{ __('Home') }}</a>
-                    <a href="{{ route('login') }}">@include('partials.ui.icon', ['name' => 'user', 'class' => 'footer-link-icon'])<span>{{ __('Login') }}</span></a>
-                    <a href="{{ route('register') }}">@include('partials.ui.icon', ['name' => 'plus', 'class' => 'footer-link-icon'])<span>{{ __('Register') }}</span></a>
-                </div>
+                @if (request()->routeIs('home'))
+                    <div class="site-footer-social">
+                        <span class="site-footer-label">{{ __('Follow us') }}</span>
+                        <div class="site-footer-social-row">
+                            <a href="https://www.tiktok.com/@rgctoangoma?_t=ZM-90ABiH5xYJH&_r=1" target="_blank" rel="noopener noreferrer" aria-label="{{ __('TikTok') }}">
+                                @include('partials.ui.icon', ['name' => 'tiktok', 'class' => 'footer-link-icon'])
+                                <span>TikTok</span>
+                            </a>
+                            <a href="https://www.instagram.com/rgctoangoma?igsh=Z3FvbXpzbTRuMXZi" target="_blank" rel="noopener noreferrer" aria-label="{{ __('Instagram') }}">
+                                @include('partials.ui.icon', ['name' => 'instagram', 'class' => 'footer-link-icon'])
+                                <span>Instagram</span>
+                            </a>
+                            <a href="https://youtube.com/@rgctoangoma?si=hTQq-hv0e9jcfOrG" target="_blank" rel="noopener noreferrer" aria-label="{{ __('YouTube') }}">
+                                @include('partials.ui.icon', ['name' => 'youtube', 'class' => 'footer-link-icon'])
+                                <span>YouTube</span>
+                            </a>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <div class="site-footer-meta">
                 <span class="site-footer-label">{{ __('Church home') }}</span>
-                <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Church locations, updates, and member access in one place.') }}</p>
-                <p class="site-footer-meta-copy">{{ __('Built for church communication, giving, and everyday member use across the full church family.') }}</p>
+                <p class="site-footer-meta-copy">{{ __('Tanzania Mainland + Zanzibar. Branches, church updates, and fellowship in one place.') }}</p>
+                <p class="site-footer-meta-copy">{{ __('Serving worship, giving, announcements, and everyday church life across the RGC family.') }}</p>
             </div>
         </div>
 
         <div class="site-footer-bottom">
-            <span>{{ __('RGC Tanzania') }} © {{ now()->year }}</span>
-            <span>{{ __('Church communication, giving, and member services.') }}</span>
-            <span>{{ __('All rights reserved.') }}</span>
+            <span>© {{ now()->year }} {{ __('RGC Tanzania') }}. {{ __('All rights reserved by RGC.') }}</span>
         </div>
     </div>
 </footer>

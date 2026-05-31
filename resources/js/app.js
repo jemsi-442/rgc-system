@@ -10,6 +10,7 @@ const authForms = Array.from(document.querySelectorAll('[data-auth-form]'));
 const districtField = document.querySelector('[data-district-field]');
 const branchField = document.querySelector('[data-branch-field]');
 const menuToggle = document.querySelector('[data-menu-toggle]');
+const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
 const mobileMenu = document.querySelector('[data-mobile-menu]');
 const mobileBackdrop = document.querySelector('[data-mobile-backdrop]');
 
@@ -325,6 +326,45 @@ if (menuToggle && mobileMenu) {
   });
 }
 
+if (sidebarToggle) {
+  const sidebarStateKey = 'rgc:sidebar-state';
+
+  const getSavedSidebarState = () => {
+    try {
+      return window.localStorage.getItem(sidebarStateKey);
+    } catch (_error) {
+      return null;
+    }
+  };
+
+  const saveSidebarState = (isExpanded) => {
+    try {
+      window.localStorage.setItem(sidebarStateKey, isExpanded ? 'expanded' : 'collapsed');
+    } catch (_error) {
+      // Sidebar preference is optional.
+    }
+  };
+
+  const syncSidebarState = (isExpanded) => {
+    document.body.classList.toggle('is-sidebar-collapsed', !isExpanded);
+    sidebarToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+    saveSidebarState(isExpanded);
+  };
+
+  syncSidebarState(getSavedSidebarState() === 'expanded');
+
+  sidebarToggle.addEventListener('click', () => {
+    const nextState = sidebarToggle.getAttribute('aria-expanded') !== 'true';
+    syncSidebarState(nextState);
+  });
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      syncSidebarState(false);
+    }
+  });
+}
+
 document.querySelectorAll('[data-mobile-network-picker]').forEach((picker) => {
   const form = picker.closest('form');
   const phoneInput = form?.querySelector('[data-payment-phone]');
@@ -406,6 +446,64 @@ if (slider) {
       const nextIndex = (activeIndex + 1) % slides.length;
       activateSlide(nextIndex);
     }, 5200);
+  }
+}
+
+const dashboardGreeting = document.querySelector('[data-dashboard-greeting]');
+
+if (dashboardGreeting) {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let greetings = [];
+
+  try {
+    greetings = JSON.parse(dashboardGreeting.dataset.greetings ?? '[]');
+  } catch (_error) {
+    greetings = [];
+  }
+
+  greetings = greetings.filter((item) => typeof item === 'string' && item.trim() !== '');
+
+  if (reduceMotion || greetings.length <= 1) {
+    dashboardGreeting.textContent = greetings[0] ?? dashboardGreeting.textContent;
+  } else {
+    let greetingIndex = 0;
+    let characterIndex = dashboardGreeting.textContent.length;
+    let isDeleting = true;
+
+    const typeGreeting = () => {
+      const currentGreeting = greetings[greetingIndex] ?? '';
+
+      if (isDeleting) {
+        characterIndex -= 1;
+        dashboardGreeting.textContent = currentGreeting.slice(0, Math.max(0, characterIndex));
+
+        if (characterIndex <= 0) {
+          isDeleting = false;
+          greetingIndex = (greetingIndex + 1) % greetings.length;
+        }
+      } else {
+        const nextGreeting = greetings[greetingIndex] ?? '';
+        characterIndex += 1;
+        dashboardGreeting.textContent = nextGreeting.slice(0, characterIndex);
+
+        if (characterIndex >= nextGreeting.length) {
+          isDeleting = true;
+        }
+      }
+
+      const nextGreeting = greetings[greetingIndex] ?? '';
+      const delay = !isDeleting && characterIndex === 0
+        ? 260
+        : isDeleting && characterIndex >= nextGreeting.length
+          ? 1700
+          : isDeleting
+            ? 34
+            : 62;
+
+      window.setTimeout(typeGreeting, delay);
+    };
+
+    window.setTimeout(typeGreeting, 1600);
   }
 }
 
@@ -502,158 +600,28 @@ if (announcementLightbox) {
   });
 }
 
-const pwaInstallPrompt = document.querySelector('[data-pwa-install-prompt]');
-const pwaInstallButtons = Array.from(document.querySelectorAll('[data-pwa-install-trigger]'));
-
-if (pwaInstallPrompt) {
-  const installAction = pwaInstallPrompt.querySelector('[data-pwa-install-action]');
-  const dismissAction = pwaInstallPrompt.querySelector('[data-pwa-install-dismiss]');
-  const installTitle = pwaInstallPrompt.querySelector('[data-pwa-install-title]');
-  const installMessage = pwaInstallPrompt.querySelector('[data-pwa-install-message]');
-  const primaryInstallButton = pwaInstallButtons[0] ?? null;
-  const installLabel = primaryInstallButton?.dataset.installLabel ?? 'Install App';
-  const installingLabel = primaryInstallButton?.dataset.installingLabel ?? 'Preparing install...';
-  const readyMessage = pwaInstallPrompt.dataset.readyMessage ?? 'Install this app on your device for faster access.';
-  const iosMessage = pwaInstallPrompt.dataset.iosMessage ?? 'Open Share and choose Add to Home Screen.';
-  const promptKey = 'rgc:pwa-install-dismissed';
-  const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  let deferredInstallPrompt = null;
-
-  const setInstallCopy = (message, title = installLabel) => {
-    if (installTitle) {
-      installTitle.textContent = title;
-    }
-
-    if (installMessage) {
-      installMessage.textContent = message;
-    }
-  };
-
-  const hideInstallPrompt = () => {
-    pwaInstallPrompt.classList.add('hidden');
-    pwaInstallButtons.forEach((button) => {
-      button.classList.add('hidden');
-    });
-  };
-
-  const syncActionVisibility = (showInstallAction, showDismissAction = true) => {
-    installAction?.classList.toggle('hidden', !showInstallAction);
-    dismissAction?.classList.toggle('hidden', !showDismissAction);
-
-    pwaInstallButtons.forEach((button) => {
-      button.classList.toggle('hidden', !showInstallAction);
-    });
-  };
-
-  const showInstallPrompt = (message, title = installLabel, showInstallAction = true, showDismissAction = true) => {
-    setInstallCopy(message, title);
-    pwaInstallPrompt.classList.remove('hidden');
-    syncActionVisibility(showInstallAction, showDismissAction);
-
-    if (showInstallAction) {
-      pwaInstallButtons.forEach((button) => {
-        button.textContent = button.dataset.installLabel ?? title;
-      });
-    }
-  };
-
-  const markDismissed = () => {
-    window.localStorage.setItem(promptKey, '1');
-  };
-
-  const clearDismissed = () => {
-    window.localStorage.removeItem(promptKey);
-  };
-
-  const registerServiceWorker = async () => {
-    if (!('serviceWorker' in navigator)) {
-      return;
-    }
-
-    try {
-      const register = () => navigator.serviceWorker.register('/sw.js');
-
-      if (document.readyState === 'complete') {
-        await register();
-        return;
-      }
-
-      window.addEventListener('load', () => {
-        register().catch(() => {
-          // Keep install prompt optional if service worker registration fails.
-        });
-      }, { once: true });
-    } catch (_error) {
-      // Keep install prompt optional if service worker registration fails.
-    }
-  };
-
-  registerServiceWorker();
-
-  if (isStandalone) {
-    hideInstallPrompt();
-  } else if (isIos && !window.localStorage.getItem(promptKey)) {
-    showInstallPrompt(iosMessage, installLabel);
+const registerServiceWorker = async () => {
+  if (!('serviceWorker' in navigator)) {
+    return;
   }
 
-  window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    clearDismissed();
-    showInstallPrompt(readyMessage, installLabel);
-  });
+  try {
+    const register = () => navigator.serviceWorker.register('/sw.js');
 
-  window.addEventListener('appinstalled', () => {
-    deferredInstallPrompt = null;
-    clearDismissed();
-    hideInstallPrompt();
-  });
-
-  dismissAction?.addEventListener('click', () => {
-    markDismissed();
-    hideInstallPrompt();
-  });
-
-  const triggerInstall = async () => {
-    if (isStandalone) {
-      hideInstallPrompt();
+    if (document.readyState === 'complete') {
+      await register();
       return;
     }
 
-    if (!deferredInstallPrompt) {
-      if (isIos) {
-        showInstallPrompt(iosMessage, installLabel);
-      }
+    window.addEventListener('load', () => {
+      register().catch(() => {});
+    }, { once: true });
+  } catch (_error) {
+    // Service worker support is optional for normal web browsing.
+  }
+};
 
-      return;
-    }
-
-    pwaInstallButtons.forEach((button) => {
-      button.textContent = button.dataset.installingLabel ?? installingLabel;
-    });
-
-    await deferredInstallPrompt.prompt();
-    const choice = await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-
-    pwaInstallButtons.forEach((button) => {
-      button.textContent = button.dataset.installLabel ?? installLabel;
-    });
-
-    if (choice.outcome === 'accepted') {
-      hideInstallPrompt();
-      return;
-    }
-
-    showInstallPrompt(readyMessage, installLabel);
-  };
-
-  installAction?.addEventListener('click', triggerInstall);
-  pwaInstallButtons.forEach((button) => {
-    button.addEventListener('click', triggerInstall);
-  });
-}
+registerServiceWorker();
 
 
 const passwordInputs = Array.from(document.querySelectorAll('input[type="password"]'));

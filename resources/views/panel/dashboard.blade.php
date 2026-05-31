@@ -185,12 +185,46 @@
     $announcementPreview = collect($announcements->items())->take(3);
     $memberBranchName = $dashboardUser->branch?->name ?: __('your branch');
     $memberLastPayment = data_get($memberDashboard, 'giving.last_payment');
+    $dashboardDisplayName = trim((string) ($dashboardUser->name ?? '')) ?: __('friend');
+    $dashboardRoleTitle = match ($dashboardUser->normalizedRoleName() ?? 'member') {
+        'super_admin' => __('Super Admin'),
+        'regional_admin' => __('Regional Admin'),
+        'district_admin' => __('District Admin'),
+        'branch_admin' => __('Branch Admin'),
+        'bishop' => __('Bishop'),
+        'pastor' => __('Pastor'),
+        'accountant' => __('Accountant Officer'),
+        default => __('Member'),
+    };
+    $dashboardRoleArticle = in_array(strtolower(substr($dashboardRoleTitle, 0, 1)), ['a', 'e', 'i', 'o', 'u'], true) ? __('an') : __('a');
+    $dashboardHour = now()->hour;
+    $dashboardTimeGreeting = match (true) {
+        $dashboardHour >= 5 && $dashboardHour < 12 => __('Good morning'),
+        $dashboardHour >= 12 && $dashboardHour < 17 => __('Good afternoon'),
+        $dashboardHour >= 17 && $dashboardHour < 21 => __('Good evening'),
+        default => __('Hello'),
+    };
+    $dashboardGreetingLines = [
+        __(':greeting, :name', ['greeting' => $dashboardTimeGreeting, 'name' => $dashboardDisplayName]),
+        __('Hello, :name — you are :article :role of RGC', ['name' => $dashboardDisplayName, 'article' => $dashboardRoleArticle, 'role' => $dashboardRoleTitle]),
+        __('Salama, :name — you are :article :role of RGC', ['name' => $dashboardDisplayName, 'article' => $dashboardRoleArticle, 'role' => $dashboardRoleTitle]),
+        __('Welcome back, :name — your :role workspace is ready', ['name' => $dashboardDisplayName, 'role' => $dashboardRoleTitle]),
+        __('Let us continue today’s church work'),
+    ];
 @endphp
 
 <section class="page-banner">
     <div class="page-banner-content">
         <span class="section-kicker section-kicker--icon border-white/10 bg-white/10 text-rgc-yellow">@include('partials.ui.icon', ['name' => $isMember ? 'home' : 'sparkles', 'class' => 'section-kicker-icon'])<span>{{ $bannerKicker }}</span></span>
-        <h1 class="mt-5">{{ $roleLabel }} {{ __('Home') }}</h1>
+        <h1 class="dashboard-greeting-heading mt-5">
+            <span
+                class="dashboard-greeting-text"
+                data-dashboard-greeting
+                data-greetings="{{ e(json_encode($dashboardGreetingLines)) }}"
+                aria-live="polite"
+            >{{ $dashboardGreetingLines[0] }}</span>
+            <span class="dashboard-greeting-caret" aria-hidden="true"></span>
+        </h1>
         <p class="mt-4 max-w-3xl text-sm leading-7 text-white/82">
             {{ $bannerCopy }}
         </p>
@@ -294,7 +328,7 @@
                     <path d="{{ $memberTrendAreaPath }}" fill="rgba(143, 17, 17, 0.12)"></path>
                 @endif
                 @if($memberTrendPoints !== '')
-                    <polyline class="dashboard-line-chart-path" fill="none" points="{{ $memberTrendPoints }}"></polyline>
+                    <polyline class="dashboard-line-chart-path" fill="none" pathLength="1" points="{{ $memberTrendPoints }}"></polyline>
                 @endif
                 @foreach($memberTrendCoordinates as $point)
                     <circle class="dashboard-line-chart-dot" cx="{{ $point['x'] }}" cy="{{ $point['y'] }}" r="4.2"></circle>
